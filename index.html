@@ -9,6 +9,22 @@
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
+
+  <div class="boot-screen" id="bootScreen" aria-live="polite">
+    <div class="boot-shell">
+      <div class="boot-mark">CINE<br>GENOME</div>
+      <div class="boot-line">DEPT. OF CINEMATIC PATHOLOGY // CG-09</div>
+      <div class="boot-console" id="bootConsole">
+        <span>INITIALIZING PATHOLOGY ENGINE...</span>
+        <span>VERIFYING CONTAINMENT LAYER...</span>
+        <span>MOUNTING CINEMATIC SPECIMENS...</span>
+        <span>SEQUENCING 12-D GENOME MODEL...</span>
+        <span>ARCHIVE ONLINE.</span>
+      </div>
+      <div class="boot-progress"><i></i></div>
+      <button class="boot-skip" id="bootSkipBtn" type="button">SKIP BOOT [ESC]</button>
+    </div>
+  </div>
   <div class="noise" aria-hidden="true"></div>
   <div class="app-shell">
     <aside class="sidebar" aria-label="Primary navigation">
@@ -20,12 +36,11 @@
       </div>
 
       <nav class="module-nav" id="moduleNav">
-        <button class="module-btn is-active prescription-nav" data-view="prescription" type="button"><b>00</b><span>TODAY'S PRESCRIPTION<small>one cinematic diagnosis</small></span></button>
-        <button class="module-btn" data-view="scanner" type="button"><b>01</b><span>SPECIMEN SCANNER<small>read movie DNA</small></span></button>
+        <button class="module-btn is-active" data-view="scanner" type="button"><b>01</b><span>SPECIMEN SCANNER<small>read movie DNA</small></span></button>
         <button class="module-btn" data-view="crossbreed" type="button"><b>02</b><span>CROSSBREED REACTOR<small>combine two films</small></span></button>
         <button class="module-btn" data-view="mutation" type="button"><b>03</b><span>MUTATION CHAMBER<small>design impossible cinema</small></span></button>
         <button class="module-btn" data-view="atlas" type="button"><b>04</b><span>GENOME ATLAS<small>map the archive</small></span></button>
-        <button class="module-btn" data-view="database" type="button"><b>05</b><span>SPECIMEN DATABASE<small>browse all records</small></span></button>
+        <button class="module-btn" data-view="bloodline" type="button"><b>05</b><span>BLOODLINE LAB<small>trace cinematic relatives</small></span></button>
         <button class="module-btn" data-view="archive" type="button"><b>06</b><span>EXPERIMENT ARCHIVE<small>saved lab history</small></span></button>
       </nav>
 
@@ -34,6 +49,9 @@
         <div class="containment-row"><span>LEVEL</span><strong>B-12</strong></div>
         <div class="containment-row"><span>CONTAMINATION</span><strong id="contaminationReadout">02.1%</strong></div>
         <div class="containment-row"><span>DATASET</span><strong id="datasetVersion">—</strong></div>
+        <button class="containment-row human-record-trigger" id="humanRecordTrigger" type="button">
+          <span>OPERATOR</span><strong>[REDACTED]</strong>
+        </button>
       </section>
     </aside>
 
@@ -44,65 +62,18 @@
           <h1>FILMS ARE <span>ORGANISMS.</span></h1>
           <p>Sequence emotional, visual and narrative traits. Crossbreed incompatible films. Mutate cinematic DNA. Find the nearest living specimen.</p>
         </div>
-        <div class="warning-stamp">⚠ UNLICENSED<br>CINEMA RESEARCH</div>
+        <div class="hero-aside">
+          <button class="easteregg-note" id="eastereggNote" type="button" aria-label="Do not press the CineGenome logo 7 times">
+            <span class="easteregg-note-tape" aria-hidden="true"></span>
+            <span class="easteregg-note-kicker">lab memo</span>
+            <strong>DO NOT PRESS<br>CINEGENOME<br>7×</strong>
+            <small>seriously. do not.</small>
+          </button>
+          <div class="warning-stamp">⚠ UNLICENSED<br>CINEMA RESEARCH</div>
+        </div>
       </header>
 
-      <section class="view is-active" id="view-prescription" data-view-panel="prescription">
-        <div class="prescription-grid">
-          <article class="lab-panel ritual-panel">
-            <div class="panel-head"><span>CINEMATIC DIAGNOSTIC DIVISION</span><span id="prescriptionDate">TODAY</span></div>
-            <div class="panel-body ritual-body">
-              <div class="ritual-copy">
-                <div class="eyebrow">ONE SUBJECT / ONE DATE / ONE SPECIMEN</div>
-                <h2>TODAY'S<br><span>PRESCRIPTION.</span></h2>
-                <p>The machine will select one film from the curated 500-specimen pool. The result is locked to this device for the day.</p>
-              </div>
-              <div class="ritual-machine" id="ritualMachine">
-                <div class="diagnostic-lines" id="diagnosticLines" aria-live="polite">
-                  <span>SUBJECT STATUS: UNDIAGNOSED</span>
-                  <span>CURATED POOL: 500 SPECIMENS</span>
-                  <span>GENOME LINK: STANDBY</span>
-                </div>
-                <button class="diagnose-button" id="diagnoseBtn" type="button"><span>DIAGNOSE ME</span><small>ADMINISTER TODAY'S CINEMA</small></button>
-              </div>
-            </div>
-          </article>
-
-          <aside class="tarot-stage lab-panel">
-            <div class="panel-head"><span>PRESCRIPTION CARD</span><span id="prescriptionStatus">SEALED</span></div>
-            <div class="panel-body tarot-body">
-              <button class="tarot-card" id="tarotCard" type="button" aria-label="Reveal today's prescribed film" disabled>
-                <span class="tarot-inner">
-                  <span class="tarot-face tarot-back">
-                    <span class="tarot-index">CG / RX</span>
-                    <span class="tarot-sigil">☿</span>
-                    <strong>CINEGENOME</strong>
-                    <span>UNKNOWN SPECIMEN</span>
-                    <i></i>
-                    <small>DO NOT OPEN BEFORE DIAGNOSIS</small>
-                  </span>
-                  <span class="tarot-face tarot-front">
-                    <img id="prescriptionPoster" alt="" hidden />
-                    <span class="tarot-overlay"></span>
-                    <span class="tarot-index">TODAY'S SPECIMEN</span>
-                    <strong id="prescriptionTitle">—</strong>
-                    <span id="prescriptionMeta">Awaiting diagnosis</span>
-                    <small id="prescriptionTrait">GENOME UNREADABLE</small>
-                  </span>
-                </span>
-              </button>
-              <div class="prescription-actions" id="prescriptionActions" hidden>
-                <button class="lab-btn primary" id="openPrescriptionBtn" type="button">OPEN DOSSIER</button>
-                <button class="lab-btn" id="scanPrescriptionBtn" type="button">EXAMINE DNA</button>
-                <button class="lab-btn danger" id="rejectPrescriptionBtn" type="button">CONTRAINDICATION</button>
-              </div>
-              <div class="report-box prescription-report" id="prescriptionReport">No diagnosis has been administered.</div>
-            </div>
-          </aside>
-        </div>
-      </section>
-
-      <section class="view" id="view-scanner" data-view-panel="scanner">
+      <section class="view is-active" id="view-scanner" data-view-panel="scanner">
         <div class="two-col">
           <article class="lab-panel">
             <div class="panel-head"><span>SPECIMEN SCANNER</span><span id="scannerCode">SUBJECT #0001</span></div>
@@ -110,6 +81,12 @@
               <div class="search-row">
                 <div class="field grow"><label for="scannerSearch">Search specimen</label><input id="scannerSearch" autocomplete="off" placeholder="title / director / tag" /></div>
                 <div class="field"><label for="scannerSelect">Archive record</label><select id="scannerSelect"></select></div>
+              </div>
+
+              <div class="corruption-banner" id="corruptionBanner" hidden>
+                <span>⚠ SPECIMEN READ ERROR</span>
+                <strong id="corruptionMessage">ARCHIVE SIGNAL CONTAMINATED</strong>
+                <small>DNA DATA IS INTACT // DISPLAY LAYER UNSTABLE</small>
               </div>
 
               <div class="specimen-header">
@@ -139,6 +116,12 @@
               <div class="report-box" id="scannerReport">Awaiting specimen.</div>
               <div class="section-kicker spacing-top">NEAREST GENOMES</div>
               <div id="similarList" class="rank-list"></div>
+
+              <div class="section-kicker spacing-top">DIRECTOR FINGERPRINT</div>
+              <div class="director-fingerprint" id="directorFingerprint"></div>
+
+              <div class="section-kicker spacing-top">WATCH CONDITIONS</div>
+              <div class="watch-conditions" id="watchConditions"></div>
             </div>
           </aside>
         </div>
@@ -150,9 +133,23 @@
             <div class="panel-head"><span>CROSSBREED REACTOR</span><span>BIOCHAMBER 02</span></div>
             <div class="panel-body">
               <div class="parent-grid">
-                <div class="field"><label for="parentA">Parent specimen A</label><select id="parentA"></select></div>
+                <div class="field movie-search-field">
+  <label for="parentASearch">Parent specimen A</label>
+  <div class="movie-search">
+    <input id="parentASearch" type="search" autocomplete="off" placeholder="Search title, director, year…" aria-autocomplete="list" aria-controls="parentASuggestions">
+    <input id="parentA" type="hidden">
+    <div class="movie-search-results" id="parentASuggestions" role="listbox" hidden></div>
+  </div>
+</div>
                 <div class="cross-glyph">×</div>
-                <div class="field"><label for="parentB">Parent specimen B</label><select id="parentB"></select></div>
+                <div class="field movie-search-field">
+  <label for="parentBSearch">Parent specimen B</label>
+  <div class="movie-search">
+    <input id="parentBSearch" type="search" autocomplete="off" placeholder="Search title, director, year…" aria-autocomplete="list" aria-controls="parentBSuggestions">
+    <input id="parentB" type="hidden">
+    <div class="movie-search-results" id="parentBSuggestions" role="listbox" hidden></div>
+  </div>
+</div>
               </div>
               <div class="balance-block">
                 <div class="balance-label"><span id="parentALabel">A</span><strong>GENETIC DOMINANCE</strong><span id="parentBLabel">B</span></div>
@@ -188,10 +185,23 @@
           <article class="lab-panel">
             <div class="panel-head"><span>MUTATION CHAMBER</span><span>MANUAL OVERRIDE</span></div>
             <div class="panel-body">
-              <div class="mutation-topline">
-                <div class="field grow"><label for="mutationSeed">Seed organism</label><select id="mutationSeed"></select></div>
+              <div class="mutation-topline mutation-seed-topline">
+                <div class="field grow movie-search-field">
+  <label for="mutationSeedSearch">Seed organism</label>
+  <div class="movie-search">
+    <input id="mutationSeedSearch" type="search" autocomplete="off" placeholder="Search a seed organism…" aria-autocomplete="list" aria-controls="mutationSeedSuggestions">
+    <input id="mutationSeed" type="hidden">
+    <div class="movie-search-results" id="mutationSeedSuggestions" role="listbox" hidden></div>
+  </div>
+</div>
                 <button class="lab-btn" id="copySeedBtn" type="button">LOAD DNA</button>
-                <button class="lab-btn danger" id="randomMutationBtn" type="button">RANDOM MUTATION</button>
+                <button class="lab-btn" id="reseedMutationBtn" type="button">RANDOM SEED</button>
+                <button class="lab-btn danger" id="randomMutationBtn" type="button">MUTATE FROM SEED</button>
+              </div>
+              <div class="mutation-seed-readout" aria-live="polite">
+                <span>MUTATION SEED</span>
+                <strong id="mutationSeedCode">CGM-00000000</strong>
+                <small id="mutationSeedMeta">SESSION-SEEDED / REPRODUCIBLE PROFILE</small>
               </div>
               <div class="mutation-layout">
                 <div id="mutationControls" class="mutation-controls"></div>
@@ -221,6 +231,11 @@
               <div class="field"><label for="axisX">X axis</label><select id="axisX"></select></div>
               <div class="field"><label for="axisY">Y axis</label><select id="axisY"></select></div>
               <div class="field"><label for="atlasGenre">Genre filter</label><select id="atlasGenre"><option value="">ALL GENRES</option></select></div>
+              <div class="field atlas-load-field">
+                <label for="atlasLimit">Nodes loaded <output id="atlasLimitValue" for="atlasLimit">80</output></label>
+                <input id="atlasLimit" type="range" min="20" max="500" step="20" value="80" aria-label="Number of genome nodes to load">
+              </div>
+              <button class="lab-btn atlas-random-btn" id="randomAtlasBtn" type="button">RANDOMIZE NODES</button>
               <button class="lab-btn" id="resetAtlasBtn" type="button">RESET VIEW</button>
             </div>
             <div class="atlas-wrap"><svg id="atlasSvg" viewBox="0 0 1000 620" role="img" aria-label="Interactive movie DNA scatter plot"></svg></div>
@@ -229,21 +244,28 @@
         </article>
       </section>
 
-      <section class="view" id="view-database" data-view-panel="database">
+
+      <section class="view" id="view-bloodline" data-view-panel="bloodline">
         <article class="lab-panel">
-          <div class="panel-head"><span>SPECIMEN DATABASE</span><span id="dbCount">0 RECORDS</span></div>
+          <div class="panel-head"><span>CINEMATIC BLOODLINE LAB</span><span>MODEL-INFERRED / NOT HISTORICAL FACT</span></div>
           <div class="panel-body">
-            <div class="database-toolbar">
-              <div class="field grow"><label for="dbSearch">Query archive</label><input id="dbSearch" placeholder="search title, director, country, tag..." /></div>
-              <div class="field"><label for="dbGenre">Genre</label><select id="dbGenre"><option value="">ALL</option></select></div>
-              <div class="field"><label for="dbSort">Sort</label><select id="dbSort"><option value="title">TITLE</option><option value="year-desc">YEAR ↓</option><option value="year-asc">YEAR ↑</option><option value="surrealism">SURREALISM</option><option value="loneliness">LONELINESS</option><option value="intensity">INTENSITY</option></select></div>
+            <div class="bloodline-toolbar">
+              <div class="field grow movie-search-field">
+                <label for="bloodlineSearch">Source specimen</label>
+                <div class="movie-search">
+                  <input id="bloodlineSearch" type="search" autocomplete="off" placeholder="Search title, director, year…" aria-autocomplete="list" aria-controls="bloodlineSuggestions">
+                  <input id="bloodlineSelect" type="hidden">
+                  <div class="movie-search-results" id="bloodlineSuggestions" role="listbox" hidden></div>
+                </div>
+              </div>
+              <button class="lab-btn primary" id="traceBloodlineBtn" type="button">TRACE BLOODLINE</button>
+              <button class="lab-btn" id="bloodlineRandomBtn" type="button">RANDOM SOURCE</button>
             </div>
-            <div class="table-wrap">
-              <table class="specimen-table">
-                <thead><tr><th>ID</th><th>SPECIMEN</th><th>YEAR</th><th>GENRES</th><th>SURR.</th><th>LON.</th><th>CHAOS</th><th>INT.</th><th></th></tr></thead>
-                <tbody id="databaseRows"></tbody>
-              </table>
+            <div class="bloodline-note">Relations are inferred from CineGenome DNA similarity + release-year distance. They describe model proximity, not documented influence.</div>
+            <div class="bloodline-wrap">
+              <svg id="bloodlineSvg" viewBox="0 0 1000 620" role="img" aria-label="Model-inferred cinematic bloodline map"></svg>
             </div>
+            <div class="bloodline-detail" id="bloodlineDetail">Select a source specimen to trace model-inferred cinematic relatives.</div>
           </div>
         </article>
       </section>
@@ -265,11 +287,107 @@
       </section>
 
       <footer class="site-footer">
-        <span>CINEGENOME LAB / CURATED 500 PRESCRIPTION POOL</span>
+        <span>CINEGENOME LAB ALT / DEAD CHANNEL GUESTBOOK INCIDENT / WTF ARCHIVE</span>
         <span>DNA SCORES ARE CINEGENOME MODEL OUTPUT — FILM METADATA / IMAGES MAY BE PROVIDED BY TMDB</span>
+        <button class="footer-link" id="specimenCodeBtn" type="button">SPECIMEN CODE</button>
         <button class="footer-link" id="tmdbSettingsBtn" type="button">TMDB CONNECTION</button>
       </footer>
     </main>
+  </div>
+
+  <!-- Floating cinematic diagnosis / max three draws per day -->
+  <button class="rx-fab" id="rxFab" type="button" aria-expanded="false" aria-controls="rxFloat" aria-label="Open cinematic diagnosis">
+    <img class="rx-fab-logo" src="assets/rx-eye-256.png" alt="RX logo">
+    <span class="rx-fab-led" aria-hidden="true"></span>
+    <small id="rxFabCount">0/3</small>
+  </button>
+
+  <div class="rx-backdrop" id="rxBackdrop" hidden>
+  <aside class="rx-float" id="rxFloat" hidden role="dialog" aria-modal="true" aria-label="Cinematic diagnosis">
+    <button class="rx-close rx-close-card" id="rxCloseBtn" type="button" aria-label="Close diagnosis">×</button>
+
+    <div class="rx-float-body">
+      <section class="rx-scan-stage" id="rxScanStage">
+        <div class="rx-scan-kicker">CINEGENOME // SUBJECT INTERROGATION</div>
+        <div class="rx-scan-title">GET<br>DIAGNOSED</div>
+        <div class="rx-scan-rule" aria-hidden="true"><span></span></div>
+        <div class="rx-diagnostic-lines" id="rxDiagnosticLines" aria-live="polite"></div>
+        <div class="rx-scan-footer">
+          <span id="rxDrawCount">DIAGNOSIS 1 / 3</span>
+          <span>500 SPECIMENS // ONE MATCH</span>
+        </div>
+      </section>
+
+      <section class="rx-card-stage" id="rxCardStage" hidden>
+        <div class="rx-status-line">
+          <span id="rxDate">TODAY</span>
+          <strong id="rxStatus">SEALED</strong>
+        </div>
+
+        <div class="rx-history" id="rxHistory" hidden aria-label="Today's prescription history">
+          <span class="rx-history-label">DAILY RX MEMORY</span>
+          <div class="rx-history-slots" id="rxHistorySlots">
+            <button type="button" class="rx-history-slot" data-rx-slot="0" disabled><span>01</span><b>WOUND</b><small>EMPTY</small></button>
+            <button type="button" class="rx-history-slot" data-rx-slot="1" disabled><span>02</span><b>MIRROR</b><small>EMPTY</small></button>
+            <button type="button" class="rx-history-slot" data-rx-slot="2" disabled><span>03</span><b>ANTIDOTE</b><small>EMPTY</small></button>
+          </div>
+        </div>
+
+        <button class="rx-tarot-card" id="rxTarotCard" type="button" aria-label="Reveal prescribed film">
+          <span class="rx-tarot-inner">
+            <span class="rx-tarot-face rx-tarot-back">
+              <span class="rx-card-index">CINEGENOME // RX</span>
+              <span class="rx-sigil">CG</span>
+              <strong>SEALED<br>SPECIMEN</strong>
+              <i></i>
+              <span>CLICK TO REVEAL</span>
+              <small id="rxSealCount">DIAGNOSIS 1 / 3</small>
+            </span>
+
+            <span class="rx-tarot-face rx-tarot-front">
+              <img id="rxPoster" alt="" hidden>
+              <span class="rx-poster-shade" aria-hidden="true"></span>
+              <span class="rx-card-index">TODAY'S PRESCRIPTION</span>
+              <strong id="rxTitle">UNKNOWN</strong>
+              <span id="rxCardHint">METADATA PENDING</span>
+              <small id="rxTrait">GENOME SIGNAL FOUND</small>
+            </span>
+          </span>
+        </button>
+
+        <div class="rx-click-hint" id="rxClickHint">CLICK CARD TO REVEAL</div>
+        <div class="rx-watch-strip" id="rxWatchStrip" hidden></div>
+
+        <div class="rx-reveal-actions" id="rxRevealActions" hidden>
+          <button class="rx-info-tab" id="rxSynopsisBtn" type="button">SYNOPSIS</button>
+          <button class="rx-info-tab" id="rxDnaBtn" type="button">DNA</button>
+        </div>
+
+        <div class="rx-detail-panel" id="rxSynopsis" hidden>
+          <div class="rx-detail-kicker">FILM DOSSIER</div>
+          <div class="rx-synopsis-meta">
+            <strong id="rxYear">—</strong>
+            <span id="rxDirector">METADATA PENDING</span>
+          </div>
+          <div class="rx-genre-line" id="rxGenres">GENRE SIGNAL PENDING</div>
+          <p id="rxOverview">Synopsis signal unavailable.</p>
+        </div>
+
+        <div class="rx-detail-panel" id="rxDNA" hidden>
+          <div class="rx-detail-kicker">CINEMATIC GENOME // 12-D</div>
+          <div class="dna-grid" id="rxDNAGrid"></div>
+        </div>
+      </section>
+
+      <section class="rx-limit-stage" id="rxLimitStage" hidden>
+        <div class="rx-scan-kicker">CINEGENOME // DAILY SAFETY LOCK</div>
+        <div class="rx-limit-code">03/03</div>
+        <h2>DIAGNOSTIC<br>LIMIT REACHED</h2>
+        <p>Three cinematic prescriptions have already been dispensed to this subject today.</p>
+        <small>NEURAL CROSS-CONTAMINATION RISK // RETURN AFTER DATE RESET</small>
+      </section>
+    </div>
+  </aside>
   </div>
 
   <dialog class="lab-dialog" id="movieDialog">
@@ -283,12 +401,172 @@
     <form method="dialog" class="dialog-shell">
       <div class="panel-head"><span>TMDB DATA LINK</span><button class="dialog-close" value="close" aria-label="Close">×</button></div>
       <div class="settings-body">
-        <div class="report-box">Local/test mode can use your TMDB API Read Access Token in this browser session. For a public website, switch the config to proxy mode and keep the token on the server.</div>
-        <label for="tmdbTokenInput">TMDB API READ ACCESS TOKEN</label>
-        <textarea id="tmdbTokenInput" rows="4" placeholder="Paste Bearer read token here…"></textarea>
-        <div class="action-row"><button class="lab-btn primary" id="saveTmdbTokenBtn" type="button">CONNECT TMDB</button><button class="lab-btn danger" id="clearTmdbTokenBtn" type="button">DISCONNECT</button></div>
-        <div class="tmdb-state" id="tmdbState">TMDB NOT CONNECTED</div>
+        <div class="report-box">PUBLIC MODE // TMDB credentials stay on the Vercel server. The browser talks only to the CINEGENOME proxy at <code>/api/tmdb</code>.</div>
+        <div class="action-row"><button class="lab-btn primary" id="testTmdbBtn" type="button">TEST SERVER LINK</button></div>
+        <div class="tmdb-state" id="tmdbState">CHECKING TMDB LINK…</div>
+        <p class="micro">Vercel Environment Variable required: <strong>TMDB_API_KEY</strong> (or <strong>TMDB_READ_TOKEN</strong>).</p>
         <p class="micro tmdb-credit">This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+      </div>
+    </form>
+  </dialog>
+
+
+
+
+  <div class="dead-transition" id="deadTransition" hidden aria-hidden="true">
+    <div class="dead-transition-static"></div>
+    <div class="dead-transition-center">
+      <div class="dead-transition-label">REMOTE HOST DETECTED</div>
+      <div class="dead-transition-url">http://www.dead-channel.invalid/~wtf_archive/</div>
+      <div class="dead-transition-progress"><i></i></div>
+      <div class="dead-transition-log" id="deadTransitionLog">DIALING 56K NODE...</div>
+    </div>
+  </div>
+
+  <dialog class="lab-dialog secret-dialog" id="secretArchiveDialog">
+    <div class="deadsite">
+      <audio id="deadChannelAudio" src="assets/dead-channel-laugh.mp3" preload="auto"></audio>
+
+      <div class="deadsite-stars" aria-hidden="true"></div>
+      <div class="deadsite-scanlines" aria-hidden="true"></div>
+
+      <div class="deadsite-topbar">
+        <span>✦ YOU HAVE ENTERED AN UNLISTED PAGE ✦</span>
+        <span>BEST VIEWED AT 800×600 // INTERNET EXPLORER 6 // SOUND ON</span>
+      </div>
+
+      <div class="deadsite-windowbar">
+        <span>☠ dead_channel.html — [NOT SECURE]</span>
+        <div class="deadsite-window-buttons"><i>_</i><i>□</i><button id="secretCloseBtn" type="button" aria-label="Leave dead channel">×</button></div>
+      </div>
+
+      <div class="deadsite-page">
+        <aside class="deadsite-sidebar">
+          <div class="deadsite-avatar">WTF<br>300</div>
+          <div class="deadsite-counter">VISITOR<br><b>000666</b></div>
+
+          <nav class="deadsite-nav">
+            <button class="dead-mode is-active" type="button" data-dead-mode="cult">» FRONT PAGE FREAKS</button>
+            <button class="dead-mode" type="button" data-dead-mode="deep">» DEEPER IN THE WEB</button>
+            <button class="dead-mode" type="button" data-dead-mode="chaos">» RANDOM CURSE</button>
+            <button id="secretRefreshBtn" type="button">» REFRESH BAD SIGNAL</button>
+          </nav>
+
+          <div class="deadsite-warning">
+            <b>WARNING!!!</b><br>
+            do not bookmark this page.<br>
+            do not watch all 300 in one sitting.<br>
+            do not trust the visitor counter.
+          </div>
+
+          <button class="dead-sound" id="deadSoundBtn" type="button">♫ SOUND: ON</button>
+
+          <div class="deadsite-webbadges">
+            <span>NO<br>ALGORITHM</span>
+            <span>100%<br>WEIRD</span>
+            <span>HTML<br>HELL</span>
+          </div>
+        </aside>
+
+        <main class="deadsite-main">
+          <div class="deadsite-marquee" aria-hidden="true">
+            <div>+++ THE MOVIES BELOW SHOULD HAVE STAYED ON A VHS TAPE UNDER SOMEBODY'S BED +++ IF IT LOOKS WRONG, THE PAGE IS WORKING +++</div>
+          </div>
+
+          <header class="deadsite-hero">
+            <div class="deadsite-eyebrow">[ mirror://channel-d300/weird_stuff/index.html ]</div>
+            <h2>THE<br>WEIRD<br>WEB</h2>
+            <div class="deadsite-subtitle">a dead-channel index of cinema that feels like corrupted media, cursed cable television, bargain-bin hallucinations and movies your browser probably should not know about.</div>
+          </header>
+
+          <section class="deadsite-story">
+            <h3>WHAT IS THIS PLACE???</h3>
+            <p><b>YOU ARE NOT BROWSING CINEGENOME ANYMORE.</b> This mirror page isolates 300 off-catalog titles seeded from the first three pages of <i>The Weird and WTF Compendium</i>. The source spans cult trash, outsider oddities, exploitation, psychotronic detours and movies that simply radiate the wrong frequency.</p>
+            <p>The source position shown here is preserved only as an archive coordinate. It is <u>not</u> a CineGenome quality score. Follow whichever title looks most likely to damage the signal.</p>
+          </section>
+
+          <section class="dead-picker">
+            <div class="dead-picker-badge">FREEWARE v3.00 // DEFINITELY NO VIRUS</div>
+            <h3>RANDOM MOVIE<br>PICKER 3000</h3>
+            <p>Can't decide which terrible transmission to open? Let the cursed computer choose for you.</p>
+            <div class="dead-picker-screen" id="deadPickerScreen">
+              <span id="deadPickerCode">D???</span>
+              <strong id="deadPickerTitle">CLICK THE BUTTON, COWARD</strong>
+              <small id="deadPickerMeta">300 BAD IDEAS AVAILABLE</small>
+            </div>
+            <div class="dead-picker-actions">
+              <button class="dead-picker-spin" id="deadPickerSpin" type="button">★ PICK MY BAD DECISION ★</button>
+              <button class="dead-picker-open" id="deadPickerOpen" type="button" disabled>OPEN THIS WEIRD THING</button>
+            </div>
+          </section>
+
+          <div class="deadsite-divider">~*~*~*~*~*~*~*~ C H O O S E &nbsp; A &nbsp; B A D &nbsp; S I G N A L ~*~*~*~*~*~*~*~</div>
+
+          <div class="dead-channel-grid" id="secretGrid"></div>
+
+          <section class="dead-dossier" id="deadDossier" hidden>
+            <button class="dead-dossier-back" id="deadDossierBack" type="button">« BACK TO THE CURSED INDEX</button>
+            <div class="dead-dossier-content" id="deadDossierContent"></div>
+          </section>
+
+          <button class="deadsite-guestbook" id="deadGuestbookBtn" type="button" aria-label="Sign the guestbook">
+            <h3>SIGN THE GUESTBOOK</h3>
+            <p>Guestbook disabled after incident #003. <u>CLICK HERE TO SIGN ANYWAY.</u></p>
+            <span class="guestbook-blink">[ guestbook.cgi is definitely safe ]</span>
+          </button>
+
+          <footer class="dead-channel-footer">
+            <span>LAST UPDATED: [DATE CORRUPTED] // 300 OFF-CATALOG SIGNALS // PAGE GENERATED BY SOMETHING</span>
+            <a href="https://letterboxd.com/screenwatcher69/list/the-weird-and-wtf-compendium-1/" target="_blank" rel="noopener">VIEW ORIGINAL COMPENDIUM ↗</a>
+          </footer>
+        </main>
+      </div>
+
+    </div>
+  </dialog>
+
+  <dialog class="guestbook-jumpscare" id="guestbookJumpscare" aria-label="Guestbook surprise">
+    <video id="guestbookSurpriseVideo" preload="auto" playsinline src="assets/guestbooksuprise.mp4"></video>
+    <div class="guestbook-jumpscare-static" aria-hidden="true"></div>
+  </dialog>
+
+
+  <dialog class="human-specimen-dialog" id="humanSpecimenDialog">
+    <div class="human-record-shell">
+      <div class="human-record-head">
+        <span>SUBJECT RECORD // HUMAN SPECIMEN</span>
+        <button id="humanRecordClose" type="button" aria-label="Close human specimen record">×</button>
+      </div>
+      <div class="human-record-body">
+        <div class="human-record-photo">
+          <div class="human-silhouette">HUMAN<br>SUBJECT</div>
+          <span>IMAGE WITHHELD</span>
+        </div>
+        <div class="human-record-data">
+          <div class="human-stamp">CURATOR / OPERATOR</div>
+          <h2>THE PERSON<br>BEHIND THE LAB</h2>
+          <div class="human-fields">
+            <div><span>SUBJECT TYPE</span><strong>HUMAN</strong></div>
+            <div><span>ACCESS LEVEL</span><strong>UNSUPERVISED</strong></div>
+            <div><span>EXTERNAL ARCHIVE</span><strong>LETTERBOXD</strong></div>
+            <div><span>RECORD STATUS</span><strong>VERY ONLINE</strong></div>
+          </div>
+          <p>The lab keeps one non-film specimen on record: the operator. Viewing history, ratings, lists and cinematic damage are stored in an external archive.</p>
+          <a class="human-letterboxd-link" href="https://boxd.it/a35Ed" target="_blank" rel="noopener">OPEN HUMAN FILM ARCHIVE ↗</a>
+          <div class="human-record-hint">alternate access command: WHOAMI</div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="lab-dialog code-dialog" id="specimenCodeDialog">
+    <form class="code-shell" id="specimenCodeForm">
+      <div class="panel-head"><span>SPECIMEN ACCESS TERMINAL</span><button class="dialog-close" id="specimenCodeClose" type="button" aria-label="Close">×</button></div>
+      <div class="code-body">
+        <label for="specimenCodeInput">ENTER SPECIMEN CODE</label>
+        <input id="specimenCodeInput" autocomplete="off" spellcheck="false" placeholder="CG-____">
+        <div class="code-readout" id="specimenCodeReadout">AWAITING CODE…</div>
+        <button class="lab-btn primary" type="submit">AUTHENTICATE</button>
       </div>
     </form>
   </dialog>
@@ -296,6 +574,7 @@
   <script src="data/movies.js"></script>
   <script src="data/top500.js"></script>
   <script src="data/top500-enriched.js"></script>
+  <script src="data/dead-channel-300.js"></script>
   <script src="data/tmdb-config.js"></script>
   <script src="js/tmdb.js"></script>
   <script src="js/app.js"></script>

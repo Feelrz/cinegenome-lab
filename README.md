@@ -1,10 +1,18 @@
-# CINEGENOME LAB v2
+# CINEGENOME LAB ALT V7
+
+This branch is the experimental alternative build. V7 focuses on smoother RX diagnosis/reveal motion, a sealed catalog UI, and a randomizable Genome Atlas.
+
+# CINEGENOME LAB — ALT API BUILD
 
 Interactive **movie DNA laboratory** built with plain HTML, CSS and JavaScript.
 
-## New in v2
+## ALT API build
 
-- **Today's Prescription** — a one-film-per-day cinematic diagnosis presented as a ritual/tarot specimen card.
+This variant is configured for a **server-side TMDB proxy only**. Add `TMDB_API_KEY` in Vercel Environment Variables; the credential is never shipped to the browser. Use `TMDB CONNECTION -> TEST SERVER LINK` to verify it.
+
+## Features
+
+- **RX Diagnosis** — up to three cinematic diagnoses per day, delivered through an automatic scan and minimal reveal card.
 - **500-title curated prescription pool** — snapshot membership from Letterboxd's official Top 500 list dated 2026-09-22. Ranking numbers are deliberately not shown or used in the UI.
 - **Film dossier** — click `OPEN DOSSIER` to see poster, synopsis, metadata and the CINEGENOME DNA vector.
 - **TMDB connection** — poster + overview + canonical metadata can be resolved from TMDB.
@@ -18,7 +26,6 @@ The original modules remain:
 - Crossbreed Reactor
 - Mutation Chamber
 - Genome Atlas
-- Specimen Database
 - Experiment Archive
 
 ## Run locally
@@ -161,3 +168,19 @@ cinegenome-lab/
    ├─ starter-movies.csv
    └─ tmdb-sync-example.mjs
 ```
+
+
+## ALT V4 — RX Ritual
+
+The current alternative build removes the prescription tab and moves the daily film prescription into a centered floating ritual. The 500-film database now lazy-loads director and genre metadata through the TMDB proxy as records become visible. See `UPDATE_V4.md`.
+
+
+## ALT V6
+See `UPDATE_V6.md` for the automatic 3x/day diagnosis flow and minimal card reveal.
+
+## ALT V7
+See `UPDATE_V7.md` for smooth RX transitions, custom scrollbars, hidden database UI, and randomized Genome Atlas sampling.
+
+
+## V14
+Seeded Mutation Chamber + Genome Engine V3. See `UPDATE_V14.md`.

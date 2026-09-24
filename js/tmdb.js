@@ -60,6 +60,12 @@
     const full = await details(hit.id);
     return Object.assign({}, hit, full);
   }
+
+  async function health(){
+    const data = await request('/configuration');
+    return !!(data && data.images && data.images.secure_base_url);
+  }
+
   function posterUrl(path, size='w500'){
     return path ? `https://image.tmdb.org/t/p/${size}${path}` : '';
   }
@@ -67,5 +73,5 @@
     return path ? `https://image.tmdb.org/t/p/${size}${path}` : '';
   }
 
-  window.CINEGENOME_TMDB_SERVICE = { CONFIG, token, setToken, canQuery, request, searchMovie, details, resolveTitle, posterUrl, backdropUrl };
+  window.CINEGENOME_TMDB_SERVICE = { CONFIG, token, setToken, canQuery, request, searchMovie, details, resolveTitle, health, posterUrl, backdropUrl };
 })();
