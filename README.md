@@ -1,12 +1,12 @@
-# CINEGENOME LAB ALT V7
+# CINEGENOME LAB 
 
 This branch is the experimental alternative build. V7 focuses on smoother RX diagnosis/reveal motion, a sealed catalog UI, and a randomizable Genome Atlas.
 
-# CINEGENOME LAB — ALT API BUILD
+# CINEGENOME LAB 
 
 Interactive **movie DNA laboratory** built with plain HTML, CSS and JavaScript.
 
-## ALT API build
+## API build
 
 This variant is configured for a **server-side TMDB proxy only**. Add `TMDB_API_KEY` in Vercel Environment Variables; the credential is never shipped to the browser. Use `TMDB CONNECTION -> TEST SERVER LINK` to verify it.
 
