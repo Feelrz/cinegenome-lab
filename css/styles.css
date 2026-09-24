@@ -1667,3 +1667,288 @@ body.guestbook-incident .deadsite-scanlines{opacity:.22}
     column-gap:10px!important;
   }
 }
+
+
+/* ===== CINEGENOME ALT V31 / anti-stuck safety ===== */
+.boot-screen{
+  /* JS normally dismisses this; this CSS animation is a second independent failsafe. */
+  animation:bootHardFailsafe .01s linear 4s forwards;
+}
+@keyframes bootHardFailsafe{
+  to{opacity:0;visibility:hidden;pointer-events:none}
+}
+
+
+/* ===== CINEGENOME ALT V32 / module info + Dead Channel poster cards ===== */
+
+/* Header help buttons */
+.panel-head-tools{
+  display:flex!important;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+  min-width:0;
+  color:var(--acid)!important;
+}
+.panel-head-tools > span{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.tab-info-btn{
+  flex:0 0 auto;
+  border:1px solid #71806b;
+  background:transparent;
+  color:#dfe7da;
+  padding:4px 7px;
+  font-family:var(--font-body,"Courier Prime",monospace)!important;
+  font-size:7px;
+  line-height:1;
+  letter-spacing:.06em;
+  cursor:pointer;
+}
+.tab-info-btn:hover{
+  border-color:#b8ff35;
+  color:#b8ff35;
+  background:#161d13;
+}
+
+/* Common module explanation dialog */
+.module-info-dialog{
+  width:min(610px,calc(100vw - 24px));
+  max-width:none;
+  border:0;
+  padding:0;
+  background:transparent;
+  color:#e8eadf;
+}
+.module-info-dialog::backdrop{
+  background:rgba(4,6,4,.76);
+  backdrop-filter:blur(5px);
+}
+.module-info-shell{
+  border:1px solid #53604d;
+  background:#0b0f0a;
+  box-shadow:0 28px 90px rgba(0,0,0,.7);
+}
+.module-info-body{padding:20px}
+.module-info-code{
+  font-family:var(--font-body,"Courier Prime",monospace);
+  font-size:8px;
+  letter-spacing:.1em;
+  color:#7c8978;
+}
+.module-info-body h2{
+  margin:9px 0 13px;
+  font-family:var(--font-display,"Orbitron",sans-serif);
+  font-size:clamp(26px,5vw,42px);
+  line-height:.92;
+  letter-spacing:-.045em;
+  color:#edf3e9;
+}
+.module-info-body > p{
+  margin:0;
+  max-width:62ch;
+  font-family:var(--font-body,"Courier Prime",monospace);
+  font-size:11px;
+  line-height:1.7;
+  color:#a4b09f;
+}
+.module-info-simple{
+  margin:17px 0;
+  border-left:3px solid #b8ff35;
+  background:#111710;
+  padding:11px 12px;
+  display:grid;
+  gap:5px;
+}
+.module-info-simple span{
+  font-family:var(--font-body,"Courier Prime",monospace);
+  font-size:7px;
+  letter-spacing:.1em;
+  color:#71806c;
+}
+.module-info-simple strong{
+  font-family:var(--font-body,"Courier Prime",monospace);
+  font-size:10px;
+  line-height:1.55;
+  color:#dcff96;
+  font-weight:400;
+}
+.module-info-steps{
+  display:grid;
+  border-top:1px solid #323b30;
+}
+.module-info-steps > div{
+  display:grid;
+  grid-template-columns:34px 1fr;
+  gap:10px;
+  align-items:start;
+  border-bottom:1px solid #323b30;
+  padding:9px 0;
+}
+.module-info-steps span{
+  font-family:var(--font-display,"Orbitron",sans-serif);
+  font-size:10px;
+  color:#b8ff35;
+}
+.module-info-steps p{
+  margin:0;
+  font-family:var(--font-body,"Courier Prime",monospace);
+  font-size:9px;
+  line-height:1.55;
+  color:#a5b1a1;
+}
+
+/* Dead Channel cards now use the large empty upper area as a poster bay */
+.dead-card{
+  cursor:pointer!important;
+}
+.dead-card-poster{
+  position:relative;
+  width:100%;
+  aspect-ratio:2/3;
+  max-height:260px;
+  margin:0 0 10px;
+  border:3px inset #756878;
+  background:
+    repeating-linear-gradient(0deg,#090009 0 3px,#12000f 3px 4px);
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  color:#716370;
+  text-align:center;
+  font:7px/1.55 var(--dead-pixel)!important;
+}
+.dead-card-poster:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:.12;
+  background:repeating-linear-gradient(0deg,transparent 0 2px,#fff 2px 3px);
+}
+.dead-card-poster img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  filter:saturate(.72) contrast(1.08);
+  animation:deadPosterIn .28s ease both;
+}
+.dead-card:hover .dead-card-poster img{
+  filter:saturate(.9) contrast(1.12);
+}
+.dead-card-poster.is-missing{
+  color:#a06a84;
+  border-color:#674151;
+}
+@keyframes deadPosterIn{
+  from{opacity:0;filter:brightness(2) saturate(0)}
+  to{opacity:1}
+}
+
+/* Dossier is now pinned to the current viewport inside the Dead Channel,
+   so opening a card never requires scrolling back to the top. */
+.dead-dossier{
+  position:fixed!important;
+  inset:30px 0 0 0!important;
+  width:100%!important;
+  height:calc(100dvh - 30px)!important;
+  min-height:0!important;
+  overflow:auto!important;
+  padding:22px!important;
+  background:#050006!important;
+  z-index:100!important;
+}
+.dead-dossier-content{
+  min-height:calc(100% - 36px);
+}
+.dead-dossier-back{
+  position:sticky;
+  top:0;
+  z-index:4;
+  display:inline-block;
+  padding:7px 9px!important;
+  margin-bottom:12px;
+  background:#050006!important;
+  border:1px solid #633f5b!important;
+}
+
+@media(max-width:760px){
+  .panel-head-tools{gap:5px}
+  .panel-head-tools > span{max-width:130px}
+  .tab-info-btn{padding:4px 5px}
+}
+
+
+/* ===== CINEGENOME ALT V33 / Dead Channel true top-layer dossier ===== */
+.dead-dossier-dialog{
+  width:100vw!important;
+  height:100dvh!important;
+  max-width:none!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  background:#020002!important;
+  color:#d9c9d5!important;
+  overflow:hidden!important;
+}
+.dead-dossier-dialog::backdrop{
+  background:rgba(0,0,0,.94)!important;
+  backdrop-filter:blur(4px);
+}
+.dead-dossier-window{
+  width:100%;
+  height:100%;
+  display:grid;
+  grid-template-rows:30px minmax(0,1fr);
+  background:#050006;
+}
+.dead-dossier-windowbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding-left:8px;
+  background:linear-gradient(90deg,#29004a,#050079 55%,#260044);
+  border-bottom:2px ridge #9f8af2;
+  color:#fff;
+  font:8px var(--dead-pixel);
+}
+.dead-dossier-windowbar button{
+  width:30px;
+  height:24px;
+  margin-right:3px;
+  border:2px outset #cacaca;
+  background:#aaa;
+  color:#000;
+  font:14px Arial,sans-serif;
+  cursor:pointer;
+}
+.dead-dossier-windowbar button:active{border-style:inset}
+.dead-dossier-shell{
+  overflow:auto;
+  padding:22px;
+  background:
+    radial-gradient(circle at 85% 20%,rgba(255,23,93,.06),transparent 24%),
+    #050006;
+}
+.dead-dossier-dialog .dead-dossier-back{
+  position:sticky!important;
+  top:0!important;
+  z-index:5!important;
+  display:inline-block!important;
+  margin-bottom:16px!important;
+}
+.dead-dossier-dialog .dead-detail-grid{
+  max-width:1100px;
+  margin:0 auto;
+}
+.dead-dossier-dialog .dead-dossier-content{
+  min-height:100%;
+}
+.dead-dossier-dialog .dead-detail-title{
+  max-width:900px;
+}

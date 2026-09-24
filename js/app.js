@@ -63,6 +63,63 @@
     { key:'mirror', label:'MIRROR', prompt:'the film that reflects your current cinematic appetite' },
     { key:'antidote', label:'ANTIDOTE', prompt:'the film that disrupts the pattern instead of feeding it' }
   ];
+
+  const MODULE_INFO = {
+    scanner:{
+      code:'MODULE // 01',
+      title:'SPECIMEN SCANNER',
+      description:'Reads one film as a 12-trait cinematic genome. CineGenome combines its local DNA model with resolved TMDB metadata such as poster, director, genres, runtime and synopsis.',
+      simple:'Choose one film, inspect its cinematic DNA, then compare it with nearby specimens that share similar traits.',
+      steps:['Search for or select a film specimen.','Inspect its DNA profile, poster, metadata and director fingerprint.','Open the dossier for the full synopsis and extended pathology report.']
+    },
+    crossbreed:{
+      code:'MODULE // 02',
+      title:'CROSSBREED REACTOR',
+      description:'Combines the cinematic DNA of two films into one synthetic hybrid genome. The dominance control determines how much of Parent A and Parent B survives in the result.',
+      simple:'Blend two films together, adjust the ratio, then find real films whose DNA most closely resembles the synthetic hybrid.',
+      steps:['Choose Parent A and Parent B.','Adjust Genetic Dominance to control the blend.','Initiate Crossbreed and inspect the closest viable archive matches.']
+    },
+    mutation:{
+      code:'MODULE // 03',
+      title:'MUTATION CHAMBER',
+      description:'Starts from an existing film genome and lets you manually mutate individual cinematic traits. CineGenome continuously searches for the closest real film to the synthetic profile.',
+      simple:'Take one film as a seed, alter its traits with the sliders, then discover the real film that most closely matches your mutation.',
+      steps:['Search for a Seed Organism.','Load its DNA or generate a seeded mutation.','Move the trait sliders and watch the Live Vector Match update.']
+    },
+    atlas:{
+      code:'MODULE // 04',
+      title:'GENOME ATLAS',
+      description:'Maps the archive as a cinematic constellation. Every circle represents one film, and its position is determined by the two DNA traits selected for the X and Y axes.',
+      simple:'A map of films based on two DNA traits. Nearby points have more similar values along the selected axes.',
+      steps:['Choose DNA traits for the X and Y axes.','Choose how many specimen nodes to load.','Click any node to reveal its title and inspect the film.']
+    },
+    bloodline:{
+      code:'MODULE // 05',
+      title:'CINEMATIC BLOODLINE LAB',
+      description:'Builds model-inferred cinematic relatives using DNA similarity and release-year distance. Labels such as Ancestor Signal and Spiritual Sibling describe CineGenome proximity, not documented historical influence.',
+      simple:'Trace model-based cinematic relatives around one film without claiming that one film historically influenced another.',
+      steps:['Choose a Source Specimen.','Trace its model-inferred bloodline.','Click a relative to inspect it or send it to the Scanner.']
+    },
+    archive:{
+      code:'MODULE // 06',
+      title:'EXPERIMENT ARCHIVE',
+      description:'Stores specimens and experiments you saved while using CineGenome. The archive is stored locally in this browser.',
+      simple:'A local collection of saved films, crossbreeds and mutation experiments from your current browser.',
+      steps:['Save specimens or experiments from other modules.','Return here to review saved lab activity.','Erase Archive clears only this browser’s locally stored lab history.']
+    }
+  };
+
+  function openModuleInfo(key){
+    const info=MODULE_INFO[key], dialog=$('#moduleInfoDialog');
+    if(!info||!dialog)return;
+    $('#moduleInfoCode').textContent=info.code;
+    $('#moduleInfoTitle').textContent=info.title;
+    $('#moduleInfoDescription').textContent=info.description;
+    $('#moduleInfoSimple').textContent=info.simple;
+    $('#moduleInfoSteps').innerHTML=info.steps.map((step,i)=>`<div><span>${String(i+1).padStart(2,'0')}</span><p>${esc(step)}</p></div>`).join('');
+    if(!dialog.open) dialog.showModal();
+  }
+
   let secretTapCount = 0;
   let secretTapTimer = null;
   let secretNonce = 0;
@@ -71,6 +128,8 @@
   let deadSoundEnabled = true;
   let deadAudioTimer = null;
   let deadTransitionTimer = null;
+  const deadMetadataCache = new Map();
+  let deadPosterHydrationToken = 0;
   let deadPickerSelection = null;
   let deadPickerTimer = null;
   let bootDismissTimer = null;
@@ -301,42 +360,113 @@
     return out;
   }
 
+  async function resolveDeadSpecimenMetadata(specimen){
+    if(!specimen)return null;
+    const key=String(specimen.rank);
+    if(deadMetadataCache.has(key)) return deadMetadataCache.get(key);
+    if(!TMDB?.canQuery()) return null;
+    try{
+      const data=await promiseTimeout(TMDB.resolveTitle(specimen.title,null),9000,'DEAD_TMDB_TIMEOUT');
+      const movie=data?tmdbToMovie(data):null;
+      deadMetadataCache.set(key,movie);
+      return movie;
+    }catch(err){
+      deadMetadataCache.set(key,null);
+      log(`DEAD CHANNEL TMDB ERROR: ${specimen.title} // ${err.message||'UNKNOWN'}`);
+      return null;
+    }
+  }
+
+  function paintDeadCardPoster(specimen,movie,token){
+    if(token!==deadPosterHydrationToken)return;
+    const card=$(`.dead-card[data-rank="${specimen.rank}"]`);
+    if(!card)return;
+    const slot=card.querySelector('.dead-card-poster');
+    if(!slot)return;
+    if(movie?.posterPath && TMDB){
+      const url=TMDB.posterUrl(movie.posterPath,'w342');
+      slot.innerHTML=`<img src="${esc(url)}" alt="Poster for ${esc(movie.title||specimen.title)}" loading="lazy">`;
+      slot.classList.add('has-poster');
+      const meta=card.querySelector('.dead-card-meta');
+      if(meta && movie.year) meta.innerHTML=`${esc(deadDepthLabel(specimen.rank))}<br>${movie.year} // ${esc(movie.director||'Unknown')}`;
+    }else{
+      slot.innerHTML='<span>POSTER SIGNAL<br>UNAVAILABLE</span>';
+      slot.classList.add('is-missing');
+    }
+  }
+
+  async function hydrateDeadCardPosters(specimens,token){
+    if(!TMDB?.canQuery())return;
+    const queue=specimens.slice();
+    const worker=async()=>{
+      while(queue.length && token===deadPosterHydrationToken){
+        const specimen=queue.shift();
+        const movie=await resolveDeadSpecimenMetadata(specimen);
+        paintDeadCardPoster(specimen,movie,token);
+      }
+    };
+    await Promise.all([worker(),worker(),worker()]);
+  }
+
   function renderSecretArchive() {
     const host=$('#secretGrid'); if(!host)return;
     const pool=deadChannelPool();
     const seed=hash32(`${HACK_SESSION_SEED}|dead300|${secretNonce}|${deadChannelMode}`);
     const picked=weightedDeadPick(pool,12,seed,deadChannelMode);
+    const token=++deadPosterHydrationToken;
+
     host.innerHTML=picked.map((m,i)=>{
       const sourceCode=`D${String(m.rank).padStart(3,'0')}-${hash32(m.title).toString(16).slice(0,4).toUpperCase()}`;
-      return `<article class="dead-card">
+      return `<article class="dead-card" data-rank="${m.rank}" tabindex="0" role="button" aria-label="Open dossier for ${esc(m.title)}">
+        <div class="dead-card-poster"><span>SEARCHING<br>TMDB SIGNAL...</span></div>
         <div class="dead-card-code">${sourceCode} // PAGE ${m.page}</div>
         <h3>${esc(m.title)}</h3>
         <div class="dead-card-meta">${esc(deadDepthLabel(m.rank))}<br>BAD SIGNAL COORDINATE ${String(m.rank).padStart(3,'0')} / 300</div>
-        <div class="dead-card-signal"><span>FOUND ON THE WRONG SIDE OF THE WEB</span><button class="dead-open" type="button" data-rank="${m.rank}">CLICK IF CURIOUS</button></div>
+        <div class="dead-card-signal"><span>FOUND ON THE WRONG SIDE OF THE WEB</span><button class="dead-open" type="button" data-rank="${m.rank}">OPEN DOSSIER</button></div>
       </article>`;
     }).join('');
-    $$('.dead-open',host).forEach(btn=>btn.addEventListener('click',()=>{
+
+    $$('.dead-card',host).forEach(card=>{
+      const open=()=>{
+        const specimen=pool.find(x=>x.rank===Number(card.dataset.rank));
+        if(specimen) openDeadDossier(specimen);
+      };
+      card.addEventListener('click',e=>{
+        if(e.target.closest('.dead-open'))return;
+        open();
+      });
+      card.addEventListener('keydown',e=>{
+        if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}
+      });
+    });
+    $$('.dead-open',host).forEach(btn=>btn.addEventListener('click',e=>{
+      e.stopPropagation();
       const specimen=pool.find(x=>x.rank===Number(btn.dataset.rank));
       if(specimen) openDeadDossier(specimen);
     }));
+
+    hydrateDeadCardPosters(picked,token);
   }
 
   async function openDeadDossier(specimen) {
-    const layer=$('#deadDossier'), host=$('#deadDossierContent');
-    if(!layer||!host)return;
-    layer.hidden=false;
+    const dialog=$('#deadDossierDialog'), host=$('#deadDossierContent');
+    if(!dialog||!host)return;
+
     host.innerHTML=`<div class="dead-detail-kicker">DEAD CHANNEL // RESOLVING SPECIMEN ${String(specimen.rank).padStart(3,'0')}</div><div class="dead-detail-title">${esc(specimen.title)}</div><div class="dead-detail-copy">Querying pathology metadata…</div>`;
-    let movie=null;
-    if(TMDB?.canQuery()){
-      try{
-        const data=await TMDB.resolveTitle(specimen.title,null);
-        if(data) movie=tmdbToMovie(data); // intentionally NOT pushed into MOVIES
-      }catch(err){ log(`DEAD CHANNEL TMDB ERROR: ${err.message}`); }
+
+    if(!dialog.open){
+      try{ dialog.showModal(); }
+      catch{ dialog.setAttribute('open',''); }
     }
+
+    const movie=await resolveDeadSpecimenMetadata(specimen);
+    if(!dialog.open)return;
+
     if(!movie){
       host.innerHTML=`<div class="dead-detail-kicker">DEAD CHANNEL // ${String(specimen.rank).padStart(3,'0')}</div><div class="dead-detail-title">${esc(specimen.title)}</div><div class="dead-detail-meta">${esc(deadDepthLabel(specimen.rank))} // SOURCE POSITION ${String(specimen.rank).padStart(3,'0')}</div><div class="dead-detail-copy">Metadata signal unavailable. This specimen remains isolated from the main CineGenome catalog.</div>`;
       return;
     }
+
     const poster=movie.posterPath&&TMDB?TMDB.posterUrl(movie.posterPath,'w500'):'';
     host.innerHTML=`<div class="dead-detail-grid">
       <div class="dead-poster">${poster?`<img src="${esc(poster)}" alt="Poster for ${esc(movie.title)}">`:'POSTER SIGNAL UNAVAILABLE'}</div>
@@ -486,7 +616,6 @@
   async function openSecretArchive() {
     const dialog=$('#secretArchiveDialog');
     if(!dialog || dialog.open)return;
-    $('#deadDossier').hidden=true;
     deadChannelMode='cult';
     $$('.dead-mode').forEach(b=>b.classList.toggle('is-active',b.dataset.deadMode===deadChannelMode));
     renderSecretArchive();
@@ -521,8 +650,7 @@
     setTimeout(()=>{
       dialog.close();
       dialog.classList.remove('is-leaving');
-      $('#deadDossier').hidden=true;
-    },430);
+      },430);
   }
 
   function log(message) {
@@ -728,6 +856,10 @@
   function dismissBootScreen(){
     const boot=$('#bootScreen');
     if(!boot || boot.classList.contains('is-gone')) return;
+    if(window.__CINEGENOME_BOOT_FAILSAFE__){
+      clearTimeout(window.__CINEGENOME_BOOT_FAILSAFE__);
+      window.__CINEGENOME_BOOT_FAILSAFE__=null;
+    }
     boot.classList.add('is-gone');
     try{ sessionStorage.setItem('cinegenome_boot_seen','1'); }catch{}
     if(bootDismissTimer){clearTimeout(bootDismissTimer);bootDismissTimer=null;}
@@ -803,6 +935,14 @@
       || !movie.posterPath;
   }
 
+  function promiseTimeout(promise, ms=9000, label='TMDB_TIMEOUT'){
+    let timer;
+    const timeout=new Promise((_,reject)=>{
+      timer=setTimeout(()=>reject(new Error(label)),ms);
+    });
+    return Promise.race([promise,timeout]).finally(()=>clearTimeout(timer));
+  }
+
   async function hydrateMovieMetadata(movie){
     if(!movie || !TMDB?.canQuery() || !isMetadataPending(movie)) return movie;
     const key=String(movie.id);
@@ -810,7 +950,7 @@
 
     const task=(async()=>{
       try{
-        return await enrichLocalMovie(movie);
+        return await promiseTimeout(enrichLocalMovie(movie),9000,'TMDB_REQUEST_TIMEOUT');
       } finally {
         metadataHydrationInFlight.delete(key);
       }
@@ -873,6 +1013,8 @@
     }catch(err){
       if(requestToken!==scannerTMDBRequestToken || currentScannerId!==expectedId) return;
       renderScannerPoster(movie,'error');
+      const status=$('#scannerPosterStatus');
+      if(status && String(err?.message||'').includes('TIMEOUT')) status.textContent='TMDB SIGNAL TIMEOUT // RETRY ON NEXT SCAN';
       log(`SCANNER TMDB LINK ERROR: ${err.message||'UNKNOWN'}`);
     }
   }
@@ -1985,6 +2127,9 @@
   function switchView(view) {
     $$('.module-btn').forEach(b => b.classList.toggle('is-active', b.dataset.view === view));
     $$('.view').forEach(v => v.classList.toggle('is-active', v.dataset.viewPanel === view));
+    if(view==='scanner') renderScanner(currentScannerId);
+    if(view==='crossbreed') renderCrossbreed();
+    if(view==='mutation') renderMutation();
     if(view==='atlas') drawAtlas();
     if(view==='bloodline') traceBloodline(Number($('#bloodlineSelect')?.value || currentScannerId));
     if(view==='archive') renderArchive();
@@ -2030,12 +2175,19 @@
     setupAtlasControls();
     mutationDNA=cloneDNA((movieById($('#mutationSeed').value)||MOVIES[0]).dna);
     buildMutationControls();
-    renderMutation();
-    renderScanner(MOVIES[0].id);
-    renderCrossbreed();
+    // First paint is strictly local. Network enrichment begins only after the UI is visible.
+    renderMutation({skipHydrate:true});
+    renderScanner(MOVIES[0].id,{skipTMDB:true});
+    renderCrossbreed({skipHydrate:true});
     renderArchive();
     initPrescription();
     setupTMDBSettings();
+
+    // Hydrate only the visible scanner after startup. Other modules hydrate when opened.
+    setTimeout(()=>{
+      const movie=movieById(currentScannerId);
+      if(movie) hydrateScannerFromTMDB(movie);
+    },2100);
 
     $('#bootSkipBtn')?.addEventListener('click',dismissBootScreen);
     document.addEventListener('keydown',e=>{ if(e.key==='Escape' && !$('#bootScreen')?.hidden) dismissBootScreen(); });
@@ -2043,6 +2195,11 @@
     $('#humanRecordClose')?.addEventListener('click',()=>$('#humanSpecimenDialog')?.close());
     $('#deadPickerSpin')?.addEventListener('click',spinDeadPicker);
     $('#deadPickerOpen')?.addEventListener('click',()=>{ if(deadPickerSelection) openDeadDossier(deadPickerSelection); });
+    $$('.tab-info-btn').forEach(btn=>btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      openModuleInfo(btn.dataset.moduleInfo);
+    }));
+    $('#moduleInfoClose')?.addEventListener('click',()=>$('#moduleInfoDialog')?.close());
 
     $$('.module-btn').forEach(btn => btn.addEventListener('click', () => switchView(btn.dataset.view)));
     $('#scannerSelect').addEventListener('change', e => renderScanner(Number(e.currentTarget.value)));
@@ -2126,7 +2283,12 @@
       closeGuestbookIncident();
     });
     $('#secretRefreshBtn')?.addEventListener('click',()=>{secretNonce++;renderSecretArchive();log(`DEAD CHANNEL RETUNED // ${deadChannelMode.toUpperCase()}`);});
-    $('#deadDossierBack')?.addEventListener('click',()=>{$('#deadDossier').hidden=true;});
+    $('#deadDossierBack')?.addEventListener('click',()=>$('#deadDossierDialog')?.close());
+    $('#deadDossierClose')?.addEventListener('click',()=>$('#deadDossierDialog')?.close());
+    $('#deadDossierDialog')?.addEventListener('cancel',e=>{
+      e.preventDefault();
+      $('#deadDossierDialog')?.close();
+    });
     $$('.dead-mode').forEach(btn=>btn.addEventListener('click',()=>{
       deadChannelMode=btn.dataset.deadMode||'cult';
       $$('.dead-mode').forEach(x=>x.classList.toggle('is-active',x===btn));
@@ -2158,6 +2320,11 @@
         closeGuestbookIncident();
         return;
       }
+      if(e.key==='Escape' && $('#deadDossierDialog')?.open){
+        e.preventDefault();
+        $('#deadDossierDialog').close();
+        return;
+      }
       if(e.key==='Escape' && $('#secretArchiveDialog')?.open){
         e.preventDefault();
         closeSecretArchiveSmooth();
@@ -2181,12 +2348,28 @@
     log('HUMAN SPECIMEN RECORD SEALED // COMMAND WHOAMI');
     log('DEAD CHANNEL RANDOM MOVIE PICKER 3000 ONLINE');
     log('GENOME ATLAS DENSE-NODE TITLE REVEAL ONLINE');
-    log('GLOBAL TMDB METADATA SYNC ONLINE // SCANNER + CROSSBREED + MUTATION');
+    log('TMDB SAFE SYNC ONLINE // MODULE-ON-DEMAND + 9s TIMEOUT');
+    log('ENGLISH MODULE INFO + TOP-LAYER DEAD DOSSIER ONLINE');
     log('SCANNER LAZY TMDB POSTER LINK ONLINE');
     $('#eastereggNote')?.addEventListener('click',()=>log('LAB MEMO ACKNOWLEDGED // DO NOT PRESS CINEGENOME 7x'));
     log(`PRESCRIPTION POOL MOUNTED: ${TOP500.length || MOVIES.length} CURATED TITLES`);
     log('CINEGENOME LAB BOOT SEQUENCE COMPLETE');
   }
 
-  init();
+  try{
+    init();
+  }catch(err){
+    console.error('[CINEGENOME INIT ERROR]',err);
+    try{
+      const boot=document.getElementById('bootScreen');
+      if(boot){
+        boot.classList.add('is-gone');
+        setTimeout(()=>{boot.hidden=true;},120);
+      }
+    }catch{}
+    const fallback=document.getElementById('systemLog');
+    if(fallback){
+      fallback.innerHTML=`<div class="log-line"><span>BOOT ERROR</span><b>${esc(err?.message||'UNKNOWN')}</b></div>`+fallback.innerHTML;
+    }
+  }
 })();

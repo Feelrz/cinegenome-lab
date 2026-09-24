@@ -25,6 +25,16 @@
       <button class="boot-skip" id="bootSkipBtn" type="button">SKIP BOOT [ESC]</button>
     </div>
   </div>
+  <script>
+    // Independent boot failsafe: even if app.js or a network feature fails,
+    // the startup screen can never lock the visitor out of the page.
+    window.__CINEGENOME_BOOT_FAILSAFE__ = setTimeout(function () {
+      var boot = document.getElementById('bootScreen');
+      if (!boot) return;
+      boot.classList.add('is-gone');
+      setTimeout(function () { boot.hidden = true; }, 650);
+    }, 3200);
+  </script>
   <div class="noise" aria-hidden="true"></div>
   <div class="app-shell">
     <aside class="sidebar" aria-label="Primary navigation">
@@ -76,7 +86,7 @@
       <section class="view is-active" id="view-scanner" data-view-panel="scanner">
         <div class="two-col">
           <article class="lab-panel">
-            <div class="panel-head"><span>SPECIMEN SCANNER</span><span id="scannerCode">SUBJECT #0001</span></div>
+            <div class="panel-head"><span>SPECIMEN SCANNER</span><span class="panel-head-tools"><span id="scannerCode">SUBJECT #0001</span><button class="tab-info-btn" type="button" data-module-info="scanner" aria-label="About Specimen Scanner">ⓘ INFO</button></span></div>
             <div class="panel-body">
               <div class="search-row">
                 <div class="field grow"><label for="scannerSearch">Search specimen</label><input id="scannerSearch" autocomplete="off" placeholder="title / director / tag" /></div>
@@ -131,7 +141,7 @@
       <section class="view" id="view-crossbreed" data-view-panel="crossbreed">
         <div class="two-col">
           <article class="lab-panel">
-            <div class="panel-head"><span>CROSSBREED REACTOR</span><span>BIOCHAMBER 02</span></div>
+            <div class="panel-head"><span>CROSSBREED REACTOR</span><span class="panel-head-tools"><span>BIOCHAMBER 02</span><button class="tab-info-btn" type="button" data-module-info="crossbreed" aria-label="About Crossbreed Reactor">ⓘ INFO</button></span></div>
             <div class="panel-body">
               <div class="parent-grid">
                 <div class="field movie-search-field">
@@ -184,7 +194,7 @@
       <section class="view" id="view-mutation" data-view-panel="mutation">
         <div class="two-col">
           <article class="lab-panel">
-            <div class="panel-head"><span>MUTATION CHAMBER</span><span>MANUAL OVERRIDE</span></div>
+            <div class="panel-head"><span>MUTATION CHAMBER</span><span class="panel-head-tools"><span>MANUAL OVERRIDE</span><button class="tab-info-btn" type="button" data-module-info="mutation" aria-label="About Mutation Chamber">ⓘ INFO</button></span></div>
             <div class="panel-body">
               <div class="mutation-topline mutation-seed-topline">
                 <div class="field grow movie-search-field">
@@ -226,7 +236,7 @@
 
       <section class="view" id="view-atlas" data-view-panel="atlas">
         <article class="lab-panel">
-          <div class="panel-head"><span>GENOME ATLAS</span><span id="atlasCount">0 SPECIMENS</span></div>
+          <div class="panel-head"><span>GENOME ATLAS</span><span class="panel-head-tools"><span id="atlasCount">0 SPECIMENS</span><button class="tab-info-btn" type="button" data-module-info="atlas" aria-label="About Genome Atlas">ⓘ INFO</button></span></div>
           <div class="panel-body">
             <div class="atlas-toolbar">
               <div class="field"><label for="axisX">X axis</label><select id="axisX"></select></div>
@@ -248,7 +258,7 @@
 
       <section class="view" id="view-bloodline" data-view-panel="bloodline">
         <article class="lab-panel">
-          <div class="panel-head"><span>CINEMATIC BLOODLINE LAB</span><span>MODEL-INFERRED / NOT HISTORICAL FACT</span></div>
+          <div class="panel-head"><span>CINEMATIC BLOODLINE LAB</span><span class="panel-head-tools"><span>MODEL-INFERRED</span><button class="tab-info-btn" type="button" data-module-info="bloodline" aria-label="About Bloodline Lab">ⓘ INFO</button></span></div>
           <div class="panel-body">
             <div class="bloodline-toolbar">
               <div class="field grow movie-search-field">
@@ -274,7 +284,7 @@
       <section class="view" id="view-archive" data-view-panel="archive">
         <div class="two-col">
           <article class="lab-panel">
-            <div class="panel-head"><span>EXPERIMENT ARCHIVE</span><span>LOCAL STORAGE</span></div>
+            <div class="panel-head"><span>EXPERIMENT ARCHIVE</span><span class="panel-head-tools"><span>LOCAL STORAGE</span><button class="tab-info-btn" type="button" data-module-info="archive" aria-label="About Experiment Archive">ⓘ INFO</button></span></div>
             <div class="panel-body">
               <div class="archive-actions"><button class="lab-btn danger" id="clearArchiveBtn" type="button">ERASE ARCHIVE</button><span class="micro">Saved only in this browser.</span></div>
               <div id="archiveCards" class="archive-cards"></div>
@@ -398,6 +408,26 @@
     </form>
   </dialog>
 
+
+  <dialog class="module-info-dialog" id="moduleInfoDialog">
+    <div class="module-info-shell">
+      <div class="panel-head">
+        <span id="moduleInfoKicker">MODULE INFORMATION</span>
+        <button class="dialog-close" id="moduleInfoClose" type="button" aria-label="Close module information">×</button>
+      </div>
+      <div class="module-info-body">
+        <div class="module-info-code" id="moduleInfoCode">MODULE // 00</div>
+        <h2 id="moduleInfoTitle">MODULE</h2>
+        <p id="moduleInfoDescription"></p>
+        <div class="module-info-simple">
+          <span>PLAIN LANGUAGE</span>
+          <strong id="moduleInfoSimple"></strong>
+        </div>
+        <div class="module-info-steps" id="moduleInfoSteps"></div>
+      </div>
+    </div>
+  </dialog>
+
   <dialog class="lab-dialog settings-dialog" id="tmdbDialog">
     <form method="dialog" class="dialog-shell">
       <div class="panel-head"><span>TMDB DATA LINK</span><button class="dialog-close" value="close" aria-label="Close">×</button></div>
@@ -504,13 +534,7 @@
           <div class="deadsite-divider">~*~*~*~*~*~*~*~ C H O O S E &nbsp; A &nbsp; B A D &nbsp; S I G N A L ~*~*~*~*~*~*~*~</div>
 
           <div class="dead-channel-grid" id="secretGrid"></div>
-
-          <section class="dead-dossier" id="deadDossier" hidden>
-            <button class="dead-dossier-back" id="deadDossierBack" type="button">« BACK TO THE CURSED INDEX</button>
-            <div class="dead-dossier-content" id="deadDossierContent"></div>
-          </section>
-
-          <button class="deadsite-guestbook" id="deadGuestbookBtn" type="button" aria-label="Sign the guestbook">
+<button class="deadsite-guestbook" id="deadGuestbookBtn" type="button" aria-label="Sign the guestbook">
             <h3>SIGN THE GUESTBOOK</h3>
             <p>Guestbook disabled after incident #003. <u>CLICK HERE TO SIGN ANYWAY.</u></p>
             <span class="guestbook-blink">[ guestbook.cgi is definitely safe ]</span>
@@ -531,6 +555,20 @@
     <div class="guestbook-jumpscare-static" aria-hidden="true"></div>
   </dialog>
 
+
+
+  <dialog class="dead-dossier-dialog" id="deadDossierDialog">
+    <div class="dead-dossier-window">
+      <div class="dead-dossier-windowbar">
+        <span>dead_dossier.html // [POP-UP WINDOW]</span>
+        <button id="deadDossierClose" type="button" aria-label="Close dossier">×</button>
+      </div>
+      <div class="dead-dossier-shell">
+        <button class="dead-dossier-back" id="deadDossierBack" type="button">« RETURN TO THE CURSED INDEX</button>
+        <div class="dead-dossier-content" id="deadDossierContent"></div>
+      </div>
+    </div>
+  </dialog>
 
   <dialog class="human-specimen-dialog" id="humanSpecimenDialog">
     <div class="human-record-shell">
