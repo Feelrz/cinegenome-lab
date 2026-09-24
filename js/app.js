@@ -1047,6 +1047,7 @@
     const isFav = state.favorites.includes(movie.id);
     $('#favoriteBtn').setAttribute('aria-pressed', isFav ? 'true' : 'false');
     $('#favoriteBtn').textContent = isFav ? '★ SAVED' : '☆ SAVE';
+    window.CINEGENOME_ANOMALY?.scan(movie);
     if(!options.silent) log(`SCANNED SPECIMEN: ${movie.title.toUpperCase()}`);
     if(!options.skipTMDB) {
       // Delay one frame so the local scanner UI paints immediately before network work starts.
@@ -1128,6 +1129,7 @@
       mutationDNA[key] = clamp(e.currentTarget.value);
       $(`[data-value-for="${key}"]`, host).textContent = mutationDNA[key];
       renderMutation();
+      window.CINEGENOME_ANOMALY?.mutation(mutationDNA);
     }));
   }
 
@@ -1362,6 +1364,7 @@
     const m = movieById(id); if(!m) return;
     const xl=DIMS.find(d=>d.key===xKey)?.label||xKey, yl=DIMS.find(d=>d.key===yKey)?.label||yKey;
     $('#atlasDetail').innerHTML = `<strong>${esc(m.title)} (${m.year})</strong> — ${esc(m.director)} · ${esc(xl)} ${m.dna[xKey]} · ${esc(yl)} ${m.dna[yKey]} · <button class="table-action" type="button" id="atlasScanBtn">SCAN SPECIMEN</button>`;
+    window.CINEGENOME_ANOMALY?.atlas(m,xKey);
     $('#atlasScanBtn').addEventListener('click', () => { renderScanner(m.id); switchView('scanner'); });
   }
 
@@ -2138,6 +2141,9 @@
   }
 
   function init() {
+    $('#mobileReturnLink')?.addEventListener('click',()=>{
+      try{sessionStorage.removeItem('cinegenome_force_desktop')}catch{}
+    });
     initBootScreen();
     loadTMDBMovieCache();
     if(!MOVIES.length || !DIMS.length){
@@ -2225,6 +2231,7 @@
     $('#blendSlider').addEventListener('input', renderCrossbreed);
     $('#breedBtn').addEventListener('click', () => {
       const result=renderCrossbreed(); if(!result)return;
+      window.CINEGENOME_ANOMALY?.crossbreed(result.a,result.b,result.ratioA);
       archiveExperiment('CROSSBREED', `${result.a.title} × ${result.b.title}`, `Dominance ${result.ratioA}/${100-result.ratioA}. Nearest viable specimen: ${result.best?.movie.title || 'none'} (${result.best?.score || 0}%).`, result.hybrid);
       log(`CROSSBREED COMPLETED: ${result.a.title.toUpperCase()} × ${result.b.title.toUpperCase()}`);
     });
@@ -2262,7 +2269,10 @@
     const brand=$('.brand-mark');
     if(brand) brand.addEventListener('click',()=>{
       secretTapCount++;
-      brand.classList.remove('secret-armed'); void brand.offsetWidth; brand.classList.add('secret-armed');
+      brand.classList.remove('secret-armed');
+      void brand.offsetWidth;
+      brand.classList.add('secret-armed');
+      setTimeout(()=>brand.classList.remove('secret-armed'),260);
       if(secretTapTimer) clearTimeout(secretTapTimer);
       secretTapTimer=setTimeout(()=>{secretTapCount=0;},2600);
       if(secretTapCount>=7){ secretTapCount=0; if(secretTapTimer)clearTimeout(secretTapTimer); openSecretArchive(); }

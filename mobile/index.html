@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b0f0a">
+  <meta name="description" content="CINEGENOME LAB Mobile — cinematic pathology interface.">
+  <title>CINEGENOME LAB / MOBILE</title>
+  <link rel="icon" href="../assets/cinegenome-logo.svg" type="image/svg+xml">
+  <link rel="shortcut icon" href="../assets/cinegenome-logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="mobile.css">
+  <link rel="stylesheet" href="v42-polish.css">
+  <link rel="stylesheet" href="../css/anomaly.css">
+</head>
+<body>
+  <div class="m-boot" id="mBoot">
+    <div class="m-boot-inner">
+      <b>CINE<br>GENOME</b>
+      <span>MOBILE PATHOLOGY TERMINAL</span>
+      <div class="m-boot-bar"><i></i></div>
+    </div>
+  </div>
+
+  <header class="m-topbar">
+    <button class="m-brand m-brand-lockup" id="mBrand" type="button" aria-label="CineGenome home">
+      <img class="m-brand-symbol" src="../assets/cinegenome-logo.svg" alt="" aria-hidden="true">
+      <span class="m-brand-text">
+        <strong>CINEGENOME</strong>
+        <small>MOBILE PATHOLOGY TERMINAL</small>
+      </span>
+    </button>
+    <button class="m-rx-fab" id="mRxBtn" type="button" aria-label="Open daily prescription">
+      <img src="../assets/rx-eye-256.png" alt="">
+      <span id="mRxCount">0/3</span>
+    </button>
+  </header>
+
+  <div class="m-visitor-meter" aria-label="Total unique browser visitors">
+    <span>LAB ACCESS // TOTAL VISITORS</span>
+    <strong data-visitor-total aria-live="polite">—</strong>
+  </div>
+
+  <main class="m-main">
+    <section class="m-view is-active" data-view="scanner" id="mScanner">
+      <div class="m-section-head">
+        <div><span>MODULE 01</span><h1>Specimen Scanner</h1></div>
+        <button class="m-info" type="button" data-info="scanner">ⓘ</button>
+      </div>
+
+      <label class="m-field">
+        <span>Search specimen</span>
+        <input id="mScannerSearch" type="search" autocomplete="off" placeholder="Title / director / year">
+      </label>
+      <div class="m-suggestions" id="mScannerSuggestions" hidden></div>
+      <button class="m-btn m-random-specimen" id="mRandomSpecimen" type="button">↝ PICK A RANDOM SPECIMEN / 500</button>
+
+      <article class="m-specimen-card">
+        <div class="m-poster" id="mScannerPoster"><span>TMDB POSTER<br>SIGNAL PENDING</span></div>
+        <div class="m-specimen-copy">
+          <div class="m-kicker" id="mScannerCode">SPECIMEN #0000</div>
+          <h2 id="mScannerTitle">Loading specimen…</h2>
+          <p id="mScannerMeta">LOCAL GENOME</p>
+          <div class="m-tags" id="mScannerTags"></div>
+          <div class="m-actions">
+            <button class="m-btn primary" id="mDossierBtn" type="button">OPEN DOSSIER</button>
+            <button class="m-btn" id="mSaveBtn" type="button">SAVE</button>
+          </div>
+        </div>
+      </article>
+
+      <div class="m-card">
+        <div class="m-card-head"><span>12-D CINEMATIC DNA</span><span id="mDnaConfidence">—</span></div>
+        <div class="m-dna" id="mScannerDNA"></div>
+      </div>
+
+      <div class="m-card">
+        <div class="m-card-head"><span>NEAREST GENOMES</span></div>
+        <div class="m-list" id="mScannerNearest"></div>
+      </div>
+      <div class="anomaly-portal" data-anomaly-portal><span>UNREGISTERED SIGNAL // DAILY CASES</span><button data-anomaly-open type="button">OPEN CASES <b data-anomaly-progress>0/6</b></button></div>
+    </section>
+
+    <section class="m-view" data-view="crossbreed" id="mCrossbreed">
+      <div class="m-section-head">
+        <div><span>MODULE 02</span><h1>Crossbreed Reactor</h1></div>
+        <button class="m-info" type="button" data-info="crossbreed">ⓘ</button>
+      </div>
+      <div class="m-card">
+        <label class="m-field"><span>Parent A</span><input id="mParentA" type="search" placeholder="Search specimen A"></label>
+        <div class="m-suggestions" id="mParentASuggestions" hidden></div>
+        <label class="m-field"><span>Parent B</span><input id="mParentB" type="search" placeholder="Search specimen B"></label>
+        <div class="m-suggestions" id="mParentBSuggestions" hidden></div>
+        <div class="m-slider-row">
+          <span id="mBlendA">50%</span>
+          <input id="mBlend" type="range" min="0" max="100" value="50">
+          <span id="mBlendB">50%</span>
+        </div>
+        <button class="m-btn primary full" id="mCrossbreedBtn" type="button">INITIATE CROSSBREED</button>
+      </div>
+      <div class="m-card" id="mHybridResult">
+        <div class="m-card-head"><span>SYNTHETIC HYBRID</span><span id="mHybridScore">—</span></div>
+        <h2 class="m-result-title" id="mHybridTitle">Select two parents.</h2>
+        <p class="m-muted" id="mHybridMeta">Waiting for reactor input.</p>
+        <div class="m-dna" id="mHybridDNA"></div>
+        <button class="m-btn full m-save-result" id="mSaveCrossbreed" type="button">SAVE HYBRID TO ARCHIVE</button>
+      </div>
+      <div class="anomaly-portal" data-anomaly-portal><span>PAIRING ERROR // DAILY CASES</span><button data-anomaly-open type="button">OPEN CASES <b data-anomaly-progress>0/6</b></button></div>
+    </section>
+
+    <section class="m-view" data-view="mutation" id="mMutation">
+      <div class="m-section-head">
+        <div><span>MODULE 03</span><h1>Mutation Chamber</h1></div>
+        <button class="m-info" type="button" data-info="mutation">ⓘ</button>
+      </div>
+      <div class="m-card">
+        <label class="m-field"><span>Seed organism</span><input id="mMutationSeed" type="search" placeholder="Search seed film"></label>
+        <div class="m-suggestions" id="mMutationSuggestions" hidden></div>
+        <button class="m-btn full" id="mRandomMutationSeed" type="button">RANDOM SEED</button>
+      </div>
+      <div class="m-card">
+        <div class="m-card-head"><span>TRAIT OVERRIDES</span><span id="mMutationCode">CGM-MOBILE</span></div>
+        <div id="mMutationControls"></div>
+      </div>
+      <div class="m-card">
+        <div class="m-card-head"><span>LIVE VECTOR MATCH</span><span id="mMutationScore">—</span></div>
+        <h2 class="m-result-title" id="mMutationTitle">—</h2>
+        <p class="m-muted" id="mMutationMeta">Move a trait slider.</p>
+        <button class="m-btn full m-save-result" id="mSaveMutation" type="button">SAVE MUTATION TO ARCHIVE</button>
+      </div>
+      <div class="anomaly-portal" data-anomaly-portal><span>VECTOR TRACE // DAILY CASES</span><button data-anomaly-open type="button">OPEN CASES <b data-anomaly-progress>0/6</b></button></div>
+    </section>
+
+    <section class="m-view" data-view="atlas" id="mAtlas">
+      <div class="m-section-head">
+        <div><span>MODULE 04</span><h1>Genome Atlas</h1></div>
+        <button class="m-info" type="button" data-info="atlas">ⓘ</button>
+      </div>
+      <div class="m-card">
+        <div class="m-two">
+          <label class="m-field"><span>X axis</span><select id="mAtlasX"></select></label>
+          <label class="m-field"><span>Y axis</span><select id="mAtlasY"></select></label>
+        </div>
+        <label class="m-field">
+          <span>Nodes loaded <b id="mAtlasCount">80</b></span>
+          <input id="mAtlasLimit" type="range" min="20" max="200" step="20" value="80">
+        </label>
+        <div class="m-atlas-actions">
+          <button class="m-btn" id="mAtlasRandom" type="button">RANDOMIZE NODES</button>
+          <button class="m-btn" id="mAtlasSurprise" type="button">INSPECT RANDOM NODE</button>
+        </div>
+      </div>
+      <div class="m-atlas-wrap">
+        <svg id="mAtlasSvg" viewBox="0 0 720 620" aria-label="CineGenome mobile atlas"></svg>
+      </div>
+      <div class="m-atlas-detail" id="mAtlasDetail">Tap any node to reveal its film.</div>
+      <button class="m-btn full m-atlas-scan" id="mAtlasScan" type="button" hidden>SCAN SELECTED SPECIMEN ↗</button>
+      <div class="anomaly-portal" data-anomaly-portal><span>UNMAPPED COORDINATE // DAILY CASES</span><button data-anomaly-open type="button">OPEN CASES <b data-anomaly-progress>0/6</b></button></div>
+    </section>
+
+    <section class="m-view" data-view="more" id="mMore">
+      <div class="m-section-head">
+        <div><span>MORE</span><h1>Lab Extensions</h1></div>
+      </div>
+      <div class="m-mobile-memo" aria-label="Lab memo">
+        <span>LAB MEMO</span>
+        <strong>DO NOT TAP<br>CINEGENOME 7×</strong>
+        <small>seriously. do not.</small>
+      </div>
+
+      <div class="m-menu-grid">
+        <button type="button" data-sheet="bloodline"><b>Bloodline Lab</b><small>Trace model relatives</small></button>
+        <button type="button" data-sheet="archive"><b>Experiment Archive</b><small>Saved specimens</small></button>
+        <button type="button" id="mHumanBtn"><b>Human Specimen</b><small>Operator record / Letterboxd</small></button>
+        <button type="button" id="mDeadBtn"><b>Dead Channel</b><small>Weird Stuff / D-300</small></button>
+        <button type="button" id="mDesktopBtn"><b>Desktop Interface</b><small>Open full laboratory</small></button>
+      </div>
+
+      <section class="m-more-sheet" id="mBloodlineSheet" hidden>
+        <div class="m-card">
+          <div class="m-card-head"><span>BLOODLINE LAB</span><button class="m-linkbtn" data-close-sheet type="button">CLOSE</button></div>
+          <label class="m-field"><span>Source specimen</span><input id="mBloodlineSearch" type="search" placeholder="Search source"></label>
+          <div class="m-suggestions" id="mBloodlineSuggestions" hidden></div>
+          <div class="m-list" id="mBloodlineList"></div>
+        </div>
+      </section>
+
+      <section class="m-more-sheet" id="mArchiveSheet" hidden>
+        <div class="m-card">
+          <div class="m-card-head"><span>EXPERIMENT ARCHIVE</span><button class="m-linkbtn" data-close-sheet type="button">CLOSE</button></div>
+          <div class="m-list" id="mArchiveList"></div>
+          <button class="m-btn full" id="mClearArchive" type="button">ERASE LOCAL ARCHIVE</button>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <nav class="m-bottom-nav" id="mBottomNav">
+    <button class="is-active" data-target="scanner"><span>◉</span><small>SCAN</small></button>
+    <button data-target="crossbreed"><span>⌘</span><small>MIX</small></button>
+    <button data-target="mutation"><span>⌁</span><small>MUTATE</small></button>
+    <button data-target="atlas"><span>✣</span><small>ATLAS</small></button>
+    <button data-target="more"><span>•••</span><small>MORE</small></button>
+  </nav>
+
+  <dialog class="m-dialog" id="mDossierDialog">
+    <div class="m-dialog-shell">
+      <header><span>SPECIMEN DOSSIER</span><button data-close-dialog type="button">×</button></header>
+      <div class="m-dialog-body" id="mDossierContent"></div>
+    </div>
+  </dialog>
+
+  <dialog class="m-dialog" id="mInfoDialog">
+    <div class="m-dialog-shell">
+      <header><span>MODULE INFORMATION</span><button data-close-dialog type="button">×</button></header>
+      <div class="m-dialog-body" id="mInfoContent"></div>
+    </div>
+  </dialog>
+
+  <dialog class="m-dialog rx-dialog" id="mRxDialog">
+    <div class="m-dialog-shell">
+      <header><span>DAILY RX // 3 DOSES</span><button data-close-dialog type="button">×</button></header>
+      <div class="m-dialog-body">
+        <div class="m-rx-scan" id="mRxScan"></div>
+        <div class="m-rx-history" id="mRxHistory"></div>
+        <button class="m-rx-card" id="mRxCard" type="button" hidden>
+          <div class="m-rx-sealed" id="mRxSealed">SEALED SPECIMEN<br><small>TAP TO REVEAL</small></div>
+          <div class="m-rx-reveal" id="mRxReveal" hidden></div>
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="m-dialog" id="mHumanDialog">
+    <div class="m-dialog-shell">
+      <header><span>SUBJECT RECORD // HUMAN SPECIMEN</span><button data-close-dialog type="button">×</button></header>
+      <div class="m-dialog-body">
+        <div class="m-human">
+          <span>CURATOR / OPERATOR</span>
+          <h2>THE PERSON<br>BEHIND THE LAB</h2>
+          <dl>
+            <div><dt>SUBJECT TYPE</dt><dd>HUMAN</dd></div>
+            <div><dt>ACCESS LEVEL</dt><dd>UNSUPERVISED</dd></div>
+            <div><dt>EXTERNAL ARCHIVE</dt><dd>LETTERBOXD</dd></div>
+          </dl>
+          <a class="m-btn primary full" href="https://boxd.it/a35Ed" target="_blank" rel="noopener">OPEN HUMAN FILM ARCHIVE ↗</a>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="m-dead" id="mDeadDialog">
+    <div class="m-dead-site">
+      <header><b>THE<br>WEIRD WEB</b><button id="mDeadClose" type="button" aria-label="Leave Dead Channel">×</button></header>
+      <p>CHANNEL D-300 // 300 off-catalog signals from the Weird and WTF Compendium. The coordinate is an archive position, not a rating.</p>
+      <div class="m-dead-toolbar">
+        <button id="mDeadSound" type="button" aria-pressed="false">♫ SOUND: OFF</button>
+        <button id="mDeadRandom" type="button">↻ REFRESH SIGNALS</button>
+      </div>
+      <div class="m-dead-modes" role="group" aria-label="Dead Channel selection mode">
+        <button class="is-active" type="button" data-dead-mode="cult" aria-pressed="true">CULT</button>
+        <button type="button" data-dead-mode="deep" aria-pressed="false">DEEP</button>
+        <button type="button" data-dead-mode="chaos" aria-pressed="false">CHAOS</button>
+      </div>
+      <section class="m-dead-picker" aria-labelledby="mDeadPickerHeading">
+        <span class="m-dead-picker-badge">FREEWARE v3.00 // DEFINITELY NO VIRUS</span>
+        <h2 id="mDeadPickerHeading">RANDOM MOVIE<br>PICKER 3000</h2>
+        <div class="m-dead-picker-screen" id="mDeadPickerScreen" aria-live="polite" aria-atomic="true">
+          <span id="mDeadPickerCode">D???</span>
+          <strong id="mDeadPickerTitle">CLICK THE BUTTON, COWARD</strong>
+          <small id="mDeadPickerMeta">300 BAD IDEAS AVAILABLE</small>
+        </div>
+        <div class="m-dead-picker-actions">
+          <button class="m-dead-random" id="mDeadPickerSpin" type="button">★ PICK MY BAD DECISION ★</button>
+          <button id="mDeadPickerOpen" type="button" disabled>OPEN THIS WEIRD THING</button>
+        </div>
+      </section>
+      <div class="m-dead-index-head">// BAD SIGNALS ON THIS PAGE</div>
+      <div class="m-dead-grid" id="mDeadGrid"></div>
+      <button class="m-dead-guestbook" id="mDeadGuestbook" type="button">
+        <strong>SIGN THE GUESTBOOK</strong><span>guestbook.cgi is definitely safe // TAP TO SIGN</span>
+      </button>
+      <footer class="m-dead-footer">300 OFF-CATALOG SIGNALS // <a href="https://letterboxd.com/screenwatcher69/list/the-weird-and-wtf-compendium-1/" target="_blank" rel="noopener">SOURCE ARCHIVE ↗</a></footer>
+      <audio id="mDeadAudio" src="../assets/dead-channel-laugh.mp3" preload="none"></audio>
+    </div>
+  </dialog>
+
+  <dialog class="m-dead-detail" id="mDeadDetailDialog" aria-label="Dead Channel film dossier">
+    <div class="m-dead-detail-shell">
+      <header><span>dead_dossier.html // [POP-UP WINDOW]</span><button id="mDeadDetailClose" type="button" aria-label="Back to Dead Channel">×</button></header>
+      <div class="m-dead-detail-body" id="mDeadDetailContent"></div>
+      <button class="m-dead-detail-back" id="mDeadDetailBack" type="button">« RETURN TO THE CURSED INDEX</button>
+    </div>
+  </dialog>
+
+  <dialog class="m-guestbook" id="mGuestbookDialog" aria-label="Guestbook surprise">
+    <video id="mGuestbookVideo" src="../assets/guestbooksuprise.mp4" preload="metadata" playsinline></video>
+    <button id="mGuestbookClose" type="button" aria-label="Close guestbook surprise">×</button>
+  </dialog>
+  <div class="m-toast" id="mToast" role="status" aria-live="polite" hidden></div>
+
+  <dialog class="anomaly-dialog" id="anomalyDialog" aria-labelledby="anomalyHeading">
+    <header><span>CG-09 // RESTRICTED INCIDENT</span><button id="anomalyClose" type="button" aria-label="Close anomaly case">×</button></header>
+    <div class="anomaly-body" id="anomalyCaseContent"></div>
+  </dialog>
+  <div class="anomaly-toast" id="anomalyToast" role="status" aria-live="polite" hidden></div>
+
+  <script src="../data/movies.js"></script>
+  <script src="../data/top500.js"></script>
+  <script src="../data/top500-enriched.js"></script>
+  <script src="../data/dead-channel-300.js"></script>
+  <script src="../data/tmdb-config.js"></script>
+  <script src="../js/tmdb.js"></script>
+  <script src="../js/anomaly.js"></script>
+  <script src="mobile.js"></script>
+  <script src="../js/visitors.js"></script>
+</body>
+</html>

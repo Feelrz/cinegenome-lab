@@ -1,12 +1,12 @@
-# CINEGENOME LAB 
+# CINEGENOME LAB ALT V47
 
-This branch is the experimental alternative build. V7 focuses on smoother RX diagnosis/reveal motion, a sealed catalog UI, and a randomizable Genome Atlas.
+This is the experimental alternative build with six daily Anomaly Hunt cases and a collectible BLACK FILE reward. See `UPDATE_V47.md` for the current release.
 
-# CINEGENOME LAB 
+# CINEGENOME LAB — ALT API BUILD
 
 Interactive **movie DNA laboratory** built with plain HTML, CSS and JavaScript.
 
-## API build
+## ALT API build
 
 This variant is configured for a **server-side TMDB proxy only**. Add `TMDB_API_KEY` in Vercel Environment Variables; the credential is never shipped to the browser. Use `TMDB CONNECTION -> TEST SERVER LINK` to verify it.
 
@@ -19,6 +19,8 @@ This variant is configured for a **server-side TMDB proxy only**. Add `TMDB_API_
 - **Automatic DNA generator** — imported TMDB metadata is converted to the 12 CINEGENOME dimensions with a deterministic rule-based scoring engine.
 - **Batch Top-500 builder** — `scripts/build-top500.mjs` resolves all 500 bundled titles through TMDB and generates `data/top500-enriched.js` / `.json`.
 - **Production proxy example** — `api/tmdb.js` keeps the TMDB token on the server for a public deployment.
+- **Shared visitor total** — the desktop and mobile counters use `api/visitors.js` and a server-side Upstash Redis store. See `UPDATE_V44.md` for activation steps.
+- **Daily Anomaly Hunt** — six new cases each local day across Scanner, Atlas, Mutation, and Crossbreed. Each completed case awards a downloadable PNG stamp, and all six unlock a daily BLACK FILE. The local collection stays available after the cases reset. See `UPDATE_V47.md`.
 
 The original modules remain:
 
@@ -184,3 +186,8 @@ See `UPDATE_V7.md` for smooth RX transitions, custom scrollbars, hidden database
 
 ## V14
 Seeded Mutation Chamber + Genome Engine V3. See `UPDATE_V14.md`.
+
+
+## ALT V42 - Mobile parity
+
+Mobile Random Movie Picker 3000, guestbook video incident, curated Top 500 RX, richer dossier, shared Experiment Archive, Atlas touch controls and improved mobile typography. See UPDATE_V42.md.

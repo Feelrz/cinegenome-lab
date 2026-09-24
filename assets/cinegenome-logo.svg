@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Cinegenome Lab — film reel flask, option 2</title>
+  <desc id="desc">A round laboratory flask with a cinema film reel forming its core.</desc>
+  <!-- Editable vector shapes on a transparent background. -->
+  <path d="M220 93v93c-62 17-106 72-106 138a142 142 0 0 0 284 0c0-66-44-121-106-138V93Z" fill="#C9FF45" stroke="#151719" stroke-width="19" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="197" y="62" width="118" height="36" rx="11" fill="#151719"/>
+  <path d="M220 79h72" stroke="#C9FF45" stroke-width="8" stroke-linecap="round"/>
+  <!-- The reel windows remain editable circles, with no raster effects. -->
+  <circle cx="256" cy="324" r="103" fill="#151719"/>
+  <g fill="#C9FF45">
+    <circle cx="256" cy="265" r="23"/>
+    <circle cx="312" cy="306" r="23"/>
+    <circle cx="291" cy="372" r="23"/>
+    <circle cx="221" cy="372" r="23"/>
+    <circle cx="200" cy="306" r="23"/>
+    <circle cx="256" cy="324" r="20"/>
+  </g>
+  <circle cx="256" cy="324" r="8" fill="#151719"/>
+</svg>

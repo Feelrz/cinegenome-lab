@@ -1,0 +1,714 @@
+@import url("https://fonts.googleapis.com/css2?family=Eater&family=Frijole&family=Silkscreen:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Orbitron:wght@600;700;800;900&family=Oxanium:wght@600;700&display=swap");
+
+:root{
+  --bg:#0b0f0a;--panel:#121711;--panel2:#171d15;--line:#394337;--line2:#586652;
+  --ink:#edf2e9;--muted:#8d9989;--acid:#b8ff35;--paper:#e8eadf;--danger:#d34d62;
+  --brand:"Oxanium",sans-serif;--display:"Orbitron",sans-serif;--body:"Courier Prime",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:var(--body)}
+body{padding-bottom:calc(76px + env(safe-area-inset-bottom));overflow-x:hidden}
+button,input,select{font:inherit}
+button{touch-action:manipulation}
+.m-boot{position:fixed;inset:0;z-index:9999;background:#e8eadf;color:#10140f;display:grid;place-items:center;transition:.45s ease}
+.m-boot.is-gone{opacity:0;visibility:hidden;pointer-events:none}.m-boot-inner{width:min(84vw,360px)}.m-boot-inner b{display:block;font:700 58px/.68 var(--brand);letter-spacing:-.07em}.m-boot-inner span{display:block;border-top:2px solid;margin-top:20px;padding-top:9px;font-size:8px;letter-spacing:.1em}.m-boot-bar{height:7px;border:1px solid;margin-top:14px;padding:1px}.m-boot-bar i{display:block;width:0;height:100%;background:#111;animation:mboot 1.15s ease forwards}@keyframes mboot{to{width:100%}}
+
+.m-topbar{position:sticky;top:0;z-index:90;height:64px;padding:8px 12px;background:rgba(11,15,10,.94);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.m-brand{border:0;background:none;color:var(--ink);padding:0;text-align:left}.m-brand span{display:block;font:700 20px/.9 var(--brand);letter-spacing:-.04em}.m-brand small{font-size:6px;color:var(--muted);letter-spacing:.1em}
+.m-rx-fab{position:relative;width:50px;height:50px;border:0;background:none;padding:0}.m-rx-fab img{width:46px;height:46px;object-fit:contain}.m-rx-fab span{position:absolute;right:-3px;bottom:0;background:#0d120c;border:1px solid var(--acid);color:var(--acid);border-radius:99px;padding:2px 5px;font-size:7px}
+
+.m-main{padding:14px 12px 22px;max-width:720px;margin:0 auto}.m-view{display:none}.m-view.is-active{display:block}.m-section-head{display:flex;justify-content:space-between;align-items:flex-start;margin:8px 0 15px}.m-section-head span{font-size:7px;color:var(--muted);letter-spacing:.11em}.m-section-head h1{font:700 28px/.95 var(--display);letter-spacing:-.045em;margin:4px 0 0}.m-info{width:38px;height:38px;border:1px solid var(--line);background:var(--panel);color:var(--acid);border-radius:10px}
+.m-card,.m-specimen-card{border:1px solid var(--line);background:var(--panel);border-radius:16px;margin:0 0 12px;overflow:hidden}.m-card{padding:14px}.m-card-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px;color:var(--muted);font-size:7px;letter-spacing:.08em}.m-card-head span:last-child{color:var(--acid)}
+.m-field{display:grid;gap:6px;margin-bottom:10px}.m-field>span{font-size:7px;color:var(--muted);letter-spacing:.08em}.m-field input,.m-field select{width:100%;min-height:46px;border:1px solid var(--line);border-radius:10px;background:#0d120c;color:var(--ink);padding:0 12px;outline:none}.m-field input:focus,.m-field select:focus{border-color:var(--acid)}
+.m-suggestions{position:relative;z-index:35;margin:-6px 0 10px;border:1px solid var(--line2);border-radius:10px;background:#090d09;max-height:260px;overflow:auto}.m-suggestions button{width:100%;border:0;border-bottom:1px solid #222a20;background:none;color:var(--ink);padding:10px;text-align:left;display:grid;gap:2px}.m-suggestions button b{font:700 10px var(--display)}.m-suggestions button small{font-size:7px;color:var(--muted)}
+.m-specimen-card{display:grid;grid-template-columns:116px 1fr;min-height:176px}.m-poster{background:#090d09;display:grid;place-items:center;text-align:center;color:#657160;font-size:7px;overflow:hidden}.m-poster img{width:100%;height:100%;object-fit:cover}.m-specimen-copy{padding:13px;min-width:0}.m-kicker{font-size:7px;color:var(--acid);letter-spacing:.08em}.m-specimen-copy h2,.m-result-title{font:700 20px/1 var(--display);letter-spacing:-.04em;margin:8px 0}.m-specimen-copy p,.m-muted{font-size:8px;line-height:1.5;color:var(--muted)}.m-tags{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0}.m-tags span{border:1px solid var(--line);padding:4px 5px;font-size:6px;color:#b7c1b2}.m-actions{display:flex;gap:6px;margin-top:10px}
+.m-btn{min-height:40px;border:1px solid var(--line2);border-radius:9px;background:#151b13;color:var(--ink);padding:0 11px;font-size:8px;font-weight:700}.m-btn.primary{background:var(--acid);border-color:var(--acid);color:#0a1008}.m-btn.full{width:100%}
+.m-dna{display:grid;gap:7px}.m-dna-row{display:grid;grid-template-columns:105px minmax(0,1fr) 38px;gap:8px;align-items:center}.m-dna-row span{font-size:7px;color:#aab5a6}.m-dna-track{height:5px;background:#252d23;border-radius:99px;overflow:hidden}.m-dna-fill{height:100%;background:var(--acid)}.m-dna-row b{text-align:right;font:700 9px var(--display)}
+.m-list{display:grid;gap:7px}.m-list button,.m-list .m-list-row{width:100%;border:1px solid #2e382c;border-radius:10px;background:#0f140e;color:var(--ink);padding:10px;text-align:left;display:grid;grid-template-columns:1fr auto;gap:4px 8px}.m-list b{font:700 10px var(--display)}.m-list small{grid-column:1/-1;color:var(--muted);font-size:7px}.m-list strong{font:700 10px var(--display);color:var(--acid)}
+.m-slider-row{display:grid;grid-template-columns:42px 1fr 42px;gap:8px;align-items:center;margin:16px 0}.m-slider-row span{text-align:center;font:700 9px var(--display);color:var(--acid)}input[type="range"]{accent-color:var(--acid);width:100%}
+.m-two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.m-atlas-wrap{border:1px solid var(--line);border-radius:16px;background:#0c100c;overflow:hidden}.m-atlas-wrap svg{display:block;width:100%;height:auto;touch-action:manipulation}.m-atlas-detail{margin-top:9px;border-left:2px solid var(--acid);padding:9px 10px;background:#111710;font-size:8px;color:#a7b2a2}
+.m-menu-grid{display:grid;gap:8px}.m-menu-grid button{border:1px solid var(--line);border-radius:13px;background:var(--panel);color:var(--ink);padding:14px;text-align:left}.m-menu-grid b{display:block;font:700 13px var(--display);margin-bottom:3px}.m-menu-grid small{font-size:7px;color:var(--muted)}.m-more-sheet{margin-top:12px}.m-linkbtn{border:0;background:none;color:var(--acid);font-size:7px}
+
+.m-bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:95;display:grid;grid-template-columns:repeat(5,1fr);padding:6px 7px calc(6px + env(safe-area-inset-bottom));background:rgba(9,13,9,.96);backdrop-filter:blur(16px);border-top:1px solid var(--line)}.m-bottom-nav button{min-height:55px;border:0;background:none;color:#697565;border-radius:12px;display:grid;place-items:center;align-content:center;gap:3px}.m-bottom-nav button span{font:700 17px var(--display)}.m-bottom-nav button small{font-size:6px;letter-spacing:.05em}.m-bottom-nav button.is-active{background:#151c13;color:var(--acid)}
+
+.m-dialog{width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;border:0;padding:0;background:#080b08;color:var(--ink)}.m-dialog::backdrop{background:#000}.m-dialog-shell{height:100%;display:grid;grid-template-rows:52px 1fr}.m-dialog-shell>header{display:flex;justify-content:space-between;align-items:center;padding:0 12px;border-bottom:1px solid var(--line);font-size:8px;letter-spacing:.08em}.m-dialog-shell>header button{width:38px;height:38px;border:1px solid var(--line);border-radius:50%;background:none;color:var(--ink);font-size:22px}.m-dialog-body{overflow:auto;padding:14px 12px 30px}.m-dossier-grid{display:grid;grid-template-columns:125px 1fr;gap:12px}.m-dossier-grid img{width:100%;border-radius:10px}.m-dossier-grid h2{font:700 24px/.95 var(--display);margin:5px 0 8px}.m-overview{font-size:9px;line-height:1.65;color:#a7b2a2}
+.m-info-copy h2,.m-human h2{font:700 30px/.88 var(--display);letter-spacing:-.05em}.m-info-copy p{font-size:10px;line-height:1.7;color:#a8b3a4}.m-info-copy ol{padding-left:20px;font-size:9px;line-height:1.65;color:#bdc7b9}.m-human>span{font-size:7px;color:var(--acid)}.m-human dl{display:grid;border-top:1px solid var(--line)}.m-human dl div{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:10px 0}.m-human dt{font-size:7px;color:var(--muted)}.m-human dd{margin:0;font-size:8px}
+.m-rx-scan{display:grid;gap:8px;margin-bottom:13px}.m-rx-scan div{border-left:2px solid #394337;padding:8px 10px;background:#101510;font-size:8px;color:#9ba795}.m-rx-history{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:12px}.m-rx-history button{min-height:48px;border:1px solid var(--line);border-radius:9px;background:#101510;color:#889583;font-size:7px}.m-rx-history button.has{color:var(--acid);border-color:#657a4c}.m-rx-card{width:100%;border:1px solid #657a4c;border-radius:16px;background:#101510;color:var(--ink);padding:14px;min-height:300px}.m-rx-sealed{display:grid;place-items:center;min-height:260px;font:700 28px/1 var(--display);color:#d9ff83}.m-rx-sealed small{font:7px var(--body);color:#82917c}.m-rx-reveal{text-align:left}.m-rx-reveal img{width:130px;float:left;margin:0 12px 10px 0;border-radius:9px}.m-rx-reveal h2{font:700 24px/.92 var(--display);margin:0 0 6px}.m-rx-reveal p{font-size:9px;line-height:1.6;color:#aab5a6}
+
+.m-dead{width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;border:0;padding:0;background:#040006;color:#e8dce4}.m-dead::backdrop{background:#000}.m-dead-site{min-height:100%;padding:14px;background:radial-gradient(circle at top right,#260033,transparent 28%),#050007;font-family:"Courier Prime",monospace}.m-dead-site>header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px ridge #8a668d;padding-bottom:10px}.m-dead-site>header b{font:700 34px/.8 var(--display);color:#ff4c8d}.m-dead-site>header button{width:38px;height:38px;border:2px outset #bbb;background:#999}.m-dead-site>p{font-size:8px;line-height:1.6;color:#b69caf}.m-dead-random{width:100%;min-height:46px;border:3px outset #bbb;background:#aaa;color:#000;font-size:8px;margin-bottom:10px}.m-dead-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.m-dead-card{border:3px ridge #68445f;background:#12000f;padding:7px;color:#eee}.m-dead-card img{width:100%;aspect-ratio:2/3;object-fit:cover}.m-dead-card b{display:block;font:700 11px/1.05 var(--display);margin:6px 0}.m-dead-card small{font-size:6px;color:#b697ac}
+
+@media(max-width:390px){.m-specimen-card{grid-template-columns:98px 1fr}.m-dna-row{grid-template-columns:92px minmax(0,1fr) 34px}.m-dead-grid{grid-template-columns:1fr 1fr}}
+
+
+/* ===== CINEGENOME MOBILE V35 / DESKTOP LAB ART DIRECTION ===== */
+/* The main mobile UI now intentionally shares the same cream / black / acid palette
+   and brutalist laboratory geometry as the desktop build. Dead Channel remains
+   visually separate and keeps its Y2K horror identity. */
+
+:root{
+  --bg:#e6e7dc;
+  --panel:#eef0e5;
+  --panel2:#d7d9cc;
+  --line:#11140f;
+  --line2:#676c60;
+  --ink:#11140f;
+  --muted:#676c60;
+  --acid:#b8ff35;
+  --paper:#e6e7dc;
+  --danger:#d03728;
+}
+
+html,body{
+  background:
+    linear-gradient(rgba(17,20,15,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(17,20,15,.035) 1px,transparent 1px),
+    var(--paper)!important;
+  background-size:28px 28px!important;
+  color:var(--ink)!important;
+}
+
+/* Boot already matched desktop; make it slightly more clinical */
+.m-boot{
+  background:var(--paper)!important;
+  color:var(--ink)!important;
+}
+.m-boot-inner{
+  border:2px solid var(--ink);
+  padding:20px;
+  box-shadow:6px 6px 0 var(--ink);
+  background:var(--panel);
+}
+.m-boot-bar{border-color:var(--ink)!important}
+.m-boot-bar i{background:var(--ink)!important}
+
+/* Header / brand */
+.m-topbar{
+  height:68px!important;
+  background:rgba(230,231,220,.96)!important;
+  color:var(--ink)!important;
+  border-bottom:2px solid var(--ink)!important;
+  backdrop-filter:blur(10px);
+  padding:8px 12px!important;
+}
+.m-brand{color:var(--ink)!important}
+.m-brand span{
+  font-size:23px!important;
+  letter-spacing:-.065em!important;
+}
+.m-brand small{color:var(--muted)!important}
+
+.m-rx-fab span{
+  background:var(--ink)!important;
+  color:var(--acid)!important;
+  border:1px solid var(--ink)!important;
+  border-radius:0!important;
+  box-shadow:2px 2px 0 rgba(17,20,15,.18);
+}
+
+/* Content geometry */
+.m-main{
+  padding:14px 12px 24px!important;
+}
+.m-section-head{
+  margin:8px 0 12px!important;
+  padding:12px!important;
+  border:2px solid var(--ink);
+  background:var(--panel);
+  box-shadow:4px 4px 0 rgba(17,20,15,.13);
+  align-items:center!important;
+}
+.m-section-head span{color:var(--muted)!important}
+.m-section-head h1{
+  color:var(--ink)!important;
+  font-size:26px!important;
+}
+.m-info{
+  width:38px!important;
+  height:38px!important;
+  border:1px solid var(--ink)!important;
+  border-radius:0!important;
+  background:var(--paper)!important;
+  color:var(--ink)!important;
+  box-shadow:2px 2px 0 var(--ink);
+}
+
+/* Panels are now desktop-like: square, ink border, pale background */
+.m-card,.m-specimen-card{
+  border:2px solid var(--ink)!important;
+  background:rgba(238,240,229,.94)!important;
+  border-radius:0!important;
+  box-shadow:4px 4px 0 rgba(17,20,15,.13);
+  color:var(--ink)!important;
+}
+.m-card{
+  padding:13px!important;
+}
+.m-card-head{
+  margin:-13px -13px 12px!important;
+  padding:8px 10px!important;
+  min-height:34px;
+  background:var(--ink)!important;
+  color:var(--paper)!important;
+  border-bottom:2px solid var(--ink);
+}
+.m-card-head span:first-child{color:var(--paper)!important}
+.m-card-head span:last-child{color:var(--acid)!important}
+
+/* Inputs / suggestions */
+.m-field>span{color:var(--muted)!important}
+.m-field input,.m-field select{
+  min-height:44px!important;
+  border:1px solid var(--ink)!important;
+  border-radius:0!important;
+  background:var(--paper)!important;
+  color:var(--ink)!important;
+}
+.m-field input:focus,.m-field select:focus{
+  border-color:var(--ink)!important;
+  outline:2px solid var(--ink);
+  outline-offset:2px;
+}
+.m-suggestions{
+  border:1px solid var(--ink)!important;
+  border-radius:0!important;
+  background:var(--paper)!important;
+  box-shadow:4px 4px 0 var(--ink);
+}
+.m-suggestions button{
+  border-bottom:1px solid #aeb3a4!important;
+  color:var(--ink)!important;
+}
+.m-suggestions button:hover{
+  background:var(--acid)!important;
+}
+.m-suggestions button small{color:var(--muted)!important}
+
+/* Scanner */
+.m-specimen-card{
+  grid-template-columns:116px 1fr!important;
+}
+.m-poster{
+  background:#121712!important;
+  color:#b5bbac!important;
+  border-right:2px solid var(--ink);
+}
+.m-specimen-copy{color:var(--ink)!important}
+.m-kicker{color:#4b5445!important}
+.m-specimen-copy p,.m-muted{color:var(--muted)!important}
+.m-tags span{
+  border:1px solid var(--ink)!important;
+  color:var(--ink)!important;
+  background:#ddff89!important;
+  border-radius:0!important;
+}
+
+/* Buttons */
+.m-btn{
+  min-height:40px!important;
+  border:1px solid var(--ink)!important;
+  border-radius:0!important;
+  background:var(--paper)!important;
+  color:var(--ink)!important;
+  box-shadow:none!important;
+}
+.m-btn.primary{
+  background:var(--acid)!important;
+  color:var(--ink)!important;
+  box-shadow:3px 3px 0 var(--ink)!important;
+}
+.m-btn:active,.m-info:active{
+  transform:translate(2px,2px);
+  box-shadow:none!important;
+}
+
+/* DNA / lists */
+.m-dna-row span{color:var(--muted)!important}
+.m-dna-track{
+  height:7px!important;
+  background:var(--paper)!important;
+  border:1px solid var(--ink);
+  border-radius:0!important;
+}
+.m-dna-fill{background:var(--ink)!important}
+.m-dna-row b{color:var(--ink)!important}
+
+.m-list button,.m-list .m-list-row{
+  border:1px solid var(--ink)!important;
+  border-radius:0!important;
+  background:rgba(255,255,255,.18)!important;
+  color:var(--ink)!important;
+}
+.m-list button:active{
+  background:var(--acid)!important;
+}
+.m-list small{color:var(--muted)!important}
+.m-list strong{color:var(--ink)!important}
+
+/* Sliders */
+.m-slider-row span{color:var(--ink)!important}
+input[type="range"]{accent-color:var(--danger)!important}
+
+/* Atlas keeps its dark scientific plotting surface, like desktop */
+.m-atlas-wrap{
+  border:2px solid var(--ink)!important;
+  border-radius:0!important;
+  background:#121712!important;
+  box-shadow:4px 4px 0 rgba(17,20,15,.13);
+}
+.m-atlas-detail{
+  border:1px dashed var(--ink)!important;
+  border-left:1px dashed var(--ink)!important;
+  background:rgba(238,240,229,.92)!important;
+  color:var(--ink)!important;
+}
+
+/* More menu */
+.m-menu-grid button{
+  border:1px solid var(--ink)!important;
+  border-radius:0!important;
+  background:var(--panel)!important;
+  color:var(--ink)!important;
+  box-shadow:3px 3px 0 rgba(17,20,15,.11);
+}
+.m-menu-grid button:active{
+  background:var(--acid)!important;
+}
+.m-menu-grid small{color:var(--muted)!important}
+
+/* The same weird sticky-note clue used by desktop, adapted for mobile */
+.m-mobile-memo{
+  position:relative;
+  width:168px;
+  min-height:106px;
+  margin:3px 0 15px auto;
+  padding:18px 13px 22px;
+  border:1px solid #a79b63;
+  background:
+    repeating-linear-gradient(180deg,rgba(247,239,183,.98) 0 15px,rgba(214,204,143,.45) 15px 16px);
+  color:#2a281b;
+  box-shadow:4px 5px 0 rgba(17,20,15,.12);
+  transform:rotate(1.6deg);
+}
+.m-mobile-memo:before{
+  content:"";
+  position:absolute;
+  top:-7px;
+  left:50%;
+  width:58px;
+  height:16px;
+  transform:translateX(-50%) rotate(-3deg);
+  background:rgba(238,229,190,.75);
+  border:1px solid rgba(122,116,92,.32);
+}
+.m-mobile-memo span{
+  display:block;
+  font-size:7px;
+  letter-spacing:.12em;
+  color:#666042;
+  margin-bottom:6px;
+}
+.m-mobile-memo strong{
+  display:block;
+  font-family:var(--display);
+  font-size:19px;
+  line-height:.9;
+}
+.m-mobile-memo small{
+  position:absolute;
+  right:9px;
+  bottom:7px;
+  font-size:8px;
+  color:#4f4a32;
+  font-style:italic;
+}
+
+/* Bottom navigation now reads as a compact laboratory control strip */
+.m-bottom-nav{
+  background:rgba(230,231,220,.97)!important;
+  border-top:2px solid var(--ink)!important;
+  backdrop-filter:blur(12px);
+}
+.m-bottom-nav button{
+  color:#62685d!important;
+  border-radius:0!important;
+  border-right:1px solid rgba(17,20,15,.12)!important;
+}
+.m-bottom-nav button:last-child{border-right:0!important}
+.m-bottom-nav button.is-active{
+  background:var(--ink)!important;
+  color:var(--paper)!important;
+}
+.m-bottom-nav button.is-active small{
+  color:var(--acid)!important;
+}
+
+/* Lab dialogs now match desktop. Dead Channel is explicitly excluded below. */
+.m-dialog{
+  background:var(--paper)!important;
+  color:var(--ink)!important;
+}
+.m-dialog::backdrop{
+  background:rgba(17,20,15,.76)!important;
+  backdrop-filter:blur(4px);
+}
+.m-dialog-shell{
+  background:
+    linear-gradient(rgba(17,20,15,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(17,20,15,.03) 1px,transparent 1px),
+    var(--paper)!important;
+  background-size:28px 28px!important;
+}
+.m-dialog-shell>header{
+  background:var(--ink)!important;
+  color:var(--paper)!important;
+  border-bottom:2px solid var(--ink)!important;
+}
+.m-dialog-shell>header button{
+  border:1px solid var(--paper)!important;
+  border-radius:0!important;
+  color:var(--paper)!important;
+  background:transparent!important;
+}
+.m-dialog-body{color:var(--ink)!important}
+.m-overview,.m-info-copy p,.m-info-copy ol{color:var(--muted)!important}
+.m-human>span{color:#4b5445!important}
+.m-human dl{border-color:var(--ink)!important}
+.m-human dl div{border-color:#aeb3a4!important}
+.m-human dt{color:var(--muted)!important}
+
+/* RX keeps a darker pathology card inside the desktop-like modal */
+.rx-dialog .m-dialog-body{
+  background:var(--paper)!important;
+}
+.m-rx-scan div{
+  border-left:2px solid var(--ink)!important;
+  background:rgba(255,255,255,.18)!important;
+  color:#4d5549!important;
+}
+.m-rx-history button{
+  border:1px solid var(--ink)!important;
+  border-radius:0!important;
+  background:var(--paper)!important;
+  color:var(--muted)!important;
+}
+.m-rx-history button.has{
+  background:var(--ink)!important;
+  color:var(--acid)!important;
+  border-color:var(--ink)!important;
+}
+.m-rx-card{
+  border:2px solid var(--ink)!important;
+  border-radius:0!important;
+  background:#121712!important;
+  color:#edf1e4!important;
+  box-shadow:5px 5px 0 rgba(17,20,15,.15);
+}
+.m-rx-sealed{color:var(--acid)!important}
+.m-rx-reveal p{color:#b5bbac!important}
+
+/* IMPORTANT: Dead Channel stays visually different on purpose.
+   This is the easter egg / cursed website, so its purple Y2K styling remains intact. */
+.m-dead,
+.m-dead *{
+  --ink:#e8dce4;
+}
+.m-dead{
+  background:#040006!important;
+  color:#e8dce4!important;
+}
+.m-dead-site{
+  background:radial-gradient(circle at top right,#260033,transparent 28%),#050007!important;
+}
+.m-dead-site>header b{color:#ff4c8d!important}
+.m-dead-site>p{color:#b69caf!important}
+.m-dead-card{
+  border:3px ridge #68445f!important;
+  background:#12000f!important;
+  color:#eee!important;
+}
+.m-dead-card small{color:#b697ac!important}
+
+/* Narrow screen tune */
+@media(max-width:390px){
+  .m-section-head h1{font-size:23px!important}
+  .m-specimen-card{grid-template-columns:98px 1fr!important}
+  .m-mobile-memo{width:154px}
+}
+
+
+/* ===== CINEGENOME MOBILE V36 / EXACT DESKTOP TYPOGRAPHY ===== */
+/* Do not reinterpret the brand fonts on mobile. These variables intentionally
+   mirror the desktop stylesheet exactly. */
+:root{
+  --font-brand:"Oxanium","Arial Narrow",sans-serif;
+  --font-display:"Orbitron","Arial Black",sans-serif;
+  --font-body:"Courier Prime","Courier New",ui-monospace,monospace;
+
+  --dead-head:"Eater",serif;
+  --dead-accent:"Frijole",cursive;
+  --dead-pixel:"Silkscreen",monospace;
+
+  /* Keep legacy mobile variables as aliases so existing rules inherit
+     the exact same desktop typography. */
+  --brand:var(--font-brand);
+  --display:var(--font-display);
+  --body:var(--font-body);
+}
+
+/* MAIN LAB — exact same hierarchy as desktop */
+html,body,
+button,input,select,textarea{
+  font-family:var(--font-body)!important;
+}
+
+.m-brand span,
+.m-boot-inner b{
+  font-family:var(--font-brand)!important;
+}
+
+.m-section-head h1,
+.m-specimen-copy h2,
+.m-result-title,
+.m-list b,
+.m-list strong,
+.m-dna-row b,
+.m-slider-row span,
+.m-menu-grid b,
+.m-bottom-nav button span,
+.m-dossier-grid h2,
+.m-info-copy h2,
+.m-human h2,
+.m-rx-sealed,
+.m-rx-reveal h2{
+  font-family:var(--font-display)!important;
+}
+
+/* Friendly sizing only — no font identity changes */
+.m-section-head h1{
+  font-size:clamp(22px,7vw,28px)!important;
+  line-height:.98!important;
+}
+.m-specimen-copy h2,
+.m-result-title{
+  font-size:clamp(18px,5.4vw,22px)!important;
+  line-height:1.03!important;
+}
+.m-field input,
+.m-field select{
+  font-size:13px!important;
+}
+.m-btn{
+  font-size:9px!important;
+  letter-spacing:.02em!important;
+}
+.m-list b{
+  font-size:10px!important;
+  line-height:1.25!important;
+}
+.m-list small,
+.m-muted,
+.m-specimen-copy p{
+  font-size:8px!important;
+  line-height:1.55!important;
+}
+.m-dna-row span{
+  font-size:7.5px!important;
+}
+.m-dna-row b{
+  font-size:9px!important;
+}
+
+/* DEAD CHANNEL / WEIRD STUFF — exact desktop font identity */
+.m-dead-site{
+  font-family:var(--dead-pixel)!important;
+}
+.m-dead-site button,
+.m-dead-site p,
+.m-dead-site span,
+.m-dead-site small,
+.m-dead-card small{
+  font-family:var(--dead-pixel)!important;
+}
+
+.m-dead-site>header b{
+  font-family:var(--dead-head)!important;
+  font-weight:400!important;
+  letter-spacing:0!important;
+}
+
+.m-dead-card b{
+  font-family:var(--dead-head)!important;
+  font-weight:400!important;
+  line-height:1.02!important;
+  letter-spacing:0!important;
+}
+
+.m-dead-random{
+  font-family:var(--dead-pixel)!important;
+  font-weight:700!important;
+}
+
+/* Introduce the same accent font sparingly, like the desktop cursed site */
+.m-dead-site>p:before{
+  content:"WEIRD STUFF // ";
+  font-family:var(--dead-accent)!important;
+  color:#f5ff00;
+  font-size:10px;
+}
+
+/* Preserve Y2K readability on touch without changing visual language */
+.m-dead-site{
+  padding:14px!important;
+}
+.m-dead-site>header b{
+  font-size:clamp(34px,11vw,52px)!important;
+  line-height:.78!important;
+}
+.m-dead-site>p{
+  font-size:8px!important;
+  line-height:1.7!important;
+}
+.m-dead-random{
+  min-height:48px!important;
+  font-size:8px!important;
+}
+.m-dead-card{
+  padding:8px!important;
+}
+.m-dead-card b{
+  font-size:clamp(12px,3.8vw,17px)!important;
+  margin:8px 0 6px!important;
+}
+.m-dead-card small{
+  font-size:6px!important;
+  line-height:1.4!important;
+}
+
+/* Larger touch targets, no visual redesign */
+.m-bottom-nav button{
+  min-height:58px!important;
+}
+.m-info{
+  min-width:40px!important;
+  min-height:40px!important;
+}
+.m-menu-grid button{
+  min-height:64px!important;
+}
+.m-actions .m-btn{
+  min-height:42px!important;
+}
+
+/* Keep desktop-like dense layout but stop text from colliding on small screens */
+@media(max-width:390px){
+  .m-specimen-copy{
+    padding:11px!important;
+  }
+  .m-specimen-copy h2{
+    font-size:18px!important;
+  }
+  .m-dna-row{
+    grid-template-columns:92px minmax(0,1fr) 36px!important;
+    gap:9px!important;
+  }
+  .m-dead-grid{
+    gap:7px!important;
+  }
+}
+
+
+/* ===== CINEGENOME MOBILE V38 / supplied mark beside existing wordmark ===== */
+.m-brand-lockup{
+  display:flex!important;
+  align-items:center!important;
+  gap:7px!important;
+  min-width:0;
+  text-align:left!important;
+}
+.m-brand-symbol{
+  display:block;
+  width:37px;
+  height:37px;
+  flex:0 0 37px;
+  object-fit:contain;
+  pointer-events:none;
+  transition:transform .12s ease;
+}
+.m-brand-text{
+  display:grid!important;
+  gap:1px;
+  min-width:0;
+}
+.m-brand-text strong{
+  display:block;
+  font-family:var(--font-brand)!important;
+  font-size:18px!important;
+  line-height:.88!important;
+  letter-spacing:-.055em!important;
+  color:var(--ink)!important;
+}
+.m-brand-text small{
+  display:block!important;
+  font-family:var(--font-body)!important;
+  font-size:5.5px!important;
+  line-height:1.1!important;
+  letter-spacing:.08em!important;
+  color:var(--muted)!important;
+  white-space:nowrap;
+}
+.m-brand-lockup:active .m-brand-symbol{
+  transform:scale(.94);
+}
+
+@media(max-width:360px){
+  .m-brand-symbol{
+    width:33px;
+    height:33px;
+    flex-basis:33px;
+  }
+  .m-brand-text strong{
+    font-size:16px!important;
+  }
+  .m-brand-text small{
+    font-size:5px!important;
+  }
+}
+
+
+/* Mobile logo feedback mirrors desktop: short flicker only, never sticky. */
+.m-brand-lockup.is-secret-tap .m-brand-symbol{
+  animation:mBrandSymbolFlicker .48s steps(2,end);
+}
+.m-brand-lockup.is-secret-tap .m-brand-text strong{
+  animation:mBrandWordFlicker .48s steps(2,end);
+}
+@keyframes mBrandWordFlicker{
+  0%,100%{color:var(--ink);text-shadow:none;opacity:1}
+  18%{color:var(--acid);text-shadow:2px 0 0 var(--ink);opacity:.72}
+  37%{color:var(--ink);text-shadow:none;opacity:1}
+  58%{color:var(--acid);text-shadow:0 0 10px rgba(184,255,53,.6);opacity:.85}
+  74%{color:var(--ink);opacity:.74}
+}
+@keyframes mBrandSymbolFlicker{
+  0%,100%{filter:none;transform:none;opacity:1}
+  18%{filter:drop-shadow(2px 0 0 rgba(184,255,53,.75));transform:translateX(-1px);opacity:.74}
+  38%{filter:none;transform:translateX(1px);opacity:1}
+  58%{filter:drop-shadow(0 0 6px rgba(184,255,53,.65));transform:scale(1.03);opacity:.86}
+}
+
+
+/* V40 mobile: simple temporary green state, no flicker */
+.m-brand-lockup.is-secret-tap .m-brand-text strong{
+  animation:none!important;
+  color:var(--acid)!important;
+  text-shadow:none!important;
+  opacity:1!important;
+}
+.m-brand-lockup.is-secret-tap .m-brand-symbol{
+  animation:none!important;
+  filter:drop-shadow(0 0 4px rgba(184,255,53,.38))!important;
+  transform:none!important;
+  opacity:1!important;
+}

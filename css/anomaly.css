@@ -1,0 +1,176 @@
+/* Anomaly Hunt is deliberately small until opened. Shared across both UIs. */
+.anomaly-portal{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin-top:14px;padding:8px 10px;border:1px dashed #586652;
+  background:#151b13;color:#d7e5c5;
+}
+.anomaly-portal > span{
+  font:700 9px/1.35 "Courier Prime","Courier New",monospace;
+  letter-spacing:.08em;
+}
+.anomaly-portal button{
+  flex:0 0 auto;min-height:38px;padding:6px 10px;
+  border:1px solid #b8ff35;background:#1b2716;color:#dfff9d;
+  font:700 10px/1.2 "Courier Prime","Courier New",monospace;
+  cursor:pointer;
+}
+.anomaly-portal button:hover,.anomaly-portal button:focus-visible{
+  background:#b8ff35;color:#11140f;
+}
+.anomaly-portal.is-active{border-color:#b8ff35}
+.anomaly-portal.is-complete{background:#243119}
+.anomaly-dialog{
+  width:min(600px,calc(100vw - 24px));max-width:600px;max-height:min(85dvh,860px);
+  margin:auto;padding:0;border:2px solid #b8ff35;
+  background:#0b100b;color:#e6e7dc;overflow:auto;
+  box-shadow:8px 8px 0 #0009;
+}
+.anomaly-dialog::backdrop{background:rgba(2,8,2,.85)}
+.anomaly-dialog > header{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  position:sticky;top:0;z-index:1;padding:10px 14px;
+  background:#b8ff35;color:#11140f;
+  font:700 11px "Courier Prime","Courier New",monospace;
+}
+.anomaly-dialog > header button{
+  min-width:40px;min-height:40px;border:1px solid #11140f;
+  background:transparent;color:#11140f;font-size:23px;cursor:pointer;
+}
+.anomaly-dialog > header button:focus-visible,.anomaly-export:focus-visible{
+  outline:3px solid #e04734;outline-offset:2px;
+}
+.anomaly-body{padding:20px clamp(14px,4vw,26px) 28px}
+.anomaly-kicker,.anomaly-step-number,.anomaly-reward > span,.anomaly-pending{
+  font:700 10px/1.4 "Courier Prime","Courier New",monospace;
+  letter-spacing:.06em;color:#b8ff35;
+}
+.anomaly-body h2{
+  margin:7px 0 12px;font:800 clamp(23px,6vw,38px)/1.05 "Orbitron",sans-serif;
+  overflow-wrap:anywhere;
+}
+.anomaly-body h2 span{color:#b8ff35}
+.anomaly-intro,.anomaly-step p,.anomaly-reward p{
+  font:400 13px/1.55 "Courier Prime","Courier New",monospace;
+}
+.anomaly-intro{max-width:52ch;color:#b3c0ad}
+.anomaly-steps{display:grid;gap:8px;margin:18px 0}
+.anomaly-step{padding:12px;border:1px solid #394437;background:#101710}
+.anomaly-step.is-found{border-color:#9ad544;background:#182218}
+.anomaly-step strong{display:block;margin-top:4px;font:700 13px/1.3 "Orbitron",sans-serif}
+.anomaly-step p{margin:7px 0 0;color:#c8d5c0}
+.anomaly-step:not(.is-found) .anomaly-step-number{color:#aab99a}
+.anomaly-pending{padding:10px 0;color:#8c9e80}
+.anomaly-reward{border:2px solid #b8ff35;padding:16px;background:#1b2716}
+.anomaly-reward h3{
+  margin:8px 0 12px;color:#e9ffca;
+  font:700 clamp(16px,5vw,23px)/1.2 "Orbitron",sans-serif;
+  overflow-wrap:anywhere;
+}
+.anomaly-reward p{margin:8px 0;color:#dfebd3}
+.anomaly-reward .anomaly-note{font-size:10px;color:#a5b39b}
+.anomaly-export{
+  width:100%;min-height:44px;margin-top:10px;padding:9px;
+  border:1px solid #11140f;background:#b8ff35;color:#11140f;
+  font:700 11px/1.3 "Courier Prime","Courier New",monospace;cursor:pointer;
+}
+.anomaly-toast{
+  position:fixed;z-index:500;right:16px;bottom:16px;max-width:min(380px,calc(100vw - 32px));
+  padding:13px;border:1px solid #b8ff35;background:#111a10;color:#e8ffcf;
+  font:700 11px/1.4 "Courier Prime","Courier New",monospace;
+  box-shadow:4px 4px 0 #0008;
+}
+.anomaly-toast[hidden]{display:none}
+@media(max-width:760px){
+  .anomaly-portal{margin:12px 0;flex-wrap:wrap}
+  .anomaly-portal button{min-width:110px}
+  .anomaly-toast{bottom:calc(86px + env(safe-area-inset-bottom))}
+  .anomaly-dialog{
+    width:100vw;max-width:none;height:100dvh;max-height:none;margin:0;border:0;
+  }
+  .anomaly-dialog > header{padding-top:calc(8px + env(safe-area-inset-top))}
+  .anomaly-body{padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+}
+@media(prefers-reduced-motion:reduce){
+  .anomaly-portal button,.anomaly-dialog{scroll-behavior:auto}
+}
+
+/* Daily case board and collectible archive. */
+.anomaly-case-grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:18px 0;
+}
+.anomaly-case{
+  display:flex;flex-direction:column;align-items:flex-start;gap:7px;
+  width:100%;min-height:118px;padding:13px;text-align:left;
+  border:1px solid #46533f;background:#121b11;color:#e6efe1;cursor:pointer;
+}
+.anomaly-case small,.anomaly-case span{
+  font:700 10px/1.3 "Courier Prime","Courier New",monospace;
+  letter-spacing:.04em;
+}
+.anomaly-case small{color:#b8ff35}
+.anomaly-case strong{font:700 13px/1.25 "Orbitron",sans-serif;overflow-wrap:anywhere}
+.anomaly-case span{margin-top:auto;color:#a7b6a0}
+.anomaly-case.is-solved{border-color:#9ed659;background:#1b2a16}
+.anomaly-case.is-solved span{color:#b8ff35}
+.anomaly-case.is-selected,.anomaly-collection-grid button.is-selected{outline:2px solid #b8ff35;outline-offset:-3px}
+.anomaly-case:hover,.anomaly-case:focus-visible,.anomaly-collection-grid button:hover,.anomaly-collection-grid button:focus-visible{
+  outline:3px solid #b8ff35;outline-offset:2px;
+}
+.anomaly-step .anomaly-note{font-size:10px;color:#90a08b;margin-top:12px}
+.anomaly-stamp{
+  position:relative;display:flex;flex-direction:column;gap:13px;
+  min-height:225px;margin:15px 0;padding:18px;overflow:hidden;
+  border:2px solid #b8ff35;
+  background:repeating-linear-gradient(0deg,#101810 0 5px,#182418 5px 6px);
+}
+.anomaly-stamp:after{
+  content:"CG-09";position:absolute;right:-20px;bottom:-16px;
+  color:#b8ff3520;font:800 85px/1 "Orbitron",sans-serif;pointer-events:none;
+}
+.anomaly-stamp small,.anomaly-stamp em,.anomaly-stamp span{
+  position:relative;z-index:1;font:700 11px/1.35 "Courier Prime","Courier New",monospace;
+  overflow-wrap:anywhere;
+}
+.anomaly-stamp small{color:#b8ff35}
+.anomaly-stamp b{
+  position:relative;z-index:1;font:800 clamp(20px,5vw,30px)/1.1 "Orbitron",sans-serif;
+  overflow-wrap:anywhere;
+}
+.anomaly-stamp em{font-style:normal;color:#d9ffb0}
+.anomaly-stamp span{margin-top:auto;color:#aec3a4}
+.anomaly-reward.is-master{border-color:#ff634a;background:#281714}
+.anomaly-reward.is-master > span{color:#ffad94}
+.anomaly-reward.is-master .anomaly-stamp{border-color:#ff634a;background:repeating-linear-gradient(0deg,#1c1110 0 5px,#281917 5px 6px)}
+.anomaly-reward.is-master .anomaly-stamp small,.anomaly-reward.is-master .anomaly-stamp em{color:#ffa996}
+.anomaly-reward.is-master .anomaly-stamp:after{color:#ff634a24}
+.anomaly-reward-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.anomaly-export{margin-top:0;min-width:0;font-size:10px}
+.anomaly-export-alt{background:transparent;color:#e9ffce;border-color:#b8ff35}
+.anomaly-export-alt:hover{background:#283a22}
+.anomaly-collection{margin:22px 0 0;padding-top:15px;border-top:1px dashed #6a7d60}
+.anomaly-collection h3{margin:0;color:#b8ff35;font:700 14px/1.2 "Orbitron",sans-serif}
+.anomaly-collection p{margin:6px 0 12px;color:#abb9a5;font:11px/1.4 "Courier Prime",monospace}
+.anomaly-collection-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.anomaly-collection-grid button{
+  min-height:60px;padding:9px;text-align:left;background:#172116;color:#e5f4dd;
+  border:1px solid #465940;cursor:pointer;
+}
+.anomaly-collection-grid button small,.anomaly-collection-grid button strong{display:block;overflow-wrap:anywhere}
+.anomaly-collection-grid button small{color:#b8ff35;font:700 9px/1.35 "Courier Prime",monospace}
+.anomaly-collection-grid button strong{margin-top:4px;font:700 11px/1.3 "Orbitron",sans-serif}
+.anomaly-collection-grid > span{color:#aab8a4;font:11px "Courier Prime",monospace}
+.anomaly-collection-more{
+  width:100%;min-height:42px;margin-top:10px;border:1px solid #b8ff35;
+  background:#172116;color:#dfff9d;cursor:pointer;
+  font:700 11px/1.3 "Courier Prime","Courier New",monospace;
+}
+.anomaly-collection-more:hover,.anomaly-collection-more:focus-visible{
+  background:#b8ff35;color:#11140f;outline:2px solid #b8ff35;outline-offset:2px;
+}
+@media(max-width:430px){
+  .anomaly-case-grid{gap:6px}
+  .anomaly-case{min-height:110px;padding:10px}
+  .anomaly-case strong{font-size:11px}
+  .anomaly-case small,.anomaly-case span{font-size:9px}
+  .anomaly-reward-actions{grid-template-columns:1fr}
+}

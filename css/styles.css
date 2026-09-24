@@ -71,7 +71,7 @@ h1 span{display:block;color:var(--blood)}
 .specimen-header h2,.result-title{font-size:24px;letter-spacing:-.05em;margin:4px 0 0;line-height:.95}
 .micro{color:var(--muted);line-height:1.45}
 .tag-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.tag{font-size:8px;border:1px solid var(--ink);padding:4px 6px;background:var(--acid-2)}
+.tag{font-size:8px;border:1px solid var(--ink);padding:4px 6px;background:var(--acid-2);color:#11140f}
 .icon-btn,.lab-btn{border:1px solid var(--ink);background:var(--paper);min-height:40px;padding:8px 10px;font-weight:700;font-size:9px;letter-spacing:.04em}
 .icon-btn[aria-pressed="true"]{background:var(--acid)}
 .lab-btn:hover,.icon-btn:hover{background:#fff}
@@ -1951,4 +1951,145 @@ body.guestbook-incident .deadsite-scanlines{opacity:.22}
 }
 .dead-dossier-dialog .dead-detail-title{
   max-width:900px;
+}
+
+
+/* ===== CINEGENOME ALT V38 / logo lockup based on V36 ===== */
+/* Keep the original CINE / GENOME wordmark and place the supplied mark beside it. */
+.brand-lockup{
+  width:100%;
+  border:0!important;
+  background:transparent!important;
+  padding:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:12px!important;
+  text-align:left!important;
+  appearance:none;
+  color:var(--ink)!important;
+}
+.brand-wordmark{
+  display:block;
+  flex:0 0 auto;
+  font-family:var(--font-brand)!important;
+  font-weight:700!important;
+  font-size:31px!important;
+  line-height:.77!important;
+  letter-spacing:-.055em!important;
+}
+.brand-symbol{
+  display:block;
+  width:57px;
+  height:57px;
+  flex:0 0 57px;
+  object-fit:contain;
+  pointer-events:none;
+  transition:transform .14s ease,filter .14s ease;
+}
+.brand-lockup:hover .brand-symbol{
+  transform:rotate(-2deg) scale(1.035);
+}
+/* secret click feedback must flicker, never stay green */
+.brand-lockup.secret-armed .brand-symbol{
+  animation:brandSymbolFlicker .48s steps(2,end);
+}
+.brand-lockup.secret-armed .brand-wordmark{
+  animation:brandWordFlicker .48s steps(2,end);
+}
+@keyframes brandWordFlicker{
+  0%,100%{color:var(--ink);text-shadow:none;opacity:1}
+  15%{color:var(--acid);text-shadow:2px 0 0 #111,-2px 0 0 rgba(184,255,53,.75);opacity:.72}
+  32%{color:var(--ink);text-shadow:none;opacity:1}
+  52%{color:var(--acid);text-shadow:0 0 14px rgba(184,255,53,.72);opacity:.88}
+  69%{color:var(--ink);text-shadow:1px 0 0 rgba(184,255,53,.35);opacity:.76}
+}
+@keyframes brandSymbolFlicker{
+  0%,100%{filter:none;transform:none;opacity:1}
+  16%{filter:drop-shadow(3px 0 0 rgba(184,255,53,.82));transform:translateX(-1px) rotate(-2deg);opacity:.76}
+  34%{filter:none;transform:translateX(1px);opacity:1}
+  53%{filter:drop-shadow(0 0 8px rgba(184,255,53,.75));transform:scale(1.035);opacity:.86}
+  70%{filter:none;transform:none;opacity:.72}
+}
+.brand-lockup:focus-visible{
+  outline:2px solid var(--ink)!important;
+  outline-offset:3px!important;
+}
+
+@media(max-width:500px){
+  .brand-wordmark{
+    font-size:27px!important;
+  }
+  .brand-symbol{
+    width:50px;
+    height:50px;
+    flex-basis:50px;
+  }
+}
+
+
+/* ===== CINEGENOME ALT V39 / non-sticky 7-click flicker ===== */
+.brand-lockup.secret-armed{
+  color:var(--ink)!important;
+}
+
+
+/* ===== CINEGENOME ALT V40 / simple green click feedback ===== */
+.brand-lockup.secret-armed .brand-wordmark{
+  animation:none!important;
+  color:var(--acid)!important;
+  text-shadow:none!important;
+  opacity:1!important;
+}
+.brand-lockup.secret-armed .brand-symbol{
+  animation:none!important;
+  filter:drop-shadow(0 0 5px rgba(184,255,53,.42))!important;
+  transform:none!important;
+  opacity:1!important;
+}
+.brand-wordmark,
+.brand-symbol{
+  transition:color .08s linear,filter .08s linear!important;
+}
+
+
+/* ===== CINEGENOME ALT V41 / tighten desktop logo lockup ===== */
+.brand-lockup{
+  gap:6px!important;
+}
+.brand-symbol{
+  margin-left:-3px!important;
+}
+
+.mobile-return-link{display:none}
+@media(max-width:760px){.mobile-return-link{display:inline-block;margin-top:10px;color:#15200f;background:var(--acid);border:1px solid #15200f;padding:10px 12px;font:700 11px/1.2 "Courier Prime",monospace;text-decoration:none}.mobile-return-link:focus-visible{outline:3px solid #cf3727;outline-offset:2px}}
+
+/* Readable genre and keyword labels in the dark specimen dossier. */
+.dossier-tags .tag{
+  color:#11140f;
+  font-size:11px;
+  font-weight:700;
+  line-height:1.3;
+}
+
+/* One global count for both desktop and mobile. */
+.visitor-meter{
+  display:grid;
+  gap:6px;
+  margin-top:0;
+  padding:10px;
+  border:1px solid var(--ink);
+  background:#11140f;
+  color:#e6e7dc;
+}
+.visitor-meter span{
+  font:700 9px/1.35 var(--font-body,"Courier New",monospace);
+  letter-spacing:.04em;
+}
+.visitor-meter strong{
+  color:var(--acid);
+  font:800 clamp(22px,3vw,30px)/1 var(--font-display,"Arial Black",sans-serif);
+  font-variant-numeric:tabular-nums;
+  letter-spacing:.03em;
+  overflow-wrap:anywhere;
 }
