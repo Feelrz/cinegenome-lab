@@ -1427,21 +1427,6 @@ body.guestbook-incident .deadsite-scanlines{opacity:.22}
 .human-letterboxd-link:hover{background:#eef3eb;border-color:#eef3eb}
 .human-record-hint{margin-top:12px;font-family:var(--font-body);font-size:7px;color:#647160;letter-spacing:.07em}
 
-/* CORRUPTED SPECIMEN */
-.corruption-banner{
-  margin-bottom:12px;border:1px solid #bd3f56;background:#23070c;color:#ffd0d6;padding:10px 12px;
-  display:grid;grid-template-columns:auto 1fr;gap:3px 12px;align-items:center;
-  box-shadow:4px 0 0 #00c7d4,-4px 0 0 #b5005c;
-}
-.corruption-banner[hidden]{display:none}
-.corruption-banner span{font-family:var(--font-body);font-size:7px;color:#ff647c;letter-spacing:.09em}
-.corruption-banner strong{font-family:var(--font-display);font-size:11px;color:#fff}
-.corruption-banner small{grid-column:1/-1;font-family:var(--font-body);font-size:7px;color:#b98991}
-#view-scanner.is-corrupted .specimen-header h2{text-shadow:2px 0 #e72f5d,-2px 0 #00b8c8;animation:corruptTitle .18s steps(2,end) 4}
-#view-scanner.is-corrupted .scope-wrap{filter:contrast(1.15) saturate(.72)}
-#view-scanner.is-corrupted .scope-wrap:after{content:"SIGNAL LOSS";position:absolute;right:16px;bottom:12px;color:#d6425a;font-family:var(--font-body);font-size:8px;letter-spacing:.08em}
-@keyframes corruptTitle{50%{transform:translateX(2px);filter:blur(.3px)}}
-@media(prefers-reduced-motion:reduce){#view-scanner.is-corrupted .specimen-header h2{animation:none}}
 
 /* DEAD CHANNEL RANDOM PICKER 3000 */
 .dead-picker{
@@ -1509,4 +1494,176 @@ body.guestbook-incident .deadsite-scanlines{opacity:.22}
 }
 @media(prefers-reduced-motion:reduce){
   .atlas-selected-label{animation:none}
+}
+
+
+/* ===== CINEGENOME ALT V28 / scanner lazy TMDB poster ===== */
+.scanner-specimen-header{
+  display:grid!important;
+  grid-template-columns:112px minmax(0,1fr) auto;
+  align-items:start!important;
+  gap:16px!important;
+}
+.scanner-poster{
+  position:relative;
+  width:112px;
+  aspect-ratio:2/3;
+  overflow:hidden;
+  border:1px solid #3b4638;
+  background:#10150f;
+  box-shadow:4px 4px 0 rgba(17,20,15,.12);
+}
+.scanner-poster img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  opacity:0;
+  transform:scale(1.025);
+  filter:saturate(.82) contrast(1.05);
+  transition:opacity .42s ease,transform .58s cubic-bezier(.2,.7,.2,1);
+}
+.scanner-poster.has-poster img{
+  opacity:1;
+  transform:scale(1);
+}
+.scanner-poster-placeholder{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  gap:5px;
+  padding:10px;
+  background:
+    linear-gradient(180deg,transparent,rgba(6,9,6,.42)),
+    repeating-linear-gradient(45deg,#10150f 0 8px,#151b13 8px 16px);
+  color:#6f7b6b;
+  transition:opacity .28s ease;
+}
+.scanner-poster.has-poster .scanner-poster-placeholder{opacity:0;pointer-events:none}
+.scanner-poster-placeholder span,
+.scanner-poster-placeholder small{
+  font-family:var(--font-body,"Courier Prime",monospace);
+  font-size:7px;
+  line-height:1.35;
+  letter-spacing:.08em;
+}
+.scanner-poster-placeholder strong{
+  font-family:var(--font-display,"Orbitron",sans-serif);
+  font-size:11px;
+  line-height:1.02;
+  color:#a9b4a5;
+}
+.scanner-poster[data-state="loading"]{
+  border-color:#708060;
+}
+.scanner-poster[data-state="loading"] .scanner-poster-placeholder:after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  top:0;
+  height:2px;
+  background:#b8ff35;
+  box-shadow:0 0 8px rgba(184,255,53,.42);
+  animation:scannerPosterScan 1.25s ease-in-out infinite;
+}
+.scanner-poster[data-state="error"]{border-color:#5b554c}
+.scanner-poster[data-state="error"] .scanner-poster-placeholder strong{color:#8f877c}
+@keyframes scannerPosterScan{
+  0%{transform:translateY(5px);opacity:.2}
+  50%{opacity:1}
+  100%{transform:translateY(162px);opacity:.18}
+}
+.scanner-specimen-copy{min-width:0;padding-top:2px}
+.scanner-specimen-copy h2{font-size:clamp(25px,4vw,38px)!important;max-width:18ch}
+.scanner-specimen-header .specimen-actions{align-self:start}
+@media(max-width:720px){
+  .scanner-specimen-header{
+    grid-template-columns:94px minmax(0,1fr)!important;
+  }
+  .scanner-poster{width:94px}
+  .scanner-specimen-header .specimen-actions{
+    grid-column:1/-1;
+    justify-content:flex-start;
+  }
+}
+@media(max-width:460px){
+  .scanner-specimen-header{grid-template-columns:78px minmax(0,1fr)!important;gap:12px!important}
+  .scanner-poster{width:78px}
+  .scanner-poster-placeholder{padding:7px}
+  .scanner-poster-placeholder strong{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){
+  .scanner-poster img{transition:none}
+  .scanner-poster[data-state="loading"] .scanner-poster-placeholder:after{animation:none;top:50%}
+}
+
+
+/* ===== CINEGENOME ALT V30 / percentage spacing polish ===== */
+
+/* DNA rows: give the numeric % its own breathing room */
+.dna-row{
+  grid-template-columns:128px minmax(0,1fr) 44px!important;
+  column-gap:12px!important;
+}
+.dna-value{
+  min-width:44px;
+  padding-left:5px;
+  text-align:right!important;
+  line-height:1;
+  font-variant-numeric:tabular-nums;
+}
+
+/* Mutation sliders: separate the percentage from the range track */
+.mutation-control{
+  grid-template-columns:140px minmax(0,1fr) 46px!important;
+  column-gap:12px!important;
+}
+.mutation-control > span:last-child{
+  min-width:46px;
+  padding-left:6px;
+  text-align:right;
+  line-height:1.15;
+  font-variant-numeric:tabular-nums;
+}
+
+/* Crossbreed 50% / 50% readout */
+.balance-numbers{
+  margin-top:8px!important;
+  padding:0 2px;
+  line-height:1.25;
+}
+.balance-numbers span{
+  min-width:48px;
+}
+.balance-numbers span:last-child{
+  text-align:right;
+}
+
+/* Similarity / match percentages */
+.rank-item{
+  column-gap:12px!important;
+}
+.rank-score{
+  min-width:48px;
+  padding-left:7px;
+  text-align:right;
+  line-height:1;
+  font-variant-numeric:tabular-nums;
+}
+
+/* Small-screen spacing should stay readable instead of collapsing */
+@media(max-width:500px){
+  .dna-row{
+    grid-template-columns:105px minmax(0,1fr) 42px!important;
+    column-gap:10px!important;
+  }
+  .mutation-control{
+    grid-template-columns:105px minmax(0,1fr) 44px!important;
+    column-gap:10px!important;
+  }
 }

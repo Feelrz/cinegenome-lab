@@ -35,6 +35,7 @@
 
   let state = loadState();
   let currentScannerId = MOVIES[0]?.id || null;
+  let scannerTMDBRequestToken = 0;
   let mutationDNA = cloneDNA(MOVIES[0]?.dna || {});
   let mutationSeedNonce = 0;
   let mutationPass = 0;
@@ -73,6 +74,12 @@
   let deadPickerSelection = null;
   let deadPickerTimer = null;
   let bootDismissTimer = null;
+
+  // One TMDB request per specimen at a time, shared by Scanner/Crossbreed/Mutation.
+  const metadataHydrationInFlight = new Map();
+  let crossbreedMetadataToken = 0;
+  let mutationMetadataTimer = null;
+  let mutationMetadataToken = 0;
   let guestbookIncidentActive = false;
   let guestbookIncidentTimer = null;
 
@@ -714,7 +721,7 @@
 
   function renderRanks(el, rows) {
     if (!el) return;
-    el.innerHTML = rows.map((r, i) => `<div class="rank-item"><span class="rank-num">${String(i+1).padStart(2,'0')}</span><div><div class="rank-title">${esc(r.movie.title)}</div><div class="rank-meta">${esc(r.movie.director)} / ${r.movie.year}</div></div><strong class="rank-score">${r.score}%</strong></div>`).join('');
+    el.innerHTML = rows.map((r, i) => `<div class="rank-item"><span class="rank-num">${String(i+1).padStart(2,'0')}</span><div><div class="rank-title">${esc(r.movie.title)}</div><div class="rank-meta">${esc(metadataMetaLine(r.movie))}</div></div><strong class="rank-score">${r.score}%</strong></div>`).join('');
   }
 
 
@@ -742,34 +749,6 @@
     log('HUMAN SPECIMEN RECORD OPENED // EXTERNAL ARCHIVE DETECTED');
   }
 
-  function corruptionState(movie){
-    if(!movie)return null;
-    // Deterministic during one refresh; roughly 1 in 15 specimens.
-    const roll=hash32(`${HACK_SESSION_SEED}|corruption|${movie.id}|${movie.title}`)%15;
-    if(roll!==0)return null;
-    const messages=[
-      'ARCHIVE SIGNAL CONTAMINATED',
-      'GENOME HEADER FAILING CHECKSUM',
-      'SPECIMEN DISPLAY BUFFER BLEEDING',
-      'PATHOLOGY READOUT DESYNCHRONIZED',
-      'UNKNOWN FRAME DATA DETECTED',
-      'VISUAL MEMORY SECTOR CORRUPTED',
-      'SUBJECT RECORD CONTAINS IMPOSSIBLE BYTES'
-    ];
-    return messages[hash32(`${movie.id}|corrupt-message`)%messages.length];
-  }
-
-  function renderCorruption(movie){
-    const banner=$('#corruptionBanner'), view=$('#view-scanner');
-    if(!banner||!view)return;
-    const message=corruptionState(movie);
-    banner.hidden=!message;
-    view.classList.toggle('is-corrupted',!!message);
-    if(message){
-      $('#corruptionMessage').textContent=message;
-      log(`CORRUPTED SPECIMEN EVENT: ${movie.title.toUpperCase()} // ${message}`);
-    }
-  }
 
   function stopDeadPicker(){
     if(deadPickerTimer){ clearInterval(deadPickerTimer); deadPickerTimer=null; }
@@ -809,15 +788,105 @@
     },58);
   }
 
-  function renderScanner(id = currentScannerId) {
+  function isMetadataPending(movie){
+    if(!movie) return true;
+    const director=String(movie.director||'').trim().toLowerCase();
+    const country=String(movie.country||'').trim().toLowerCase();
+    return !movie.tmdbId
+      || !director
+      || director==='metadata pending'
+      || director==='unknown'
+      || !country
+      || country==='unknown'
+      || !(movie.genres||[]).length
+      || !movie.overview
+      || !movie.posterPath;
+  }
+
+  async function hydrateMovieMetadata(movie){
+    if(!movie || !TMDB?.canQuery() || !isMetadataPending(movie)) return movie;
+    const key=String(movie.id);
+    if(metadataHydrationInFlight.has(key)) return metadataHydrationInFlight.get(key);
+
+    const task=(async()=>{
+      try{
+        return await enrichLocalMovie(movie);
+      } finally {
+        metadataHydrationInFlight.delete(key);
+      }
+    })();
+
+    metadataHydrationInFlight.set(key,task);
+    return task;
+  }
+
+  function metadataMetaLine(movie,{includeCountry=false}={}){
+    if(!movie) return 'METADATA SIGNAL UNAVAILABLE';
+    const director=String(movie.director||'').trim();
+    const pending=!director || director.toLowerCase()==='metadata pending' || director.toLowerCase()==='unknown';
+    if(pending){
+      return `RESOLVING TMDB SIGNAL… / ${movie.year||'—'}${includeCountry?' / …':''}`;
+    }
+    return `${director.toUpperCase()} / ${movie.year||'—'}${includeCountry?` / ${String(movie.country||'Unknown').toUpperCase()}`:''}`;
+  }
+
+  function renderScannerPoster(movie, state='idle') {
+    const box=$('#scannerPosterBox'), img=$('#scannerPoster'), placeholder=$('#scannerPosterPlaceholder'), status=$('#scannerPosterStatus');
+    if(!box||!img||!placeholder||!status||!movie)return;
+    const poster=movie.posterPath && TMDB ? TMDB.posterUrl(movie.posterPath,'w342') : '';
+    box.dataset.state=state;
+    box.classList.toggle('has-poster',!!poster);
+    if(poster){
+      img.src=poster;
+      img.alt=`Poster for ${movie.title}`;
+      img.hidden=false;
+      status.textContent='TMDB SIGNAL LOCKED';
+    }else{
+      img.hidden=true;
+      img.removeAttribute('src');
+      img.alt='';
+      status.textContent=state==='loading' ? 'SEARCHING TMDB SIGNAL…' : state==='error' ? 'POSTER SIGNAL UNAVAILABLE' : TMDB?.canQuery() ? 'AWAITING TMDB RESOLUTION' : 'TMDB PROXY OFFLINE';
+    }
+  }
+
+  async function hydrateScannerFromTMDB(movie) {
+    if(!movie || !TMDB?.canQuery()) {
+      renderScannerPoster(movie,'error');
+      return;
+    }
+    const needsMetadata=isMetadataPending(movie);
+    if(!needsMetadata){
+      renderScannerPoster(movie,'ready');
+      return;
+    }
+    const requestToken=++scannerTMDBRequestToken;
+    const expectedId=movie.id;
+    renderScannerPoster(movie,'loading');
+    try{
+      const enriched=await hydrateMovieMetadata(movie);
+      if(requestToken!==scannerTMDBRequestToken || currentScannerId!==expectedId) return;
+      if(!enriched){ renderScannerPoster(movie,'error'); return; }
+      // Repaint all scanner readouts because TMDB enrichment can improve director,
+      // genres, runtime and Genome V3 DNA in addition to adding the poster.
+      renderScanner(enriched.id,{skipTMDB:true,silent:true});
+      log(`SCANNER TMDB SIGNAL LOCKED: ${enriched.title.toUpperCase()}`);
+    }catch(err){
+      if(requestToken!==scannerTMDBRequestToken || currentScannerId!==expectedId) return;
+      renderScannerPoster(movie,'error');
+      log(`SCANNER TMDB LINK ERROR: ${err.message||'UNKNOWN'}`);
+    }
+  }
+
+  function renderScanner(id = currentScannerId, options = {}) {
     const movie = movieById(id) || MOVIES[0];
     if (!movie) return;
     currentScannerId = movie.id;
+    if(!options.skipTMDB) scannerTMDBRequestToken++;
     $('#scannerSelect').value = String(movie.id);
     $('#scannerCode').textContent = `SUBJECT #${String(movie.id).padStart(4,'0')}`;
     $('#scannerTitle').textContent = movie.title;
-    $('#scannerMeta').textContent = `${movie.director.toUpperCase()} / ${movie.year} / ${movie.country.toUpperCase()}`;
-    $('#scannerTags').innerHTML = [...movie.genres, ...movie.tags].map(t => `<span class="tag">${esc(t.toUpperCase())}</span>`).join('');
+    $('#scannerMeta').textContent = metadataMetaLine(movie,{includeCountry:true});
+    $('#scannerTags').innerHTML = [...(movie.genres||[]), ...(movie.tags||[])].map(t => `<span class="tag">${esc(String(t).toUpperCase())}</span>`).join('');
     $('#stabilityScore').textContent = `${stability(movie.dna)}%`;
     $('#diagnostics').innerHTML = [
       ['EMOTIONAL DECAY', movie.dna.loneliness],
@@ -832,11 +901,15 @@
     renderRanks($('#similarList'), nearest(movie.dna, [movie.id], 5));
     renderDirectorFingerprint($('#directorFingerprint'), movie);
     renderWatchConditions($('#watchConditions'), movie);
-    renderCorruption(movie);
+    renderScannerPoster(movie,movie.posterPath?'ready':'idle');
     const isFav = state.favorites.includes(movie.id);
     $('#favoriteBtn').setAttribute('aria-pressed', isFav ? 'true' : 'false');
     $('#favoriteBtn').textContent = isFav ? '★ SAVED' : '☆ SAVE';
-    log(`SCANNED SPECIMEN: ${movie.title.toUpperCase()}`);
+    if(!options.silent) log(`SCANNED SPECIMEN: ${movie.title.toUpperCase()}`);
+    if(!options.skipTMDB) {
+      // Delay one frame so the local scanner UI paints immediately before network work starts.
+      requestAnimationFrame(()=>hydrateScannerFromTMDB(movie));
+    }
   }
 
   function handleScannerSearch(query) {
@@ -846,7 +919,7 @@
     if (found) renderScanner(found.id);
   }
 
-  function renderCrossbreed() {
+  function renderCrossbreed(options={}) {
     const a = movieById($('#parentA').value) || MOVIES[0];
     const b = movieById($('#parentB').value) || MOVIES[1] || MOVIES[0];
     if (!a || !b) return;
@@ -854,6 +927,7 @@
     const hybrid = blendDNA(a.dna, b.dna, ratioA);
     const matches = nearest(hybrid, [a.id,b.id], 5);
     const best = matches[0];
+
     $('#blendA').textContent = `${ratioA}%`;
     $('#blendB').textContent = `${100-ratioA}%`;
     $('#parentALabel').textContent = a.title.slice(0,18).toUpperCase();
@@ -863,9 +937,26 @@
     $('#hybridStatus').textContent = 'ALIVE';
     $('#hybridMatchScore').textContent = best ? `${best.score}%` : '—%';
     $('#hybridMatchTitle').textContent = best?.movie.title || 'No viable match';
-    $('#hybridMatchMeta').textContent = best ? `${best.movie.director.toUpperCase()} / ${best.movie.year}` : 'No archive match';
+    $('#hybridMatchMeta').textContent = best ? metadataMetaLine(best.movie) : 'No archive match';
     $('#hybridReport').textContent = `${a.title} (${ratioA}%) × ${b.title} (${100-ratioA}%). ${pathologyReport(null, hybrid)}`;
     renderRanks($('#hybridMatches'), matches);
+
+    // Resolve only the currently relevant parents + best hybrid result.
+    // Requests are deduplicated globally, so dragging the blend slider does not spam TMDB.
+    if(!options.skipHydrate && TMDB?.canQuery()){
+      const targets=[a,b,best?.movie].filter(m=>m && isMetadataPending(m));
+      if(targets.length){
+        const token=++crossbreedMetadataToken;
+        const expectedA=a.id, expectedB=b.id;
+        Promise.allSettled(targets.map(hydrateMovieMetadata)).then(()=>{
+          if(token!==crossbreedMetadataToken) return;
+          if(Number($('#parentA').value)!==expectedA || Number($('#parentB').value)!==expectedB) return;
+          renderCrossbreed({skipHydrate:true});
+          log('CROSSBREED TMDB METADATA SYNCHRONIZED');
+        });
+      }
+    }
+
     return { a,b,hybrid,best,ratioA };
   }
 
@@ -907,7 +998,7 @@
     // metadata is available. The local provisional DNA remains the offline fallback.
     if (TMDB?.canQuery() && (Number(movie.dnaConfidence||0) < .7 || !movie.overview || !(movie.genres||[]).length)) {
       try {
-        const upgraded=await enrichLocalMovie(movie);
+        const upgraded=await hydrateMovieMetadata(movie);
         if(upgraded) movie=upgraded;
       } catch(err) { log(`MUTATION SEED ENRICHMENT SKIPPED: ${err.message}`); }
     }
@@ -918,15 +1009,35 @@
     log(`MUTATION SEED LOADED: ${movie.title.toUpperCase()} // ${activeMutationSeedCode}`);
   }
 
-  function renderMutation() {
+  function renderMutation(options={}) {
     const match = nearest(mutationDNA, [], 1)[0];
     if (!match) return;
     $('#mutationScore').textContent = `${match.score}%`;
     $('#mutationTitle').textContent = match.movie.title;
-    $('#mutationMeta').textContent = `${match.movie.director.toUpperCase()} / ${match.movie.year} / ${match.movie.country.toUpperCase()}`;
+    $('#mutationMeta').textContent = metadataMetaLine(match.movie,{includeCountry:true});
     renderDNAGrid($('#mutationMatchDNA'), match.movie.dna);
     $('#mutationReport').textContent = `Seed ${activeMutationSeedCode}. Synthetic profile currently converges on ${match.movie.title}. ${pathologyReport(null, mutationDNA)}`;
     renderTubes();
+
+    // Slider movement can change the nearest specimen rapidly. Wait briefly before
+    // resolving TMDB metadata so we only hydrate the specimen the user actually lands on.
+    if(!options.skipHydrate && TMDB?.canQuery() && isMetadataPending(match.movie)){
+      if(mutationMetadataTimer) clearTimeout(mutationMetadataTimer);
+      const token=++mutationMetadataToken;
+      const expectedId=match.movie.id;
+      mutationMetadataTimer=setTimeout(async()=>{
+        try{
+          await hydrateMovieMetadata(match.movie);
+          if(token!==mutationMetadataToken) return;
+          const current=nearest(mutationDNA,[],1)[0];
+          if(!current || current.movie.id!==expectedId) return;
+          renderMutation({skipHydrate:true});
+          log(`MUTATION MATCH TMDB SIGNAL LOCKED: ${match.movie.title.toUpperCase()}`);
+        }catch(err){
+          log(`MUTATION MATCH TMDB LINK ERROR: ${err.message||'UNKNOWN'}`);
+        }
+      },220);
+    }
   }
 
   function renderTubes() {
@@ -1903,7 +2014,12 @@
     setupMovieSearch({
       inputId:'mutationSeedSearch', hiddenId:'mutationSeed', resultsId:'mutationSeedSuggestions',
       initialMovie:MOVIES[2]||MOVIES[0],
-      onSelect:(movie)=>{ mutationSeedNonce++; mutationPass=0; updateMutationSeedReadout(movie); }
+      onSelect:(movie)=>{
+        mutationSeedNonce++;
+        mutationPass=0;
+        updateMutationSeedReadout(movie);
+        loadMutationSeed();
+      }
     });
     setupMovieSearch({
       inputId:'bloodlineSearch', hiddenId:'bloodlineSelect', resultsId:'bloodlineSuggestions',
@@ -2063,9 +2179,10 @@
     log('DEAD CHANNEL Y2K MIRROR PRESENT // AUDIO PARASITE ARMED');
     log('GUESTBOOK INCIDENT TOP-LAYER PAYLOAD MOUNTED // guestbooksuprise.mp4');
     log('HUMAN SPECIMEN RECORD SEALED // COMMAND WHOAMI');
-    log('CORRUPTED SPECIMEN DISPLAY EVENTS ARMED');
     log('DEAD CHANNEL RANDOM MOVIE PICKER 3000 ONLINE');
     log('GENOME ATLAS DENSE-NODE TITLE REVEAL ONLINE');
+    log('GLOBAL TMDB METADATA SYNC ONLINE // SCANNER + CROSSBREED + MUTATION');
+    log('SCANNER LAZY TMDB POSTER LINK ONLINE');
     $('#eastereggNote')?.addEventListener('click',()=>log('LAB MEMO ACKNOWLEDGED // DO NOT PRESS CINEGENOME 7x'));
     log(`PRESCRIPTION POOL MOUNTED: ${TOP500.length || MOVIES.length} CURATED TITLES`);
     log('CINEGENOME LAB BOOT SEQUENCE COMPLETE');

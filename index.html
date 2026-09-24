@@ -82,15 +82,16 @@
                 <div class="field grow"><label for="scannerSearch">Search specimen</label><input id="scannerSearch" autocomplete="off" placeholder="title / director / tag" /></div>
                 <div class="field"><label for="scannerSelect">Archive record</label><select id="scannerSelect"></select></div>
               </div>
-
-              <div class="corruption-banner" id="corruptionBanner" hidden>
-                <span>⚠ SPECIMEN READ ERROR</span>
-                <strong id="corruptionMessage">ARCHIVE SIGNAL CONTAMINATED</strong>
-                <small>DNA DATA IS INTACT // DISPLAY LAYER UNSTABLE</small>
-              </div>
-
-              <div class="specimen-header">
-                <div>
+<div class="specimen-header scanner-specimen-header">
+                <div class="scanner-poster" id="scannerPosterBox" data-state="idle" aria-live="polite">
+                  <img id="scannerPoster" alt="" hidden>
+                  <div class="scanner-poster-placeholder" id="scannerPosterPlaceholder">
+                    <span>TMDB POSTER</span>
+                    <strong>SIGNAL<br>NOT RESOLVED</strong>
+                    <small id="scannerPosterStatus">SELECT SPECIMEN</small>
+                  </div>
+                </div>
+                <div class="scanner-specimen-copy">
                   <div class="micro" id="scannerMeta">—</div>
                   <h2 id="scannerTitle">—</h2>
                   <div class="tag-row" id="scannerTags"></div>
