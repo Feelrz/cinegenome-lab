@@ -710,7 +710,8 @@ h1,
 /* ===== CINEGENOME ALT V15 / cinephile systems ===== */
 .director-fingerprint{border:1px solid var(--line,#323a31);background:#0d120c;padding:12px;display:grid;gap:10px}
 .director-fingerprint-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-end}
-.director-fingerprint-head strong{font-family:var(--font-display,"Orbitron",sans-serif);font-size:14px;letter-spacing:.04em}
+.director-fingerprint-head strong{font-family:var(--font-display,"Orbitron",sans-serif);font-size:14px;letter-spacing:.04em;color:#f2f8ec;overflow-wrap:anywhere}
+#dossierFingerprint .director-fingerprint-head strong{color:#11140f}
 .director-fingerprint-head span{font-family:var(--font-body,"Courier Prime",monospace);font-size:8px;color:#83907f;letter-spacing:.08em;text-align:right}
 .fingerprint-bars{display:grid;gap:6px}
 .fingerprint-row{display:grid;grid-template-columns:110px 1fr 30px;gap:8px;align-items:center;font-family:var(--font-body,"Courier Prime",monospace);font-size:8px;color:#aeb8aa}
@@ -1073,6 +1074,17 @@ body.dead-hijacking .app-shell{filter:grayscale(1) contrast(1.45) blur(2px);tran
 .deadsite-warning b{color:var(--dead-yellow);font-family:var(--dead-accent);font-size:12px}
 .dead-sound{width:100%;border:2px outset #bbb;background:#8f8f8f;color:#000;padding:7px 3px;font:8px var(--dead-pixel);cursor:pointer}
 .dead-sound:active{border-style:inset}
+.dead-picker-sfx{display:block;width:100%;min-height:38px;margin-top:8px;border:1px dashed #b688b1;background:#140915;color:#f4c5e3;font:700 10px/1.3 "Courier Prime",monospace;cursor:pointer}
+.dead-picker-sfx[aria-pressed="false"]{color:#ad9bac}
+.rx-film-navigation{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px auto;width:min(100%,460px);color:#dce9ce;font:700 10px/1.3 "Courier Prime",monospace;letter-spacing:.12em}
+.rx-film-navigation[hidden]{display:none}
+.rx-film-navigation button{width:48px;height:44px;flex:0 0 auto;border:1px solid #b8ff35;background:#151e12;color:#b8ff35;font-size:21px;cursor:pointer}
+.rx-film-navigation button:disabled{opacity:.33;cursor:default}
+.rx-film-navigation button:not(:disabled):hover,.rx-film-navigation button:focus-visible{background:#b8ff35;color:#11140f}
+.visitor-meter{flex-wrap:wrap}
+.visitor-meter [data-visitor-status]{flex:0 0 100%;font:700 9px/1.4 "Courier Prime",monospace;color:#ffcf8b;overflow-wrap:anywhere}
+.visitor-meter [data-visitor-status][hidden]{display:none}
+.visitor-meter [data-visitor-total][data-state="error"]{font-size:12px;letter-spacing:0}
 .deadsite-webbadges{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-top:14px}
 .deadsite-webbadges span{min-height:34px;border:1px solid #939393;background:#120010;display:grid;place-items:center;text-align:center;color:#ff72a5;font:6px/1.15 var(--dead-pixel)}
 

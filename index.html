@@ -87,6 +87,7 @@
       <div class="visitor-meter" aria-label="Total unique browser visitors">
         <span>LAB ACCESS // TOTAL VISITORS</span>
         <strong data-visitor-total aria-live="polite">—</strong>
+        <small data-visitor-status hidden></small>
       </div>
     </aside>
 
@@ -140,6 +141,7 @@
               </div>
 
               <div class="dna-grid" id="scannerDNA"></div>
+              <div class="micro" id="scannerDNASource" aria-live="polite">DNA MODEL STATUS PENDING</div>
               <div class="anomaly-portal" data-anomaly-portal><span>UNREGISTERED SIGNAL // DAILY CASES</span><button data-anomaly-open type="button">OPEN CASES <b data-anomaly-progress>0/6</b></button></div>
             </div>
           </article>
@@ -372,6 +374,11 @@
             <button type="button" class="rx-history-slot" data-rx-slot="2" disabled><span>03</span><b>ANTIDOTE</b><small>EMPTY</small></button>
           </div>
         </div>
+        <div class="rx-film-navigation" id="rxFilmNavigation" hidden aria-label="Browse today's prescriptions">
+          <button type="button" id="rxPrevious" aria-label="Previous prescribed film">◀</button>
+          <span>YOUR RX FILMS</span>
+          <button type="button" id="rxNext" aria-label="Next prescribed film">▶</button>
+        </div>
 
         <button class="rx-tarot-card" id="rxTarotCard" type="button" aria-label="Reveal prescribed film">
           <span class="rx-tarot-inner">
@@ -558,6 +565,7 @@
               <button class="dead-picker-spin" id="deadPickerSpin" type="button">★ PICK MY BAD DECISION ★</button>
               <button class="dead-picker-open" id="deadPickerOpen" type="button" disabled>OPEN THIS WEIRD THING</button>
             </div>
+            <button class="dead-picker-sfx" id="deadPickerSfx" type="button" aria-pressed="true">♪ ROULETTE SFX: ON</button>
           </section>
 
           <div class="deadsite-divider">~*~*~*~*~*~*~*~ C H O O S E &nbsp; A &nbsp; B A D &nbsp; S I G N A L ~*~*~*~*~*~*~*~</div>
@@ -648,10 +656,13 @@
   <script src="data/movies.js"></script>
   <script src="data/top500.js"></script>
   <script src="data/top500-enriched.js"></script>
+  <script src="data/watch-once-extra.js"></script>
   <script src="data/dead-channel-300.js"></script>
+  <script src="js/dna-model.js"></script>
   <script src="data/tmdb-config.js"></script>
   <script src="js/tmdb.js"></script>
   <script src="js/anomaly.js"></script>
+  <script src="js/picker-sfx.js"></script>
   <script src="js/app.js"></script>
   <script src="js/visitors.js"></script>
 </body>

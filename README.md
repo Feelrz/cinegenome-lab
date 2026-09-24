@@ -1,6 +1,6 @@
-# CINEGENOME LAB ALT V47
+# CINEGENOME LAB ALT V49
 
-This is the experimental alternative build with six daily Anomaly Hunt cases and a collectible BLACK FILE reward. See `UPDATE_V47.md` for the current release.
+This experimental build improves mobile navigation, expands the searchable film catalog, adds RX arrows and Dead Channel roulette SFX, and refines visitor diagnostics. See `UPDATE_V49.md` for the current release.
 
 # CINEGENOME LAB — ALT API BUILD
 
@@ -21,6 +21,7 @@ This variant is configured for a **server-side TMDB proxy only**. Add `TMDB_API_
 - **Production proxy example** — `api/tmdb.js` keeps the TMDB token on the server for a public deployment.
 - **Shared visitor total** — the desktop and mobile counters use `api/visitors.js` and a server-side Upstash Redis store. See `UPDATE_V44.md` for activation steps.
 - **Daily Anomaly Hunt** — six new cases each local day across Scanner, Atlas, Mutation, and Crossbreed. Each completed case awards a downloadable PNG stamp, and all six unlock a daily BLACK FILE. The local collection stays available after the cases reset. See `UPDATE_V47.md`.
+- **Watch-once extension** — 511 additional searchable titles compared with the original curated Top 500. New titles are initially marked **PRELIMINARY**; TMDB metadata upgrades director, genres, synopsis, poster and inferred 12-trait DNA when the proxy is configured. The RX pool stays at the original 500. See `UPDATE_V49.md`.
 
 The original modules remain:
 

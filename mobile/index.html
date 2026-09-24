@@ -35,13 +35,19 @@
     </button>
   </header>
 
-  <div class="m-visitor-meter" aria-label="Total unique browser visitors">
-    <span>LAB ACCESS // TOTAL VISITORS</span>
-    <strong data-visitor-total aria-live="polite">—</strong>
+  <section class="m-mobile-hero" aria-label="CineGenome manifesto">
+    <span>DEPT. OF CINEMATIC PATHOLOGY // CG-09</span>
+    <h1>FILM ARE<br>ORGANISM<span>.</span></h1>
+    <p>Search the archive. Read the genome. Keep the evidence.</p>
+  </section>
+
+  <div class="m-primary-tabs" role="tablist" aria-label="Main laboratory views">
+    <button type="button" class="is-active" id="mTabScanner" data-primary-view="scanner" role="tab" aria-selected="true" aria-controls="mScanner">SPECIMEN SCANNER</button>
+    <button type="button" id="mTabArchive" data-primary-view="archive" role="tab" aria-selected="false" aria-controls="mArchive">EXPERIMENT ARCHIVE</button>
   </div>
 
   <main class="m-main">
-    <section class="m-view is-active" data-view="scanner" id="mScanner">
+    <section class="m-view is-active" data-view="scanner" id="mScanner" role="tabpanel" aria-labelledby="mTabScanner">
       <div class="m-section-head">
         <div><span>MODULE 01</span><h1>Specimen Scanner</h1></div>
         <button class="m-info" type="button" data-info="scanner">ⓘ</button>
@@ -52,7 +58,7 @@
         <input id="mScannerSearch" type="search" autocomplete="off" placeholder="Title / director / year">
       </label>
       <div class="m-suggestions" id="mScannerSuggestions" hidden></div>
-      <button class="m-btn m-random-specimen" id="mRandomSpecimen" type="button">↝ PICK A RANDOM SPECIMEN / 500</button>
+      <button class="m-btn m-random-specimen" id="mRandomSpecimen" type="button">↝ PICK A RANDOM SPECIMEN / 1011</button>
 
       <article class="m-specimen-card">
         <div class="m-poster" id="mScannerPoster"><span>TMDB POSTER<br>SIGNAL PENDING</span></div>
@@ -78,6 +84,15 @@
         <div class="m-list" id="mScannerNearest"></div>
       </div>
       <div class="anomaly-portal" data-anomaly-portal><span>UNREGISTERED SIGNAL // DAILY CASES</span><button data-anomaly-open type="button">OPEN CASES <b data-anomaly-progress>0/6</b></button></div>
+    </section>
+
+    <section class="m-view" data-view="archive" id="mArchive" role="tabpanel" aria-labelledby="mTabArchive">
+      <div class="m-section-head"><div><span>MODULE 06</span><h1>Experiment Archive</h1></div></div>
+      <div class="m-card">
+        <div class="m-card-head"><span>SAVED SPECIMENS & EXPERIMENTS</span></div>
+        <div class="m-list" id="mArchiveList"></div>
+        <button class="m-btn full" id="mClearArchive" type="button">ERASE LOCAL ARCHIVE</button>
+      </div>
     </section>
 
     <section class="m-view" data-view="crossbreed" id="mCrossbreed">
@@ -169,7 +184,7 @@
 
       <div class="m-menu-grid">
         <button type="button" data-sheet="bloodline"><b>Bloodline Lab</b><small>Trace model relatives</small></button>
-        <button type="button" data-sheet="archive"><b>Experiment Archive</b><small>Saved specimens</small></button>
+        <button type="button" data-open-archive><b>Experiment Archive</b><small>Saved specimens</small></button>
         <button type="button" id="mHumanBtn"><b>Human Specimen</b><small>Operator record / Letterboxd</small></button>
         <button type="button" id="mDeadBtn"><b>Dead Channel</b><small>Weird Stuff / D-300</small></button>
         <button type="button" id="mDesktopBtn"><b>Desktop Interface</b><small>Open full laboratory</small></button>
@@ -184,23 +199,33 @@
         </div>
       </section>
 
-      <section class="m-more-sheet" id="mArchiveSheet" hidden>
-        <div class="m-card">
-          <div class="m-card-head"><span>EXPERIMENT ARCHIVE</span><button class="m-linkbtn" data-close-sheet type="button">CLOSE</button></div>
-          <div class="m-list" id="mArchiveList"></div>
-          <button class="m-btn full" id="mClearArchive" type="button">ERASE LOCAL ARCHIVE</button>
-        </div>
-      </section>
     </section>
   </main>
 
-  <nav class="m-bottom-nav" id="mBottomNav">
+  <section class="m-containment-card" aria-label="Containment status">
+    <h2>CONTAINMENT</h2>
+    <div><span>LEVEL</span><strong>B-12</strong></div>
+    <div><span>CONTAMINATION</span><strong id="mContamination">02.1%</strong></div>
+    <div><span>DATASET</span><strong id="mDatasetVersion">TOP500-DNA-3.0.0</strong></div>
+    <div><span>OPERATOR</span><strong>[REDACTED]</strong></div>
+  </section>
+
+  <div class="m-visitor-meter" aria-label="Total unique browser visitors">
+    <span>LAB ACCESS // TOTAL VISITORS</span>
+    <strong data-visitor-total aria-live="polite">—</strong>
+    <small data-visitor-status hidden></small>
+  </div>
+
+  <footer class="m-mobile-footer">
+    <span>DEPT. OF CINEMATIC PATHOLOGY // EXPERIMENTAL INTERFACE</span>
+    <nav class="m-bottom-nav" id="mBottomNav" aria-label="Other lab modules">
     <button class="is-active" data-target="scanner"><span>◉</span><small>SCAN</small></button>
     <button data-target="crossbreed"><span>⌘</span><small>MIX</small></button>
     <button data-target="mutation"><span>⌁</span><small>MUTATE</small></button>
     <button data-target="atlas"><span>✣</span><small>ATLAS</small></button>
     <button data-target="more"><span>•••</span><small>MORE</small></button>
-  </nav>
+    </nav>
+  </footer>
 
   <dialog class="m-dialog" id="mDossierDialog">
     <div class="m-dialog-shell">
@@ -222,6 +247,11 @@
       <div class="m-dialog-body">
         <div class="m-rx-scan" id="mRxScan"></div>
         <div class="m-rx-history" id="mRxHistory"></div>
+        <div class="m-rx-navigation" id="mRxNavigation" hidden aria-label="Browse today's prescriptions">
+          <button type="button" id="mRxPrevious" aria-label="Previous prescribed film">◀</button>
+          <span>YOUR RX FILMS</span>
+          <button type="button" id="mRxNext" aria-label="Next prescribed film">▶</button>
+        </div>
         <button class="m-rx-card" id="mRxCard" type="button" hidden>
           <div class="m-rx-sealed" id="mRxSealed">SEALED SPECIMEN<br><small>TAP TO REVEAL</small></div>
           <div class="m-rx-reveal" id="mRxReveal" hidden></div>
@@ -273,6 +303,7 @@
           <button class="m-dead-random" id="mDeadPickerSpin" type="button">★ PICK MY BAD DECISION ★</button>
           <button id="mDeadPickerOpen" type="button" disabled>OPEN THIS WEIRD THING</button>
         </div>
+        <button class="m-dead-picker-sfx" id="mDeadPickerSfx" type="button" aria-pressed="true">♪ ROULETTE SFX: ON</button>
       </section>
       <div class="m-dead-index-head">// BAD SIGNALS ON THIS PAGE</div>
       <div class="m-dead-grid" id="mDeadGrid"></div>
@@ -307,10 +338,13 @@
   <script src="../data/movies.js"></script>
   <script src="../data/top500.js"></script>
   <script src="../data/top500-enriched.js"></script>
+  <script src="../data/watch-once-extra.js"></script>
   <script src="../data/dead-channel-300.js"></script>
+  <script src="../js/dna-model.js"></script>
   <script src="../data/tmdb-config.js"></script>
   <script src="../js/tmdb.js"></script>
   <script src="../js/anomaly.js"></script>
+  <script src="../js/picker-sfx.js"></script>
   <script src="mobile.js"></script>
   <script src="../js/visitors.js"></script>
 </body>

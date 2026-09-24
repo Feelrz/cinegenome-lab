@@ -38,12 +38,20 @@
     }
     return res.json();
   }
-  async function searchMovie(title, year){
-    const data = await request('/search/movie', { query:title, language:CONFIG.language, include_adult:'false', ...(year?{year:String(year)}:{}) });
-    const rows = Array.isArray(data.results) ? data.results : [];
+  async function searchMovie(title, year, {strict=false}={}){
+    const params={ query:title, language:CONFIG.language, include_adult:'false', ...(year?{year:String(year)}:{}) };
+    let data=await request('/search/movie',params);
+    if(strict&&year&&!data.results?.length){delete params.year;data=await request('/search/movie',params)}
+    let rows = Array.isArray(data.results) ? data.results : [];
     if (!rows.length) return null;
     const norm = s => String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
     const target = norm(title);
+    if(strict)rows=rows.filter(item=>{
+      const exact=[item.title,item.original_title].some(value=>norm(value)===target);
+      const releaseYear=Number(String(item.release_date||'').slice(0,4));
+      return exact&&(!year||(releaseYear&&Math.abs(releaseYear-Number(year))<=2));
+    });
+    if(!rows.length)return null;
     return rows.slice().sort((a,b) => {
       const aExact = [a.title,a.original_title].some(x=>norm(x)===target) ? 1 : 0;
       const bExact = [b.title,b.original_title].some(x=>norm(x)===target) ? 1 : 0;
@@ -54,8 +62,8 @@
   async function details(id){
     return request(`/movie/${Number(id)}`, { language:CONFIG.language, append_to_response:'credits,keywords' });
   }
-  async function resolveTitle(title, year){
-    const hit = await searchMovie(title, year);
+  async function resolveTitle(title, year, options){
+    const hit = await searchMovie(title, year, options);
     if (!hit) return null;
     const full = await details(hit.id);
     return Object.assign({}, hit, full);

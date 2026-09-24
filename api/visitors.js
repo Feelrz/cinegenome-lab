@@ -1,78 +1,120 @@
-// Shared visitor counter for the desktop and mobile sites on Vercel.
+// Shared unique-browser visitor counter for desktop + mobile on Vercel.
 // Requires Upstash REST credentials on the server (UPSTASH_* or KV_*).
 const { randomUUID } = require('node:crypto');
 
 const COOKIE = 'cg_visitor_id';
-const TOTAL_KEY = 'cinegenome:visitors:total:v1';
 const SEEN_KEY = 'cinegenome:visitors:seen:v1';
 const VISITOR_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const REGISTER = `
-  local added = redis.call('SADD', KEYS[1], ARGV[1])
-  if added == 1 then
-    return redis.call('INCR', KEYS[2])
-  end
-  return tonumber(redis.call('GET', KEYS[2]) or '0')
-`;
 
 function existingId(header) {
   const match = String(header || '').match(/(?:^|;\s*)cg_visitor_id=([^;]+)/);
   return match && VISITOR_ID.test(match[1]) ? match[1] : null;
 }
 
+function storageConfig() {
+  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+  return { url, token };
+}
+
+async function redis(url, token, command) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5000);
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(command),
+      signal: controller.signal,
+    });
+
+    let payload;
+    try {
+      payload = await response.json();
+    } catch {
+      throw new Error(`upstash_invalid_json_${response.status}`);
+    }
+
+    if (!response.ok) {
+      throw new Error(`upstash_http_${response.status}`);
+    }
+    if (payload && payload.error) {
+      throw new Error(`upstash_command_${String(payload.error).slice(0, 80)}`);
+    }
+    return payload ? payload.result : null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function requestHost(req) {
+  const forwarded = String(req.headers['x-forwarded-host'] || '').split(',')[0].trim();
+  return forwarded || String(req.headers.host || '').trim();
+}
+
+function validSameOriginPost(req) {
+  if (req.headers['sec-fetch-site'] === 'cross-site') return false;
+  const origin = req.headers.origin;
+  if (!origin) return true;
+  try {
+    const parsed = new URL(origin);
+    return ['http:', 'https:'].includes(parsed.protocol) && parsed.host === requestHost(req);
+  } catch {
+    return false;
+  }
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store, max-age=0');
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
+
   if (req.method !== 'POST' && req.method !== 'GET') {
     res.setHeader('Allow', 'GET, POST');
     return res.status(405).json({ error: 'method_not_allowed' });
   }
 
-  // The browser only calls this endpoint from its own origin.
-  if (req.method === 'POST') {
-    const origin = req.headers.origin;
-    const host = req.headers.host;
-    let sameOrigin = true;
-    if (origin) {
-      try {
-        const parsed = new URL(origin);
-        sameOrigin = ['http:', 'https:'].includes(parsed.protocol) && parsed.host === host;
-      } catch {
-        sameOrigin = false;
-      }
-    }
-    if (!sameOrigin || req.headers['sec-fetch-site'] === 'cross-site') {
-      return res.status(403).json({ error: 'invalid_origin' });
-    }
+  if (req.method === 'POST' && !validSameOriginPost(req)) {
+    return res.status(403).json({ error: 'invalid_origin' });
   }
 
-  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
-  if (!url || !token) return res.status(503).json({ error: 'counter_not_configured' });
-
-  const id = existingId(req.headers.cookie) || randomUUID();
-  const command = req.method === 'GET'
-    ? ['GET', TOTAL_KEY]
-    : ['EVAL', REGISTER, '2', SEEN_KEY, TOTAL_KEY, id];
+  const { url, token } = storageConfig();
+  if (!url || !token) {
+    return res.status(503).json({
+      error: 'counter_not_configured',
+      missing: [!url ? 'REST_URL' : null, !token ? 'REST_TOKEN' : null].filter(Boolean),
+    });
+  }
 
   try {
-    const upstream = await fetch(url, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(command),
-      signal: AbortSignal.timeout(5000),
-    });
-    if (!upstream.ok) throw new Error('Counter store unavailable');
-    const payload = await upstream.json();
-    if (payload.error) throw new Error('Counter command failed');
-    const total = payload.result === null ? 0 : Number(payload.result);
-    if (!Number.isSafeInteger(total) || total < 0) throw new Error('Invalid counter result');
-
-    if (req.method === 'POST') {
-      res.setHeader('Set-Cookie', `${COOKIE}=${id}; Path=/; Max-Age=34560000; HttpOnly; SameSite=Lax${req.headers['x-forwarded-proto'] === 'https' ? '; Secure' : ''}`);
+    // SCARD reads the number of registered unique browser IDs directly.
+    // A previous SADD followed by a failed INCR cannot leave a permanently low total.
+    if (req.method === 'GET') {
+      const total = Number(await redis(url, token, ['SCARD', SEEN_KEY]));
+      if (!Number.isSafeInteger(total) || total < 0) throw new Error('invalid_counter_result');
+      return res.status(200).json({ total });
     }
-    return res.status(200).json({ total });
+
+    // POST registers one browser UUID. SADD is atomic: it returns 1 only once.
+    const id = existingId(req.headers.cookie) || randomUUID();
+    const added = Number(await redis(url, token, ['SADD', SEEN_KEY, id]));
+    if (added !== 0 && added !== 1) throw new Error('invalid_sadd_result');
+    const total = Number(await redis(url, token, ['SCARD', SEEN_KEY]));
+    if (!Number.isSafeInteger(total) || total < 0) throw new Error('invalid_counter_result');
+
+    res.setHeader(
+      'Set-Cookie',
+      `${COOKIE}=${id}; Path=/; Max-Age=34560000; HttpOnly; SameSite=Lax${req.headers['x-forwarded-proto'] === 'https' ? '; Secure' : ''}`
+    );
+
+    return res.status(200).json({ total, registered: added === 1 });
   } catch (error) {
-    console.error('[CINEGENOME VISITORS]', error);
-    return res.status(502).json({ error: 'counter_unavailable' });
+    const message = error && error.name === 'AbortError'
+      ? 'upstash_timeout'
+      : String(error && error.message ? error.message : 'counter_error');
+    console.error('[CINEGENOME VISITORS]', message);
+    return res.status(502).json({ error: 'counter_unavailable', detail: message });
   }
 };
