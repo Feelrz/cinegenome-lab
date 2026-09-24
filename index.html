@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#e8eadf" />
+  <meta name="description" content="CINEGENOME LAB — experimental movie DNA laboratory." />
+  <title>CINEGENOME LAB</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Primary navigation">
+      <div class="brand-block">
+        <div class="brand-topline">DEPT. OF CINEMATIC PATHOLOGY</div>
+        <div class="brand-mark">CINE<br>GENOME</div>
+        <div class="brand-sub">ILLEGAL FILM GENETICS LABORATORY</div>
+        <div class="reactor-status"><span class="status-led"></span><span>REACTOR ONLINE</span></div>
+      </div>
+
+      <nav class="module-nav" id="moduleNav">
+        <button class="module-btn is-active prescription-nav" data-view="prescription" type="button"><b>00</b><span>TODAY'S PRESCRIPTION<small>one cinematic diagnosis</small></span></button>
+        <button class="module-btn" data-view="scanner" type="button"><b>01</b><span>SPECIMEN SCANNER<small>read movie DNA</small></span></button>
+        <button class="module-btn" data-view="crossbreed" type="button"><b>02</b><span>CROSSBREED REACTOR<small>combine two films</small></span></button>
+        <button class="module-btn" data-view="mutation" type="button"><b>03</b><span>MUTATION CHAMBER<small>design impossible cinema</small></span></button>
+        <button class="module-btn" data-view="atlas" type="button"><b>04</b><span>GENOME ATLAS<small>map the archive</small></span></button>
+        <button class="module-btn" data-view="database" type="button"><b>05</b><span>SPECIMEN DATABASE<small>browse all records</small></span></button>
+        <button class="module-btn" data-view="archive" type="button"><b>06</b><span>EXPERIMENT ARCHIVE<small>saved lab history</small></span></button>
+      </nav>
+
+      <section class="containment-card">
+        <div class="section-kicker">CONTAINMENT</div>
+        <div class="containment-row"><span>LEVEL</span><strong>B-12</strong></div>
+        <div class="containment-row"><span>CONTAMINATION</span><strong id="contaminationReadout">02.1%</strong></div>
+        <div class="containment-row"><span>DATASET</span><strong id="datasetVersion">—</strong></div>
+      </section>
+    </aside>
+
+    <main class="main-stage">
+      <header class="hero-panel">
+        <div>
+          <div class="eyebrow">PROJECT CG-09 / CINEMATIC GENETICS UNIT</div>
+          <h1>FILMS ARE <span>ORGANISMS.</span></h1>
+          <p>Sequence emotional, visual and narrative traits. Crossbreed incompatible films. Mutate cinematic DNA. Find the nearest living specimen.</p>
+        </div>
+        <div class="warning-stamp">⚠ UNLICENSED<br>CINEMA RESEARCH</div>
+      </header>
+
+      <section class="view is-active" id="view-prescription" data-view-panel="prescription">
+        <div class="prescription-grid">
+          <article class="lab-panel ritual-panel">
+            <div class="panel-head"><span>CINEMATIC DIAGNOSTIC DIVISION</span><span id="prescriptionDate">TODAY</span></div>
+            <div class="panel-body ritual-body">
+              <div class="ritual-copy">
+                <div class="eyebrow">ONE SUBJECT / ONE DATE / ONE SPECIMEN</div>
+                <h2>TODAY'S<br><span>PRESCRIPTION.</span></h2>
+                <p>The machine will select one film from the curated 500-specimen pool. The result is locked to this device for the day.</p>
+              </div>
+              <div class="ritual-machine" id="ritualMachine">
+                <div class="diagnostic-lines" id="diagnosticLines" aria-live="polite">
+                  <span>SUBJECT STATUS: UNDIAGNOSED</span>
+                  <span>CURATED POOL: 500 SPECIMENS</span>
+                  <span>GENOME LINK: STANDBY</span>
+                </div>
+                <button class="diagnose-button" id="diagnoseBtn" type="button"><span>DIAGNOSE ME</span><small>ADMINISTER TODAY'S CINEMA</small></button>
+              </div>
+            </div>
+          </article>
+
+          <aside class="tarot-stage lab-panel">
+            <div class="panel-head"><span>PRESCRIPTION CARD</span><span id="prescriptionStatus">SEALED</span></div>
+            <div class="panel-body tarot-body">
+              <button class="tarot-card" id="tarotCard" type="button" aria-label="Reveal today's prescribed film" disabled>
+                <span class="tarot-inner">
+                  <span class="tarot-face tarot-back">
+                    <span class="tarot-index">CG / RX</span>
+                    <span class="tarot-sigil">☿</span>
+                    <strong>CINEGENOME</strong>
+                    <span>UNKNOWN SPECIMEN</span>
+                    <i></i>
+                    <small>DO NOT OPEN BEFORE DIAGNOSIS</small>
+                  </span>
+                  <span class="tarot-face tarot-front">
+                    <img id="prescriptionPoster" alt="" hidden />
+                    <span class="tarot-overlay"></span>
+                    <span class="tarot-index">TODAY'S SPECIMEN</span>
+                    <strong id="prescriptionTitle">—</strong>
+                    <span id="prescriptionMeta">Awaiting diagnosis</span>
+                    <small id="prescriptionTrait">GENOME UNREADABLE</small>
+                  </span>
+                </span>
+              </button>
+              <div class="prescription-actions" id="prescriptionActions" hidden>
+                <button class="lab-btn primary" id="openPrescriptionBtn" type="button">OPEN DOSSIER</button>
+                <button class="lab-btn" id="scanPrescriptionBtn" type="button">EXAMINE DNA</button>
+                <button class="lab-btn danger" id="rejectPrescriptionBtn" type="button">CONTRAINDICATION</button>
+              </div>
+              <div class="report-box prescription-report" id="prescriptionReport">No diagnosis has been administered.</div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="view" id="view-scanner" data-view-panel="scanner">
+        <div class="two-col">
+          <article class="lab-panel">
+            <div class="panel-head"><span>SPECIMEN SCANNER</span><span id="scannerCode">SUBJECT #0001</span></div>
+            <div class="panel-body">
+              <div class="search-row">
+                <div class="field grow"><label for="scannerSearch">Search specimen</label><input id="scannerSearch" autocomplete="off" placeholder="title / director / tag" /></div>
+                <div class="field"><label for="scannerSelect">Archive record</label><select id="scannerSelect"></select></div>
+              </div>
+
+              <div class="specimen-header">
+                <div>
+                  <div class="micro" id="scannerMeta">—</div>
+                  <h2 id="scannerTitle">—</h2>
+                  <div class="tag-row" id="scannerTags"></div>
+                </div>
+                <div class="specimen-actions"><button class="icon-btn" id="openDossierBtn" type="button">OPEN DOSSIER</button><button class="icon-btn" id="favoriteBtn" type="button" aria-pressed="false" title="Save specimen">☆ SAVE</button></div>
+              </div>
+
+              <div class="scope-wrap">
+                <svg id="scannerScope" viewBox="0 0 900 270" role="img" aria-label="Procedural movie genome waveform"></svg>
+                <div class="scope-corners" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+              </div>
+
+              <div class="dna-grid" id="scannerDNA"></div>
+            </div>
+          </article>
+
+          <aside class="lab-panel pathology-panel">
+            <div class="panel-head"><span>PATHOLOGY REPORT</span><span>LIVE</span></div>
+            <div class="panel-body">
+              <div class="massive-number" id="stabilityScore">—%</div>
+              <div class="micro">GENOME STABILITY INDEX</div>
+              <div class="diagnostic-list" id="diagnostics"></div>
+              <div class="report-box" id="scannerReport">Awaiting specimen.</div>
+              <div class="section-kicker spacing-top">NEAREST GENOMES</div>
+              <div id="similarList" class="rank-list"></div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="view" id="view-crossbreed" data-view-panel="crossbreed">
+        <div class="two-col">
+          <article class="lab-panel">
+            <div class="panel-head"><span>CROSSBREED REACTOR</span><span>BIOCHAMBER 02</span></div>
+            <div class="panel-body">
+              <div class="parent-grid">
+                <div class="field"><label for="parentA">Parent specimen A</label><select id="parentA"></select></div>
+                <div class="cross-glyph">×</div>
+                <div class="field"><label for="parentB">Parent specimen B</label><select id="parentB"></select></div>
+              </div>
+              <div class="balance-block">
+                <div class="balance-label"><span id="parentALabel">A</span><strong>GENETIC DOMINANCE</strong><span id="parentBLabel">B</span></div>
+                <input id="blendSlider" type="range" min="0" max="100" value="50" />
+                <div class="balance-numbers"><span id="blendA">50%</span><span id="blendB">50%</span></div>
+              </div>
+              <div class="action-row">
+                <button class="lab-btn primary" id="breedBtn" type="button">INITIATE CROSSBREED</button>
+                <button class="lab-btn" id="swapParentsBtn" type="button">SWAP SUBJECTS</button>
+                <button class="lab-btn danger" id="purgeBtn" type="button">PURGE CHAMBER</button>
+              </div>
+              <div class="scope-wrap"><svg id="hybridScope" viewBox="0 0 900 270" role="img" aria-label="Hybrid movie DNA waveform"></svg></div>
+              <div class="dna-grid" id="hybridDNA"></div>
+            </div>
+          </article>
+
+          <aside class="lab-panel">
+            <div class="panel-head"><span>RESULTANT ORGANISM</span><span id="hybridStatus">IDLE</span></div>
+            <div class="panel-body">
+              <div class="massive-number" id="hybridMatchScore">—%</div>
+              <h2 class="result-title" id="hybridMatchTitle">No organism generated</h2>
+              <div class="micro" id="hybridMatchMeta">Awaiting sequence.</div>
+              <div class="report-box" id="hybridReport">Crossbreed two films to generate a synthetic genome.</div>
+              <div class="section-kicker spacing-top">VIABLE ORGANISMS</div>
+              <div id="hybridMatches" class="rank-list"></div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="view" id="view-mutation" data-view-panel="mutation">
+        <div class="two-col">
+          <article class="lab-panel">
+            <div class="panel-head"><span>MUTATION CHAMBER</span><span>MANUAL OVERRIDE</span></div>
+            <div class="panel-body">
+              <div class="mutation-topline">
+                <div class="field grow"><label for="mutationSeed">Seed organism</label><select id="mutationSeed"></select></div>
+                <button class="lab-btn" id="copySeedBtn" type="button">LOAD DNA</button>
+                <button class="lab-btn danger" id="randomMutationBtn" type="button">RANDOM MUTATION</button>
+              </div>
+              <div class="mutation-layout">
+                <div id="mutationControls" class="mutation-controls"></div>
+                <div class="test-tubes" id="testTubes" aria-label="Mutation values"></div>
+              </div>
+            </div>
+          </article>
+          <aside class="lab-panel">
+            <div class="panel-head"><span>LIVE VECTOR MATCH</span><span>REALTIME</span></div>
+            <div class="panel-body">
+              <div class="massive-number" id="mutationScore">—%</div>
+              <h2 class="result-title" id="mutationTitle">—</h2>
+              <div class="micro" id="mutationMeta">—</div>
+              <div class="dna-grid compact" id="mutationMatchDNA"></div>
+              <div class="report-box" id="mutationReport">Manipulate the sliders to synthesize an impossible film profile.</div>
+              <button class="lab-btn primary full-width spacing-top" id="saveMutationBtn" type="button">SAVE MUTATION TO ARCHIVE</button>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="view" id="view-atlas" data-view-panel="atlas">
+        <article class="lab-panel">
+          <div class="panel-head"><span>GENOME ATLAS</span><span id="atlasCount">0 SPECIMENS</span></div>
+          <div class="panel-body">
+            <div class="atlas-toolbar">
+              <div class="field"><label for="axisX">X axis</label><select id="axisX"></select></div>
+              <div class="field"><label for="axisY">Y axis</label><select id="axisY"></select></div>
+              <div class="field"><label for="atlasGenre">Genre filter</label><select id="atlasGenre"><option value="">ALL GENRES</option></select></div>
+              <button class="lab-btn" id="resetAtlasBtn" type="button">RESET VIEW</button>
+            </div>
+            <div class="atlas-wrap"><svg id="atlasSvg" viewBox="0 0 1000 620" role="img" aria-label="Interactive movie DNA scatter plot"></svg></div>
+            <div class="atlas-detail" id="atlasDetail">Select a genome node to inspect it.</div>
+          </div>
+        </article>
+      </section>
+
+      <section class="view" id="view-database" data-view-panel="database">
+        <article class="lab-panel">
+          <div class="panel-head"><span>SPECIMEN DATABASE</span><span id="dbCount">0 RECORDS</span></div>
+          <div class="panel-body">
+            <div class="database-toolbar">
+              <div class="field grow"><label for="dbSearch">Query archive</label><input id="dbSearch" placeholder="search title, director, country, tag..." /></div>
+              <div class="field"><label for="dbGenre">Genre</label><select id="dbGenre"><option value="">ALL</option></select></div>
+              <div class="field"><label for="dbSort">Sort</label><select id="dbSort"><option value="title">TITLE</option><option value="year-desc">YEAR ↓</option><option value="year-asc">YEAR ↑</option><option value="surrealism">SURREALISM</option><option value="loneliness">LONELINESS</option><option value="intensity">INTENSITY</option></select></div>
+            </div>
+            <div class="table-wrap">
+              <table class="specimen-table">
+                <thead><tr><th>ID</th><th>SPECIMEN</th><th>YEAR</th><th>GENRES</th><th>SURR.</th><th>LON.</th><th>CHAOS</th><th>INT.</th><th></th></tr></thead>
+                <tbody id="databaseRows"></tbody>
+              </table>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="view" id="view-archive" data-view-panel="archive">
+        <div class="two-col">
+          <article class="lab-panel">
+            <div class="panel-head"><span>EXPERIMENT ARCHIVE</span><span>LOCAL STORAGE</span></div>
+            <div class="panel-body">
+              <div class="archive-actions"><button class="lab-btn danger" id="clearArchiveBtn" type="button">ERASE ARCHIVE</button><span class="micro">Saved only in this browser.</span></div>
+              <div id="archiveCards" class="archive-cards"></div>
+            </div>
+          </article>
+          <aside class="lab-panel">
+            <div class="panel-head"><span>SYSTEM LOG</span><span>AUTO</span></div>
+            <div class="panel-body"><div class="system-log" id="systemLog"></div></div>
+          </aside>
+        </div>
+      </section>
+
+      <footer class="site-footer">
+        <span>CINEGENOME LAB / CURATED 500 PRESCRIPTION POOL</span>
+        <span>DNA SCORES ARE CINEGENOME MODEL OUTPUT — FILM METADATA / IMAGES MAY BE PROVIDED BY TMDB</span>
+        <button class="footer-link" id="tmdbSettingsBtn" type="button">TMDB CONNECTION</button>
+      </footer>
+    </main>
+  </div>
+
+  <dialog class="lab-dialog" id="movieDialog">
+    <form method="dialog" class="dialog-shell">
+      <div class="panel-head"><span>SPECIMEN DOSSIER</span><button class="dialog-close" value="close" aria-label="Close">×</button></div>
+      <div class="movie-dossier" id="movieDossier"><div class="dossier-loading">READING ARCHIVE…</div></div>
+    </form>
+  </dialog>
+
+  <dialog class="lab-dialog settings-dialog" id="tmdbDialog">
+    <form method="dialog" class="dialog-shell">
+      <div class="panel-head"><span>TMDB DATA LINK</span><button class="dialog-close" value="close" aria-label="Close">×</button></div>
+      <div class="settings-body">
+        <div class="report-box">Local/test mode can use your TMDB API Read Access Token in this browser session. For a public website, switch the config to proxy mode and keep the token on the server.</div>
+        <label for="tmdbTokenInput">TMDB API READ ACCESS TOKEN</label>
+        <textarea id="tmdbTokenInput" rows="4" placeholder="Paste Bearer read token here…"></textarea>
+        <div class="action-row"><button class="lab-btn primary" id="saveTmdbTokenBtn" type="button">CONNECT TMDB</button><button class="lab-btn danger" id="clearTmdbTokenBtn" type="button">DISCONNECT</button></div>
+        <div class="tmdb-state" id="tmdbState">TMDB NOT CONNECTED</div>
+        <p class="micro tmdb-credit">This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="data/movies.js"></script>
+  <script src="data/top500.js"></script>
+  <script src="data/top500-enriched.js"></script>
+  <script src="data/tmdb-config.js"></script>
+  <script src="js/tmdb.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

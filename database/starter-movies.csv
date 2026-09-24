@@ -1,0 +1,37 @@
+id,title,year,director,country,genres,tags,surrealism,loneliness,chaos,romance,nostalgia,intensity,pacing,visualExtremity,narrativeComplexity,darkness,humor,dreamLogic
+1,"Fallen Angels",1995,"Wong Kar-wai","Hong Kong","Drama|Romance|Crime","neon|urban alienation|night|fragmented",62,94,73,68,84,66,72,91,68,73,31,70
+2,"Tetsuo: The Iron Man",1989,"Shinya Tsukamoto","Japan","Horror|Sci-Fi","body horror|industrial|metal|cyberpunk",91,55,98,8,20,100,96,100,69,94,23,89
+3,"Perfect Blue",1997,"Satoshi Kon","Japan","Animation|Thriller|Drama","identity|paranoia|celebrity|psychological",88,82,79,12,35,91,83,80,93,88,8,94
+4,"Mulholland Drive",2001,"David Lynch","United States","Mystery|Drama|Thriller","dream|hollywood|identity|noir",96,86,66,54,58,72,43,77,100,84,18,100
+5,"Chungking Express",1994,"Wong Kar-wai","Hong Kong","Drama|Romance|Comedy","city|memory|heartbreak|chance",44,88,52,84,91,48,71,82,56,34,66,54
+6,"Enter the Void",2009,"Gaspar Noé","France","Drama|Fantasy","psychedelic|death|neon|out-of-body",97,78,85,27,33,96,55,100,76,90,4,98
+7,"Lost Highway",1997,"David Lynch","United States","Mystery|Thriller|Drama","noir|double|dream|fear",98,83,81,29,47,86,52,87,98,97,9,100
+8,"Paprika",2006,"Satoshi Kon","Japan","Animation|Sci-Fi|Fantasy","dream|technology|parade|identity",100,48,84,22,42,79,89,97,89,59,46,100
+9,"All About Lily Chou-Chou",2001,"Shunji Iwai","Japan","Drama|Music","youth|internet|bullying|ether",58,97,61,35,95,71,35,83,72,82,5,65
+10,"Love Exposure",2008,"Sion Sono","Japan","Drama|Comedy|Romance","religion|obsession|family|cult",72,63,96,79,38,94,88,86,88,73,76,68
+11,"Mind Game",2004,"Masaaki Yuasa","Japan","Animation|Comedy|Fantasy","rebirth|absurdism|life|escape",100,51,100,64,41,94,100,100,86,49,91,100
+12,"Himizu",2011,"Sion Sono","Japan","Drama","youth|disaster|violence|despair",48,95,77,43,29,90,62,71,63,96,10,46
+13,"House",1977,"Nobuhiko Obayashi","Japan","Horror|Comedy|Fantasy","haunted house|pop-art|girls|absurd",100,28,97,20,85,81,91,100,61,52,91,100
+14,"Eraserhead",1977,"David Lynch","United States","Horror|Fantasy","industrial|parenthood|nightmare|alienation",99,96,57,5,42,76,24,95,91,100,24,100
+15,"Videodrome",1983,"David Cronenberg","Canada","Horror|Sci-Fi","media|body horror|signal|hallucination",91,69,77,19,66,88,61,96,87,92,18,90
+16,"Possession",1981,"Andrzej Żuławski","France / West Germany","Drama|Horror","marriage|monster|hysteria|identity",92,91,100,61,48,100,82,92,89,96,11,88
+17,"Suspiria",1977,"Dario Argento","Italy","Horror|Mystery","witchcraft|color|dance|nightmare",88,58,72,3,82,91,69,100,54,89,4,91
+18,"The Holy Mountain",1973,"Alejandro Jodorowsky","Mexico","Fantasy|Drama","alchemy|religion|symbolism|ritual",100,39,86,7,61,78,53,100,91,68,47,100
+19,"Stalker",1979,"Andrei Tarkovsky","Soviet Union","Sci-Fi|Drama","zone|faith|desire|ruins",75,94,21,14,79,58,8,87,97,81,5,84
+20,"2001: A Space Odyssey",1968,"Stanley Kubrick","United Kingdom / United States","Sci-Fi|Adventure","space|evolution|AI|monolith",81,82,28,0,75,67,18,96,94,64,6,76
+21,"Blade Runner",1982,"Ridley Scott","United States","Sci-Fi|Drama|Thriller","cyberpunk|memory|identity|rain",55,91,49,52,87,69,42,94,82,91,9,57
+22,"Climax",2018,"Gaspar Noé","France","Drama|Horror|Music","dance|LSD|party|panic",86,46,100,15,18,100,95,98,58,92,13,89
+23,"Under the Skin",2013,"Jonathan Glazer","United Kingdom","Sci-Fi|Drama","alien|body|observation|void",91,99,38,18,20,62,22,92,85,90,2,94
+24,"Donnie Darko",2001,"Richard Kelly","United States","Drama|Sci-Fi|Mystery","time|teenage|rabbit|suburbia",83,88,55,47,89,67,51,73,91,84,28,88
+25,"Trainspotting",1996,"Danny Boyle","United Kingdom","Drama|Comedy","addiction|youth|Scotland|escape",53,62,86,24,82,89,96,84,59,79,79,48
+26,"Oldboy",2003,"Park Chan-wook","South Korea","Thriller|Drama|Mystery","revenge|captivity|memory|violence",54,83,74,36,32,98,82,90,91,100,19,49
+27,"Cure",1997,"Kiyoshi Kurosawa","Japan","Thriller|Horror|Mystery","hypnosis|murder|emptiness|identity",71,96,45,6,54,78,31,67,91,100,2,81
+28,"Audition",1999,"Takashi Miike","Japan","Horror|Drama","dating|obsession|trauma|body horror",66,75,71,43,51,96,33,94,73,98,7,70
+29,"Pulse",2001,"Kiyoshi Kurosawa","Japan","Horror|Mystery","internet|ghosts|isolation|apocalypse",86,100,43,8,68,69,26,76,82,100,0,91
+30,"Gummo",1997,"Harmony Korine","United States","Drama","fragmented|suburbia|outsiders|decay",75,83,90,7,58,72,51,91,45,86,42,70
+31,"The Doom Generation",1995,"Gregg Araki","United States","Comedy|Crime|Drama","road|youth|violence|queer cinema",63,56,93,68,90,88,89,88,55,75,76,61
+32,"Paris, Texas",1984,"Wim Wenders","West Germany / France","Drama","desert|family|memory|distance",25,100,10,71,96,49,15,76,61,55,8,27
+33,"The Lighthouse",2019,"Robert Eggers","United States","Drama|Fantasy|Horror","isolation|myth|madness|sea",91,96,89,3,49,94,47,94,86,100,44,92
+34,"Black Swan",2010,"Darren Aronofsky","United States","Drama|Thriller","dance|perfection|double|body",79,90,72,24,22,96,79,85,84,93,3,83
+35,"Mandy",2018,"Panos Cosmatos","United States / Belgium","Horror|Fantasy|Action","revenge|psychedelic|metal|cult",97,67,94,39,57,100,63,100,62,96,31,94
+36,"The Handmaiden",2016,"Park Chan-wook","South Korea","Drama|Romance|Thriller","deception|desire|revenge|gothic",35,61,58,91,45,86,69,90,94,69,32,37
