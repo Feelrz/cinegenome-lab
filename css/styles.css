@@ -2105,3 +2105,39 @@ body.guestbook-incident .deadsite-scanlines{opacity:.22}
   letter-spacing:.03em;
   overflow-wrap:anywhere;
 }
+
+/* V49.1 / RX controls centered vertically beside the poster. */
+.rx-poster-carousel{position:relative;width:100%;display:grid;place-items:center}
+.rx-film-navigation{
+  position:absolute;
+  z-index:3;
+  inset-inline:0;
+  top:50%;
+  transform:translateY(-50%);
+  width:100%;
+  margin:0;
+  pointer-events:none;
+}
+.rx-film-navigation button{
+  display:grid;
+  place-items:center;
+  width:44px;
+  height:44px;
+  padding:0;
+  border:1px solid #b8ff35;
+  border-radius:50%;
+  background:rgba(15,22,14,.93);
+  color:#b8ff35;
+  pointer-events:auto;
+  transition:background .15s ease,color .15s ease,transform .15s ease;
+}
+.rx-film-navigation button:not(:disabled):hover{transform:scale(1.06)}
+.rx-nav-triangle{
+  display:block;
+  width:0;
+  height:0;
+  border-block:6px solid transparent;
+  border-right:9px solid currentColor;
+  margin-left:-3px;
+}
+#rxNext .rx-nav-triangle{border-right:0;border-left:9px solid currentColor;margin-left:3px}

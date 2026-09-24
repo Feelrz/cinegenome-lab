@@ -1,6 +1,6 @@
-# CINEGENOME LAB ALT V49
+# CINEGENOME LAB ALT V49.6
 
-This experimental build improves mobile navigation, expands the searchable film catalog, adds RX arrows and Dead Channel roulette SFX, and refines visitor diagnostics. See `UPDATE_V49.md` for the current release.
+This is the V49.1 build with more thoughtful daily Anomaly Hunt cases. Scanner uses film trivia; Atlas checks both axes; Mutation and Crossbreed use story riddles. RX arrows and all other V49 functionality remain. See `UPDATE_V49_2.md`.
 
 # CINEGENOME LAB — ALT API BUILD
 
@@ -20,7 +20,7 @@ This variant is configured for a **server-side TMDB proxy only**. Add `TMDB_API_
 - **Batch Top-500 builder** — `scripts/build-top500.mjs` resolves all 500 bundled titles through TMDB and generates `data/top500-enriched.js` / `.json`.
 - **Production proxy example** — `api/tmdb.js` keeps the TMDB token on the server for a public deployment.
 - **Shared visitor total** — the desktop and mobile counters use `api/visitors.js` and a server-side Upstash Redis store. See `UPDATE_V44.md` for activation steps.
-- **Daily Anomaly Hunt** — six new cases each local day across Scanner, Atlas, Mutation, and Crossbreed. Each completed case awards a downloadable PNG stamp, and all six unlock a daily BLACK FILE. The local collection stays available after the cases reset. See `UPDATE_V47.md`.
+- **Daily Anomaly Hunt** — six seeded cases each local day across Scanner, Atlas, Mutation, and Crossbreed. Clues now include film trivia, two-axis coordinates and narrative riddles. Every two solved cases award one creature draw, for a maximum of three per day. The five creature illustrations are compressed to WebP; duplicates count toward the collection. See `UPDATE_V49_6.md` for the isolated gacha test mode.
 - **Watch-once extension** — 511 additional searchable titles compared with the original curated Top 500. New titles are initially marked **PRELIMINARY**; TMDB metadata upgrades director, genres, synopsis, poster and inferred 12-trait DNA when the proxy is configured. The RX pool stays at the original 500. See `UPDATE_V49.md`.
 
 The original modules remain:

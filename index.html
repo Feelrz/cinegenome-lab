@@ -374,12 +374,11 @@
             <button type="button" class="rx-history-slot" data-rx-slot="2" disabled><span>03</span><b>ANTIDOTE</b><small>EMPTY</small></button>
           </div>
         </div>
-        <div class="rx-film-navigation" id="rxFilmNavigation" hidden aria-label="Browse today's prescriptions">
-          <button type="button" id="rxPrevious" aria-label="Previous prescribed film">◀</button>
-          <span>YOUR RX FILMS</span>
-          <button type="button" id="rxNext" aria-label="Next prescribed film">▶</button>
-        </div>
-
+        <div class="rx-poster-carousel">
+          <div class="rx-film-navigation" id="rxFilmNavigation" hidden aria-label="Browse today's prescriptions">
+            <button type="button" id="rxPrevious" aria-label="Previous prescribed film"><span class="rx-nav-triangle" aria-hidden="true"></span></button>
+            <button type="button" id="rxNext" aria-label="Next prescribed film"><span class="rx-nav-triangle" aria-hidden="true"></span></button>
+          </div>
         <button class="rx-tarot-card" id="rxTarotCard" type="button" aria-label="Reveal prescribed film">
           <span class="rx-tarot-inner">
             <span class="rx-tarot-face rx-tarot-back">
@@ -401,6 +400,7 @@
             </span>
           </span>
         </button>
+        </div>
 
         <div class="rx-click-hint" id="rxClickHint">CLICK CARD TO REVEAL</div>
         <div class="rx-watch-strip" id="rxWatchStrip" hidden></div>

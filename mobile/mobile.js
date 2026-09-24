@@ -279,7 +279,7 @@
     const xk=$('#mAtlasX').value,yk=$('#mAtlasY').value;
     const x=DIMS.find(d=>d.key===xk)?.label,y=DIMS.find(d=>d.key===yk)?.label;
     $('#mAtlasDetail').innerHTML=`<b>${esc(m.title)}</b><br>${m.year||'—'} // ${esc(x)} ${m.dna[xk]} // ${esc(y)} ${m.dna[yk]}`;
-    window.CINEGENOME_ANOMALY?.atlas(m,xk);
+    window.CINEGENOME_ANOMALY?.atlas(m,xk,yk);
     $('#mAtlasScan').hidden=false;
   }
 

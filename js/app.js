@@ -1375,7 +1375,7 @@
     const m = movieById(id); if(!m) return;
     const xl=DIMS.find(d=>d.key===xKey)?.label||xKey, yl=DIMS.find(d=>d.key===yKey)?.label||yKey;
     $('#atlasDetail').innerHTML = `<strong>${esc(m.title)} (${m.year})</strong> — ${esc(m.director)} · ${esc(xl)} ${m.dna[xKey]} · ${esc(yl)} ${m.dna[yKey]} · <button class="table-action" type="button" id="atlasScanBtn">SCAN SPECIMEN</button>`;
-    window.CINEGENOME_ANOMALY?.atlas(m,xKey);
+    window.CINEGENOME_ANOMALY?.atlas(m,xKey,yKey);
     $('#atlasScanBtn').addEventListener('click', () => { renderScanner(m.id); switchView('scanner'); });
   }
 

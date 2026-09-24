@@ -396,3 +396,40 @@ body{padding-bottom:env(safe-area-inset-bottom)!important}
 .m-visitor-meter [data-visitor-status]{flex:0 0 100%;color:#ffcf8b;font:700 10px/1.4 var(--font-body,"Courier New",monospace);overflow-wrap:anywhere}
 .m-visitor-meter [data-visitor-status][hidden]{display:none}
 .m-visitor-meter [data-visitor-total][data-state="error"]{font-size:clamp(12px,3vw,16px)}
+
+/* V49.1 / circular RX controls at the card's vertical midpoint. */
+.m-rx-carousel{position:relative;width:100%}
+.m-rx-navigation{
+  position:absolute;
+  z-index:3;
+  left:8px;
+  right:8px;
+  top:50%;
+  transform:translateY(-50%);
+  margin:0;
+  pointer-events:none;
+}
+.m-rx-navigation button{
+  display:grid;
+  place-items:center;
+  width:42px;
+  height:42px;
+  min-width:42px;
+  min-height:42px;
+  padding:0;
+  border:1px solid #b8ff35;
+  border-radius:50%;
+  background:rgba(15,22,14,.94);
+  color:#b8ff35;
+  pointer-events:auto;
+}
+.m-rx-navigation button:not(:disabled):active{background:#b8ff35;color:#11140f}
+.m-rx-nav-triangle{
+  display:block;
+  width:0;
+  height:0;
+  border-block:6px solid transparent;
+  border-right:9px solid currentColor;
+  margin-left:-3px;
+}
+#mRxNext .m-rx-nav-triangle{border-right:0;border-left:9px solid currentColor;margin-left:3px}

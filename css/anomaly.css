@@ -117,36 +117,6 @@
   outline:3px solid #b8ff35;outline-offset:2px;
 }
 .anomaly-step .anomaly-note{font-size:10px;color:#90a08b;margin-top:12px}
-.anomaly-stamp{
-  position:relative;display:flex;flex-direction:column;gap:13px;
-  min-height:225px;margin:15px 0;padding:18px;overflow:hidden;
-  border:2px solid #b8ff35;
-  background:repeating-linear-gradient(0deg,#101810 0 5px,#182418 5px 6px);
-}
-.anomaly-stamp:after{
-  content:"CG-09";position:absolute;right:-20px;bottom:-16px;
-  color:#b8ff3520;font:800 85px/1 "Orbitron",sans-serif;pointer-events:none;
-}
-.anomaly-stamp small,.anomaly-stamp em,.anomaly-stamp span{
-  position:relative;z-index:1;font:700 11px/1.35 "Courier Prime","Courier New",monospace;
-  overflow-wrap:anywhere;
-}
-.anomaly-stamp small{color:#b8ff35}
-.anomaly-stamp b{
-  position:relative;z-index:1;font:800 clamp(20px,5vw,30px)/1.1 "Orbitron",sans-serif;
-  overflow-wrap:anywhere;
-}
-.anomaly-stamp em{font-style:normal;color:#d9ffb0}
-.anomaly-stamp span{margin-top:auto;color:#aec3a4}
-.anomaly-reward.is-master{border-color:#ff634a;background:#281714}
-.anomaly-reward.is-master > span{color:#ffad94}
-.anomaly-reward.is-master .anomaly-stamp{border-color:#ff634a;background:repeating-linear-gradient(0deg,#1c1110 0 5px,#281917 5px 6px)}
-.anomaly-reward.is-master .anomaly-stamp small,.anomaly-reward.is-master .anomaly-stamp em{color:#ffa996}
-.anomaly-reward.is-master .anomaly-stamp:after{color:#ff634a24}
-.anomaly-reward-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.anomaly-export{margin-top:0;min-width:0;font-size:10px}
-.anomaly-export-alt{background:transparent;color:#e9ffce;border-color:#b8ff35}
-.anomaly-export-alt:hover{background:#283a22}
 .anomaly-collection{margin:22px 0 0;padding-top:15px;border-top:1px dashed #6a7d60}
 .anomaly-collection h3{margin:0;color:#b8ff35;font:700 14px/1.2 "Orbitron",sans-serif}
 .anomaly-collection p{margin:6px 0 12px;color:#abb9a5;font:11px/1.4 "Courier Prime",monospace}
@@ -174,3 +144,179 @@
   .anomaly-case small,.anomaly-case span{font-size:9px}
   .anomaly-reward-actions{grid-template-columns:1fr}
 }
+
+/* Creature pack and collection, shared by desktop and mobile. */
+.creature-draw{padding:16px;border:1px solid #8ebf49;background:#142011}
+.creature-draw h3{margin:8px 0 12px;color:#e7ffc4;font:700 17px/1.25 "Orbitron",sans-serif}
+.creature-draw > p{color:#d3e5c9;font:12px/1.5 "Courier Prime",monospace}
+.creature-draw .anomaly-step{margin:12px 0}
+.creature-pack{display:grid;place-items:center;gap:12px;margin:16px 0}
+.creature-pack-face{
+  display:flex;flex-direction:column;align-items:center;justify-content:space-between;
+  width:min(100%,200px);aspect-ratio:3/4;padding:14px;border:3px double #b8ff35;
+  background:radial-gradient(circle at 50% 43%,#426b25,#172415 63%,#0b120b);
+  color:#dfffad;box-shadow:0 0 0 5px #081008,0 10px 30px #0009;
+}
+.creature-pack-face small,.creature-pack-face span{font:700 9px/1.3 "Courier Prime",monospace;text-align:center;letter-spacing:.09em}
+.creature-pack-face b{font:800 86px/1 "Orbitron",sans-serif;text-shadow:0 0 20px #c5ff70}
+.creature-pack .anomaly-export{max-width:340px;min-height:48px}
+.creature-pack .anomaly-export:disabled{opacity:.7;cursor:wait}
+.creature-odds{margin-top:12px;border-top:1px dashed #71836a;padding-top:10px;color:#ccd9c3;font:11px/1.55 "Courier Prime",monospace}
+.creature-odds summary{cursor:pointer;color:#b8ff35;min-height:30px;font-weight:700}
+.creature-odds p{margin:5px 0 0}
+.creature-card{
+  --tier:#c5c5b5;position:relative;max-width:350px;margin:14px auto;padding:9px;
+  border:2px solid var(--tier);background:#080e0a;color:#f5f6ed;
+  box-shadow:0 10px 32px #000b,inset 0 0 0 2px #ffffff17;
+}
+.creature-card.rarity-b,.creature-slot.rarity-b{--tier:#a7dc74}
+.creature-card.rarity-a,.creature-slot.rarity-a{--tier:#5fe0d7}
+.creature-card.rarity-s,.creature-slot.rarity-s{--tier:#bf9cff}
+.creature-card.rarity-sr,.creature-slot.rarity-sr{--tier:#ffc863}
+.creature-card-top{display:flex;align-items:center;justify-content:space-between;padding:2px 5px 9px;color:var(--tier);font:700 10px "Courier Prime",monospace;letter-spacing:.08em}
+.creature-card-top b{font:800 21px "Orbitron",sans-serif}
+.creature-art{aspect-ratio:4/3;background:#243126;overflow:hidden;border:1px solid var(--tier)}
+.creature-art img{width:100%;height:100%;object-fit:cover;display:block}
+.creature-card-info{padding:12px 5px 7px}
+.creature-card-info small,.creature-card-info > span{display:block;color:var(--tier);font:700 10px/1.35 "Courier Prime",monospace}
+.creature-card-info strong{display:block;margin:8px 0;font:800 clamp(20px,6vw,29px)/1 "Orbitron",sans-serif;overflow-wrap:anywhere}
+.creature-card-info p{min-height:38px;margin:7px 0 11px;color:#dae6d5;font:12px/1.4 "Courier Prime",monospace}
+.creature-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.creature-slot{
+  --tier:#c5c5b5;display:flex;flex-direction:column;gap:7px;min-width:0;
+  padding:6px;text-align:left;border:1px solid var(--tier);background:#0b140c;color:#fff;cursor:pointer;
+}
+.creature-slot img,.creature-unknown{display:grid;place-items:center;width:100%;aspect-ratio:4/3;object-fit:cover;background:#1b291a}
+.creature-unknown{font:700 36px "Orbitron",sans-serif;color:#66715e}
+.creature-slot > span:last-child{display:grid;gap:4px;padding:3px}
+.creature-slot b{font:700 10px "Orbitron",sans-serif;overflow-wrap:anywhere}
+.creature-slot small{color:var(--tier);font:700 10px "Courier Prime",monospace}
+.creature-slot:disabled{cursor:default;opacity:.68}
+.creature-slot:not(:disabled):focus-visible,.creature-slot:not(:disabled):hover{outline:3px solid var(--tier);outline-offset:2px}
+@media(max-width:430px){
+  .creature-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .creature-draw{padding:12px}
+}
+
+/* Pack reveal lives inside the open dialog, above its sticky header. */
+.creature-draw-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.creature-sound-toggle{
+  min-width:88px;min-height:36px;padding:5px 8px;background:#101910;
+  border:1px solid #8ebf49;color:#dcffae;
+  font:700 10px "Courier Prime","Courier New",monospace;cursor:pointer;
+}
+.creature-sound-toggle[aria-pressed="false"]{border-color:#788374;color:#c4cfc1}
+.creature-sound-toggle:hover,.creature-sound-toggle:focus-visible{
+  outline:2px solid #b8ff35;outline-offset:2px;
+}
+.creature-reveal-overlay{
+  position:fixed;inset:0;z-index:20;display:grid;place-items:center;
+  padding:clamp(10px,3vw,25px);overflow:auto;
+  background:radial-gradient(circle at 50% 42%,#24401f 0%,#0c160e 54%,#050906 100%);
+  color:#e9f8df;isolation:isolate;
+}
+.creature-reveal-overlay:before{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.24;
+  background:repeating-linear-gradient(0deg,transparent 0 3px,#b8ff3522 4px 5px);
+}
+.creature-reveal-inner{
+  width:min(420px,100%);max-height:100%;overflow:auto;display:flex;
+  flex-direction:column;align-items:center;gap:14px;
+  padding:18px 12px;text-align:center;
+}
+.creature-reveal-kicker{
+  color:#b8ff35;font:700 10px/1.4 "Courier Prime","Courier New",monospace;
+  letter-spacing:.11em;
+}
+.creature-reveal-status{
+  color:#dfffac;font:800 clamp(15px,4.5vw,22px)/1.3 "Orbitron",sans-serif;
+  overflow-wrap:anywhere;
+}
+.creature-reveal-pack{
+  display:flex;flex-direction:column;justify-content:space-between;align-items:center;
+  width:min(215px,65vw);aspect-ratio:3/4;padding:16px;border:3px double #c7ff71;
+  background:radial-gradient(circle,#355c27,#192c18 54%,#091109);
+  box-shadow:0 0 0 6px #101c13,0 0 55px #b8ff3550;
+  backface-visibility:hidden;
+}
+.creature-reveal-pack span,.creature-reveal-pack small{
+  font:700 10px/1.2 "Courier Prime",monospace;letter-spacing:.08em;
+}
+.creature-reveal-pack b{font:800 92px/1 "Orbitron",sans-serif;text-shadow:0 0 30px #c9ff7c}
+.creature-reveal-meter{width:min(260px,90%);height:5px;background:#263723;overflow:hidden}
+.creature-reveal-meter span{
+  display:block;height:100%;width:100%;background:#c7ff71;
+  transform:scaleX(0);transform-origin:left;animation:creature-meter 2.3s linear forwards;
+}
+.creature-reveal-action{
+  min-height:46px;width:min(310px,100%);padding:10px;
+  border:1px solid #b8ff35;background:#b8ff35;color:#0e170c;
+  font:700 11px/1.3 "Courier Prime","Courier New",monospace;cursor:pointer;
+}
+.creature-reveal-action:hover,.creature-reveal-action:focus-visible{
+  background:#ecffd0;outline:3px solid #b8ff35;outline-offset:3px;
+}
+.creature-reveal-overlay[data-stage="scan"] .creature-reveal-pack{
+  animation:creature-scan .28s ease-in-out infinite alternate;
+}
+.creature-reveal-overlay[data-stage="charge"] .creature-reveal-pack{
+  animation:creature-charge .5s ease-in-out infinite alternate;
+}
+.creature-reveal-overlay[data-stage="burst"] .creature-reveal-pack{
+  animation:creature-burst .28s ease-out forwards;
+}
+.creature-reveal-overlay[data-stage="revealed"] .creature-reveal-pack,
+.creature-reveal-overlay[data-stage="revealed"] .creature-reveal-meter{display:none}
+.creature-reveal-overlay[data-stage="revealed"] .creature-card{
+  width:min(330px,100%);margin:0;flex:0 0 auto;
+  animation:creature-arrive .48s cubic-bezier(.15,.82,.26,1.14) both;
+}
+.creature-reveal-overlay[data-rarity="sr"][data-stage="revealed"]{
+  background:radial-gradient(circle at 50% 37%,#76561f,#2c220f 43%,#080b08 100%);
+}
+.creature-reveal-overlay[data-rarity="sr"][data-stage="revealed"]:before{
+  opacity:.52;background:repeating-conic-gradient(from 0deg at 50% 46%,#ffe2a116 0deg 8deg,transparent 9deg 24deg);
+  animation:creature-halo 14s linear infinite;
+}
+.creature-reveal-overlay[data-rarity="sr"] .creature-reveal-status{
+  color:#ffe09a;text-shadow:0 0 15px #ffc86399;
+}
+@keyframes creature-meter{to{transform:scaleX(1)}}
+@keyframes creature-scan{from{transform:translateY(0) rotate(-1deg)}to{transform:translateY(-5px) rotate(1deg)}}
+@keyframes creature-charge{from{transform:scale(.98);filter:brightness(1)}to{transform:scale(1.09);filter:brightness(1.65)}}
+@keyframes creature-burst{to{transform:scale(1.3) rotateY(90deg);opacity:0}}
+@keyframes creature-arrive{from{opacity:0;transform:translateY(25px) scale(.78)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes creature-halo{to{transform:rotate(360deg)}}
+@media(max-width:430px){
+  .creature-reveal-inner{gap:10px}
+  .creature-reveal-overlay[data-stage="revealed"] .creature-card{width:min(290px,100%)}
+}
+@media(prefers-reduced-motion:reduce){
+  .creature-reveal-overlay *, .creature-reveal-overlay:before{animation:none!important}
+}
+
+/* QA-only controls, rendered only when ?gacha-test=1 is active. */
+.creature-test-panel{
+  margin:12px 0 18px;padding:14px;border:2px solid #ffcf6c;
+  background:#2b2112;color:#f8e6c2;
+}
+.creature-test-panel > strong{
+  display:block;color:#ffcf6c;font:800 13px/1.3 "Orbitron",sans-serif;
+}
+.creature-test-panel p{
+  margin:8px 0 12px;font:11px/1.55 "Courier Prime","Courier New",monospace;
+}
+.creature-test-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.creature-test-buttons button,.creature-test-reset,.creature-test-panel a{
+  min-height:44px;padding:8px 5px;border:1px solid #ffcf6c;
+  background:#14190f;color:#ffdfa0;cursor:pointer;text-align:center;
+  font:700 10px/1.3 "Courier Prime","Courier New",monospace;
+}
+.creature-test-buttons button:hover,.creature-test-buttons button:focus-visible,
+.creature-test-reset:hover,.creature-test-reset:focus-visible,
+.creature-test-panel a:hover,.creature-test-panel a:focus-visible{
+  background:#ffcf6c;color:#17140c;outline:2px solid #ffcf6c;outline-offset:2px;
+}
+.creature-test-reset{display:block;width:100%;margin-top:9px}
+.creature-test-panel a{display:grid;place-items:center;margin-top:9px;text-decoration:none}
+@media(max-width:400px){.creature-test-buttons{grid-template-columns:repeat(2,minmax(0,1fr))}}

@@ -247,15 +247,16 @@
       <div class="m-dialog-body">
         <div class="m-rx-scan" id="mRxScan"></div>
         <div class="m-rx-history" id="mRxHistory"></div>
-        <div class="m-rx-navigation" id="mRxNavigation" hidden aria-label="Browse today's prescriptions">
-          <button type="button" id="mRxPrevious" aria-label="Previous prescribed film">◀</button>
-          <span>YOUR RX FILMS</span>
-          <button type="button" id="mRxNext" aria-label="Next prescribed film">▶</button>
-        </div>
+        <div class="m-rx-carousel">
+          <div class="m-rx-navigation" id="mRxNavigation" hidden aria-label="Browse today's prescriptions">
+            <button type="button" id="mRxPrevious" aria-label="Previous prescribed film"><span class="m-rx-nav-triangle" aria-hidden="true"></span></button>
+            <button type="button" id="mRxNext" aria-label="Next prescribed film"><span class="m-rx-nav-triangle" aria-hidden="true"></span></button>
+          </div>
         <button class="m-rx-card" id="mRxCard" type="button" hidden>
           <div class="m-rx-sealed" id="mRxSealed">SEALED SPECIMEN<br><small>TAP TO REVEAL</small></div>
           <div class="m-rx-reveal" id="mRxReveal" hidden></div>
         </button>
+        </div>
       </div>
     </div>
   </dialog>
