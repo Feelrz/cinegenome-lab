@@ -311,7 +311,8 @@
     });
     scrollTo({top:0,behavior:'smooth'});
     if(name==='atlas')renderAtlas();
-    if(name==='archive'||name==='more')renderArchive();
+    if(name==='archive')renderArchive();
+    if(name==='bloodline')renderBloodline();
   }
 
   function updateRxCount(){
@@ -337,6 +338,53 @@
     $('#mRxPrevious').disabled=current<=0;
     $('#mRxNext').disabled=current>=d.draws.length-1;
   }
+  const rxDelay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+  function updateRxNextDose(){
+    const next=$('#mRxNextDoseBtn'),used=loadRxDay().draws.length;
+    next.hidden=used>=3||!$('#mRxCard').classList.contains('is-revealed');
+    if(!next.hidden)next.textContent=`NEXT RX // DOSE ${used+1} OF 3 ↗`;
+  }
+  function rxShowCard(index,sealed){
+    const card=$('#mRxCard'),stage=$('#mRxCardStage');
+    $('#mRxScanStage').classList.add('is-leaving');
+    $('#mRxScanStage').hidden=true;
+    card.dataset.index=String(index);card.hidden=false;
+    card.classList.remove('is-revealed','show-poster','is-revealing');
+    $('#mRxNextDoseBtn').hidden=true;
+    $('#mRxReveal').hidden=true;
+    $('#mRxHint').textContent=sealed?'TAP TO REVEAL':'PRESCRIPTION RECONSTRUCTED';
+    stage.hidden=false;stage.classList.remove('is-entering');
+    requestAnimationFrame(()=>requestAnimationFrame(()=>stage.classList.add('is-entering')));
+    renderRxHistory();
+  }
+  async function rxFillFilm(index,token){
+    const draw=loadRxDay().draws[index];if(!draw)return;
+    $('#mRxRole').textContent=`${rxRoles[index]} // RX ${index+1}/3`;
+    $('#mRxTitle').textContent=draw.title||'SIGNAL PENDING';
+    $('#mRxMeta').textContent=draw.year||'METADATA PENDING';
+    $('#mRxReveal').textContent='RECONSTRUCTING SAVED RX…';
+    const m=await rxMovieFromDraw(draw);
+    if(!$('#mRxDialog').open||token!==rxRunToken||Number($('#mRxCard').dataset.index)!==index)return;
+    const poster=m?.posterPath&&TMDB?TMDB.posterUrl(m.posterPath,'w500'):'';
+    const img=$('#mRxPoster');img.src=poster;img.style.visibility=poster?'visible':'hidden';img.alt=`Poster for ${m?.title||draw.title}`;
+    $('#mRxRole').textContent=`${rxRoles[index]} // RX ${index+1}/3`;
+    $('#mRxTitle').textContent=m?.title||draw.title;
+    $('#mRxMeta').textContent=[m?.year||draw.year,m?.director].filter(Boolean).join(' // ');
+    $('#mRxReveal').innerHTML=`<span class="m-kicker">${rxRoles[index]} // RX ${index+1}/3</span><h2>${esc(m?.title||draw.title)}</h2><p>${esc(m?.director||'Metadata pending')} / ${m?.year||draw.year||'—'}${m?.runtime?` / ${m.runtime} MIN`:''}</p><p>${esc(m?.overview||'Synopsis signal unavailable.')}</p>${m?`<div class="m-watch-chips">${watchConditions(m).slice(0,3).map(x=>`<span>${esc(x)}</span>`).join('')}</div><div class="m-dna" id="mRxDNA"></div>`:''}`;
+    if(m)renderDNA($('#mRxDNA'),m.dna);
+    $('#mRxCard').classList.add('show-poster');
+  }
+  function rxReveal(){
+    const card=$('#mRxCard');if(card.hidden||card.classList.contains('is-revealed')||card.classList.contains('is-revealing'))return;
+    card.classList.add('is-revealing');$('#mRxHint').textContent='DECRYPTING SPECIMEN…';
+    const token=rxRunToken;
+    setTimeout(()=>{if(token!==rxRunToken||!$('#mRxDialog').open)return;
+      card.classList.remove('is-revealing');card.classList.add('is-revealed');
+      updateRxNextDose();
+      $('#mRxHint').textContent='PRESCRIPTION '+(Number(card.dataset.index)+1)+' OF 3';
+      setTimeout(()=>{if(token!==rxRunToken)return;$('#mRxReveal').hidden=false},650);
+    },460);
+  }
   async function rxMovieFromDraw(draw){
     let m=draw.movieId?MOVIES.find(x=>Number(x.id)===Number(draw.movieId)):null;
     if(!m)m=MOVIES.find(x=>String(x.title).toLowerCase()===String(draw.title).toLowerCase()&&(!draw.year||Number(x.year)===Number(draw.year)));
@@ -353,36 +401,49 @@
   }
   async function runRx(){
     const token=++rxRunToken,dialog=$('#mRxDialog');if(!dialog.open)dialog.showModal();
-    $('#mRxCard').hidden=true;$('#mRxScan').innerHTML='';renderRxHistory();
+    $('#mRxNextDoseBtn').hidden=true;
+    $('#mRxDialog .m-dialog-body').scrollTop=0;
+    $('#mRxCardStage').hidden=true;$('#mRxCard').hidden=true;
+    $('#mRxScanStage').hidden=false;$('#mRxScanStage').classList.remove('is-leaving');
+    $('#mRxScan').innerHTML='';
     const day=loadRxDay(),lines=rxHackLines(day.draws.length>=3);
+    $('#mRxDrawCount').textContent=day.draws.length>=3?'DAILY RX MEMORY // 3 / 3':`DIAGNOSIS ${day.draws.length+1} / 3`;
+    await rxDelay(230);
     for(let i=0;i<lines.length;i++){
-      const div=document.createElement('div');div.textContent=`0${i+1} // ${lines[i]}`;
-      $('#mRxScan').appendChild(div);await new Promise(r=>setTimeout(r,180));
       if(!dialog.open||token!==rxRunToken)return;
+      const div=document.createElement('div');div.className='m-rx-scan-line';
+      div.innerHTML=`<b>${String(i+1).padStart(2,'0')}</b><i></i>`;
+      $('#mRxScan').appendChild(div);
+      // The desktop diagnostic line resolves through scrambled characters.
+      const target=lines[i],glyph='01#%∆?';
+      for(let frame=0;frame<3;frame++){
+        div.querySelector('i').textContent=target.split('').map((c,j)=>c===' '?' ':j<Math.floor(target.length*(frame+1)/4)?c:glyph[(j+frame)%glyph.length]).join('');
+        await rxDelay(47);
+        if(!dialog.open||token!==rxRunToken)return;
+      }
+      div.querySelector('i').textContent=target;
+      await rxDelay(135);
     }
-    if(day.draws.length>=3){await showRxSaved(2);return}
-    // Refresh the shared day's record; another desktop tab may have saved a dose.
+    await rxDelay(330);if(!dialog.open||token!==rxRunToken)return;
     const fresh=loadRxDay();if(fresh.draws.length>=3){await showRxSaved(2);return}
     const seed=rxSeedForDraw(fresh,fresh.draws.length+1);
     if(!seed){toast('RX SIGNAL UNAVAILABLE');return}
     const m=MOVIES.find(x=>movieKey(x)===movieKey(seed))||null;
     fresh.draws.push({drawNo:fresh.draws.length+1,title:seed.title,year:seed.year,movieId:m?.id||null});
-    saveRxDay(fresh);renderRxHistory();
-    $('#mRxCard').hidden=false;$('#mRxSealed').hidden=false;$('#mRxReveal').hidden=true;
-    $('#mRxCard').dataset.index=String(fresh.draws.length-1);
-    renderRxHistory();
-    if(m)hydrate(m).catch(()=>{});
+    saveRxDay(fresh);updateRxCount();
+    const index=fresh.draws.length-1;
+    rxShowCard(index,true);rxFillFilm(index,token);
   }
-  async function showRxSaved(index){
-    const draw=loadRxDay().draws[index];if(!draw)return;
+  async function showRxSaved(index,replay=false){
+    if(!loadRxDay().draws[index])return;
     const token=rxRunToken;
-    $('#mRxCard').hidden=false;$('#mRxSealed').hidden=true;$('#mRxReveal').hidden=false;
-    $('#mRxReveal').textContent='RECONSTRUCTING SAVED RX…';$('#mRxCard').dataset.index=String(index);
-    renderRxHistory();
-    const m=await rxMovieFromDraw(draw);if(!$('#mRxDialog').open||token!==rxRunToken)return;
-    const poster=m?.posterPath&&TMDB?TMDB.posterUrl(m.posterPath,'w500'):'';
-    $('#mRxReveal').innerHTML=`${poster?`<img src="${esc(poster)}" alt="Poster for ${esc(m?.title||draw.title)}">`:''}<span class="m-kicker">${rxRoles[index]} // RX ${index+1}/3</span><h2>${esc(m?.title||draw.title)}</h2><p>${esc(m?.director||'Unknown')} / ${m?.year||draw.year||'—'}${m?.runtime?` / ${m.runtime} MIN`:''}</p><p>${esc(m?.overview||'Synopsis signal unavailable.')}</p><div style="clear:both"></div>${m?`<div class="m-watch-chips">${watchConditions(m).slice(0,3).map(x=>`<span>${esc(x)}</span>`).join('')}</div><div class="m-dna" id="mRxDNA"></div>`:''}`;
-    if(m)renderDNA($('#mRxDNA'),m.dna);
+    rxShowCard(index,replay);
+    rxFillFilm(index,token);
+    if(replay)return;
+    // History is already known, so replay the same card flip immediately.
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      if(token===rxRunToken&&$('#mRxDialog').open){$('#mRxCard').classList.add('is-revealed');$('#mRxReveal').hidden=false;updateRxNextDose()}
+    }));
   }
 
   function deadDepthLabel(rank){
@@ -525,10 +586,6 @@
     $('#mAtlasRandom').onclick=()=>{atlasSeed=Math.floor(Math.random()*1e9);renderAtlas()};
     $('#mAtlasSurprise').onclick=()=>inspectAtlas(atlasVisible[Math.floor(Math.random()*atlasVisible.length)]);
     $('#mAtlasScan').onclick=()=>{if(atlasSelected){switchView('scanner');renderScanner(atlasSelected)}};
-    $$('[data-sheet]').forEach(b=>b.onclick=()=>{
-      $('#mBloodlineSheet').hidden=false;$('#mBloodlineSheet').scrollIntoView({behavior:'smooth'});
-    });
-    $$('[data-close-sheet]').forEach(b=>b.onclick=()=>b.closest('.m-more-sheet').hidden=true);
     $('#mClearArchive').onclick=()=>{
       if(!confirm('Erase saved specimens and experiments from this browser?'))return;
       state.favorites=[];state.archive=[];saveState();renderArchive();renderScanner(current);
@@ -536,7 +593,28 @@
     };
     $('#mHumanBtn').onclick=()=>$('#mHumanDialog').showModal();
 
-    const openDead=()=>{if($('#mDeadDialog').open)return;$('#mDeadDialog').showModal();renderDead()};
+    let deadTransitionToken=0;
+    const openDead=async()=>{
+      if($('#mDeadDialog').open||!$('#mDeadTransition').hidden)return;
+      const token=++deadTransitionToken,veil=$('#mDeadTransition'),readout=$('#mDeadTransitionLog');
+      veil.hidden=false;document.body.classList.add('m-dead-hijacking');
+      requestAnimationFrame(()=>requestAnimationFrame(()=>veil.classList.add('is-on')));
+      const messages=['DIALING 56K NODE...','HANDSHAKE ACCEPTED // WRONG HOST','DOWNLOADING cursed_index.html','MIRROR FOUND // DO NOT REFRESH'];
+      messages.forEach((msg,i)=>setTimeout(()=>{if(token===deadTransitionToken)readout.textContent=msg},i*245));
+      await rxDelay(900);if(token!==deadTransitionToken)return;
+      $('#mDeadDialog').showModal();renderDead();
+      setTimeout(()=>{
+        veil.classList.remove('is-on');document.body.classList.remove('m-dead-hijacking');
+        setTimeout(()=>{veil.hidden=true},430);
+      },110);
+    };
+    document.addEventListener('cinegenome:quarantine-film',async e=>{
+      const specimen=DEAD.find(x=>x.rank===Number(e.detail?.rank));
+      if(!specimen)return;
+      await openDead();
+      if($('#mDeadDialog').open)openDeadDetail(specimen);
+    });
+    document.addEventListener('cinegenome:quarantine-weird',openDead);
     const resetDead=()=>{
       deadRenderToken++;stopDeadPicker();deadPickerSelection=null;
       $('#mDeadPickerScreen').classList.remove('is-spinning');
@@ -594,23 +672,19 @@
     $('#mGuestbookVideo').addEventListener('ended',closeGuestbook);
     $('#mGuestbookVideo').addEventListener('error',closeGuestbook);
     $('#mGuestbookDialog').addEventListener('cancel',e=>{e.preventDefault();closeGuestbook()});
-    $('#mDesktopBtn').onclick=()=>{
-      try{sessionStorage.setItem('cinegenome_force_desktop','1')}catch{}
-      location.href='../?desktop=1';
-    };
     $('#mRxBtn').onclick=runRx;
+    $('#mRxNextDoseBtn').onclick=()=>{
+      if($('#mRxDialog').open&&$('#mRxCard').classList.contains('is-revealed')&&loadRxDay().draws.length<3)runRx();
+    };
     $('#mRxPrevious').onclick=()=>{
       const index=Number($('#mRxCard').dataset.index||0);
       if(index>0){rxRunToken++;showRxSaved(index-1)}
     };
     $('#mRxNext').onclick=()=>{
       const index=Number($('#mRxCard').dataset.index||0);
-      if(index+1<loadRxDay().draws.length){rxRunToken++;showRxSaved(index+1)}
+      if(index+1<loadRxDay().draws.length){rxRunToken++;showRxSaved(index+1,true)}
     };
-    $('#mRxCard').onclick=()=>{
-      const i=Number($('#mRxCard').dataset.index||loadRxDay().draws.length-1);
-      showRxSaved(i);
-    };
+    $('#mRxCard').onclick=rxReveal;
     $('#mBrand').onclick=()=>{
       const brand=$('#mBrand');brand.classList.remove('is-secret-tap');
       void brand.offsetWidth;brand.classList.add('is-secret-tap');

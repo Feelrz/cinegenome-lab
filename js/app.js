@@ -1469,11 +1469,11 @@
     });
   }
 
-  async function showSavedPrescription(index) {
+  async function showSavedPrescription(index, replay=false) {
     const day=loadRxDay();
     const saved=day.draws[index];
     if(!saved) return;
-    prescriptionStage=2;
+    prescriptionStage=replay?1:2;
     let movie=saved.movieId ? movieById(saved.movieId) : MOVIES.find(m=>m.title===saved.title && (!saved.year || Number(m.year)===Number(saved.year))) || null;
     const rx={...saved,date:day.date,drawNo:index+1,movie};
     currentPrescription=rx;
@@ -1482,10 +1482,10 @@
     const stage=$('#rxCardStage');
     stage.hidden=false;
     stage.classList.add('is-entering','history-swap');
-    setPrescriptionCard(rx,2);
+    setPrescriptionCard(rx,replay?1:2);
     renderRxHistory(index);
     await ensurePrescriptionMetadata();
-    if(currentPrescription===rx) setPrescriptionCard(rx,2);
+    if(currentPrescription===rx) setPrescriptionCard(rx,prescriptionStage);
     setTimeout(()=>stage.classList.remove('history-swap'),360);
   }
 
@@ -1527,6 +1527,10 @@
       rxWatch.innerHTML=stage>=2 && movie ? watchConditions(movie).slice(0,3).map(x=>`<span>${esc(x.label)}</span>`).join('') : '';
     }
     $('#rxRevealActions').hidden = stage < 2;
+    const nextDose=$('#rxNextDoseBtn');
+    const usedDoses=loadRxDay().draws.length;
+    nextDose.hidden=stage<2 || usedDoses>=3;
+    if(!nextDose.hidden) nextDose.textContent=`NEXT RX // DOSE ${usedDoses+1} OF 3 ↗`;
     $('#rxSynopsis').hidden = true;
     $('#rxDNA').hidden = true;
     $('#rxSynopsisBtn').classList.remove('is-active');
@@ -1538,23 +1542,25 @@
 
   async function ensurePrescriptionMetadata() {
     if (!currentPrescription) return null;
-    let movie=currentPrescription.movie || (currentPrescription.movieId?movieById(currentPrescription.movieId):MOVIES.find(m=>m.title===currentPrescription.title && (!currentPrescription.year || Number(m.year)===Number(currentPrescription.year))));
+    const rx=currentPrescription;
+    let movie=rx.movie || (rx.movieId?movieById(rx.movieId):MOVIES.find(m=>m.title===rx.title && (!rx.year || Number(m.year)===Number(rx.year))));
     if (movie && TMDB?.canQuery() && (!movie.posterPath || !movie.overview || !movie.tmdbId || !movie.director || !(movie.genres||[]).length)) {
       try { movie=await enrichLocalMovie(movie); }
       catch(err){ log(`RX TMDB LINK ERROR: ${err.message}`); }
-    } else if (!movie && currentPrescription.title && TMDB?.canQuery()) {
-      try { movie=await importTMDBTitle(currentPrescription.title,currentPrescription.year); }
+    } else if (!movie && rx.title && TMDB?.canQuery()) {
+      try { movie=await importTMDBTitle(rx.title,rx.year); }
       catch(err){ log(`RX TMDB RESOLUTION FAILED: ${err.message}`); }
     }
+    if(currentPrescription!==rx)return null;
     if (movie) {
-      currentPrescription.movie=movie;
-      currentPrescription.movieId=movie.id;
-      currentPrescription.year=movie.year || currentPrescription.year;
-      currentPrescription.title=movie.title || currentPrescription.title;
+      rx.movie=movie;
+      rx.movieId=movie.id;
+      rx.year=movie.year || rx.year;
+      rx.title=movie.title || rx.title;
       const day=loadRxDay();
-      const idx=Number(currentPrescription.drawNo||1)-1;
+      const idx=Number(rx.drawNo||1)-1;
       if(day.draws[idx]) {
-        day.draws[idx]={...day.draws[idx],title:currentPrescription.title,year:currentPrescription.year,movieId:currentPrescription.movieId};
+        day.draws[idx]={...day.draws[idx],title:rx.title,year:rx.year,movieId:rx.movieId};
         saveRxDay(day);
       }
     }
@@ -1600,6 +1606,8 @@
     clearRitualTimers();
     prescriptionStage=0;
     currentPrescription=null;
+    $('#rxNextDoseBtn').hidden=true;
+    $('#rxFloat .rx-float-body').scrollTop=0;
     $('#rxCloseBtn').hidden=false;
     $('#rxCardStage').classList.remove('is-entering');
     $('#rxCardStage').hidden=true;
@@ -1849,6 +1857,7 @@
     $('#rxScanStage').hidden=false;
     $('#rxCardStage').classList.remove('is-entering');
     $('#rxCardStage').hidden=true;
+    $('#rxNextDoseBtn').hidden=true;
     $('#rxLimitStage').hidden=true;
     $('#rxCloseBtn').hidden=false;
     updateRxFabCounter();
@@ -1886,12 +1895,14 @@
 
   async function advancePrescriptionCard() {
     if(!currentPrescription || prescriptionStage>=2)return;
+    const rx=currentPrescription;
     const card=$('#rxTarotCard');
+    if(card.classList.contains('is-revealing'))return;
     card.classList.add('is-revealing');
     $('#rxClickHint').textContent='DECODING SPECIMEN…';
     await ensurePrescriptionMetadata();
     await ritualDelay(520);
-    setPrescriptionCard(currentPrescription,2);
+    if(currentPrescription===rx && !$('#rxFloat').hidden) setPrescriptionCard(rx,2);
   }
 
   function generateDNAProfileFromTMDB(data) {
@@ -2128,9 +2139,12 @@
     });
     $('#rxNext').addEventListener('click',()=>{
       const index=Number(currentPrescription?.drawNo||1)-1;
-      if(index+1<loadRxDay().draws.length)showSavedPrescription(index+1);
+      if(index+1<loadRxDay().draws.length)showSavedPrescription(index+1,true);
     });
     $('#rxTarotCard').addEventListener('click',advancePrescriptionCard);
+    $('#rxNextDoseBtn').addEventListener('click',()=>{
+      if(prescriptionStage===2 && loadRxDay().draws.length<3 && !$('#rxFloat').hidden) diagnoseToday();
+    });
     $('#rxSynopsisBtn').addEventListener('click',async()=>{ await ensurePrescriptionMetadata(); setPrescriptionCard(currentPrescription,2); $('#rxSynopsis').hidden=false; $('#rxDNA').hidden=true; $('#rxSynopsisBtn').classList.add('is-active'); $('#rxDnaBtn').classList.remove('is-active'); });
     $('#rxDnaBtn').addEventListener('click',()=>{ setPrescriptionCard(currentPrescription,2); $('#rxDNA').hidden=false; $('#rxSynopsis').hidden=true; $('#rxDnaBtn').classList.add('is-active'); $('#rxSynopsisBtn').classList.remove('is-active'); });
     document.addEventListener('keydown',e=>{ if(e.key==='Escape' && !$('#rxFloat').hidden) togglePrescriptionPanel(false); });
@@ -2220,20 +2234,30 @@
     }));
 
     $('#specimenCodeBtn')?.addEventListener('click',()=>{
-      $('#specimenCodeReadout').textContent='AWAITING CODE…';
+      $('#specimenCodeReadout').textContent='AWAITING CODE… // CASE ZERO: CG-000';
       $('#specimenCodeInput').value='';
       $('#specimenCodeDialog')?.showModal();
       setTimeout(()=>$('#specimenCodeInput')?.focus(),40);
     });
     $('#specimenCodeClose')?.addEventListener('click',()=>$('#specimenCodeDialog')?.close());
+    document.addEventListener('cinegenome:quarantine-film',async e=>{
+      const specimen=deadChannelPool().find(x=>x.rank===Number(e.detail?.rank));
+      if(!specimen)return;
+      await openSecretArchive();
+      if($('#secretArchiveDialog')?.open)openDeadDossier(specimen);
+    });
     $('#specimenCodeForm')?.addEventListener('submit',e=>{
       e.preventDefault();
       const raw=String($('#specimenCodeInput').value||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
-      if(raw==='DEAD300'){
+      if(raw==='CG000'){
+        $('#specimenCodeReadout').textContent='ACCESS GRANTED // QUARANTINE FILE CG-000';
+        $('#specimenCodeDialog')?.close();
+        window.CINEGENOME_QUARANTINE?.open();
+      }else if(raw==='DEAD300'){
         $('#specimenCodeReadout').textContent='ACCESS GRANTED // CHANNEL D-300';
         setTimeout(()=>{ $('#specimenCodeDialog')?.close(); openSecretArchive(); },220);
       }else{
-        $('#specimenCodeReadout').textContent='ACCESS DENIED // UNKNOWN SPECIMEN CODE';
+        $('#specimenCodeReadout').textContent='SPECIMEN DOES NOT EXIST. STOP LOOKING FOR IT.';
       }
     });
 

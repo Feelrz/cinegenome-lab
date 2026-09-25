@@ -5,11 +5,9 @@
   <script>
     (function(){
       try{
-        var p=new URLSearchParams(location.search);
-        var forceDesktop=p.get('desktop')==='1' || sessionStorage.getItem('cinegenome_force_desktop')==='1';
-        var narrow=window.matchMedia('(max-width: 760px)').matches;
-        if(narrow && !forceDesktop && !location.pathname.includes('/mobile/')){
-          location.replace('/mobile/');
+        var phone=window.matchMedia('(max-width: 760px), (pointer: coarse) and (max-width: 1024px)').matches;
+        if(phone && !location.pathname.includes('/mobile/')){
+          location.replace('/mobile/' + location.search + location.hash);
         }
       }catch(e){}
     })();
@@ -24,12 +22,17 @@
   <link rel="shortcut icon" href="assets/cinegenome-logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="stylesheet" href="css/anomaly.css" />
+  <link rel="stylesheet" href="css/field-manual.css" />
+  <link rel="stylesheet" href="css/quarantine.css" />
 </head>
 <body>
 
   <div class="boot-screen" id="bootScreen" aria-live="polite">
     <div class="boot-shell">
-      <div class="boot-mark">CINE<br>GENOME</div>
+      <div class="boot-identity">
+        <div class="boot-mark">CINE<br>GENOME</div>
+        <img class="boot-logo" src="assets/cinegenome-logo.svg" alt="" aria-hidden="true">
+      </div>
       <div class="boot-line">DEPT. OF CINEMATIC PATHOLOGY // CG-09</div>
       <div class="boot-console" id="bootConsole">
         <span>INITIALIZING PATHOLOGY ENGINE...</span>
@@ -97,6 +100,9 @@
           <div class="eyebrow">PROJECT CG-09 / CINEMATIC GENETICS UNIT</div>
           <h1>FILMS ARE <span>ORGANISMS.</span></h1>
           <p>Sequence emotional, visual and narrative traits. Crossbreed incompatible films. Mutate cinematic DNA. Find the nearest living specimen.</p>
+          <button class="field-manual-trigger" type="button" data-field-manual-open aria-haspopup="dialog" aria-controls="fieldManualDialog">
+            <span>UNSEAL FIELD MANUAL</span><b aria-hidden="true">?</b>
+          </button>
         </div>
         <div class="hero-aside">
           <button class="easteregg-note" id="eastereggNote" type="button" aria-label="Do not press the CineGenome logo 7 times">
@@ -409,6 +415,7 @@
           <button class="rx-info-tab" id="rxSynopsisBtn" type="button">SYNOPSIS</button>
           <button class="rx-info-tab" id="rxDnaBtn" type="button">DNA</button>
         </div>
+        <button class="rx-next-dose" id="rxNextDoseBtn" type="button" hidden>NEXT RX // DOSE 2 OF 3 ↗</button>
 
         <div class="rx-detail-panel" id="rxSynopsis" hidden>
           <div class="rx-detail-kicker">FILM DOSSIER</div>
@@ -641,7 +648,7 @@
       <div class="code-body">
         <label for="specimenCodeInput">ENTER SPECIMEN CODE</label>
         <input id="specimenCodeInput" autocomplete="off" spellcheck="false" placeholder="CG-____">
-        <div class="code-readout" id="specimenCodeReadout">AWAITING CODE…</div>
+        <div class="code-readout" id="specimenCodeReadout">AWAITING CODE… // CASE ZERO: CG-000</div>
         <button class="lab-btn primary" type="submit">AUTHENTICATE</button>
       </div>
     </form>
@@ -664,6 +671,8 @@
   <script src="js/anomaly.js"></script>
   <script src="js/picker-sfx.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/quarantine.js"></script>
   <script src="js/visitors.js"></script>
+  <script src="js/field-manual.js"></script>
 </body>
 </html>

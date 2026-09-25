@@ -114,7 +114,7 @@ assert.equal(app.core.status().collection,1,'existing card preserved');
 assert.equal(app.core.status().pending,2,'old unopened tickets normalized to three total');
 app=mount('2026-09-25T13:00:00Z');
 assert.equal(app.core.status().pending,2,'old ticket migration stays idempotent');
-for(const [roll,expected] of [[0,'pierlurk'],[.61,'ambergraze'],[.91,'viridra'],[.995,'cirrivel'],[.999,'foldhart']]){
+for(const [roll,expected] of [[0,'pierlurk'],[.3,'skyshell'],[.5,'carpetmink'],[.61,'ambergraze'],[.74,'briarboar'],[.88,'dustbrake'],[.91,'viridra'],[.97,'glassheron'],[.981,'cirrivel'],[.995,'parallux'],[.999,'foldhart']]){
  storage.clear();
  const date='2026-09-25';
  storage.set('cinegenome_anomaly_daily_v2',JSON.stringify({

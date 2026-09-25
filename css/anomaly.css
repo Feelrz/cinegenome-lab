@@ -275,7 +275,11 @@
   background:radial-gradient(circle at 50% 37%,#76561f,#2c220f 43%,#080b08 100%);
 }
 .creature-reveal-overlay[data-rarity="sr"][data-stage="revealed"]:before{
-  opacity:.52;background:repeating-conic-gradient(from 0deg at 50% 46%,#ffe2a116 0deg 8deg,transparent 9deg 24deg);
+  /* The rays need a square larger than the viewport diagonal. Rotating a
+     viewport-sized rectangle exposed its edges behind the card. */
+  inset:auto;top:50%;left:50%;width:200vmax;height:200vmax;
+  transform:translate(-50%,-50%);
+  opacity:.52;background:repeating-conic-gradient(from 0deg at center,#ffe2a116 0deg 8deg,transparent 9deg 24deg);
   animation:creature-halo 14s linear infinite;
 }
 .creature-reveal-overlay[data-rarity="sr"] .creature-reveal-status{
@@ -286,7 +290,10 @@
 @keyframes creature-charge{from{transform:scale(.98);filter:brightness(1)}to{transform:scale(1.09);filter:brightness(1.65)}}
 @keyframes creature-burst{to{transform:scale(1.3) rotateY(90deg);opacity:0}}
 @keyframes creature-arrive{from{opacity:0;transform:translateY(25px) scale(.78)}to{opacity:1;transform:translateY(0) scale(1)}}
-@keyframes creature-halo{to{transform:rotate(360deg)}}
+@keyframes creature-halo{
+  from{transform:translate(-50%,-50%) rotate(0deg)}
+  to{transform:translate(-50%,-50%) rotate(360deg)}
+}
 @media(max-width:430px){
   .creature-reveal-inner{gap:10px}
   .creature-reveal-overlay[data-stage="revealed"] .creature-card{width:min(290px,100%)}

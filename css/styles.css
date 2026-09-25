@@ -2141,3 +2141,14 @@ body.guestbook-incident .deadsite-scanlines{opacity:.22}
   margin-left:-3px;
 }
 #rxNext .rx-nav-triangle{border-right:0;border-left:9px solid currentColor;margin-left:3px}
+
+/* V49.10: boot identity uses the same film-flask mark as the lab header. */
+.boot-identity{display:flex;align-items:center;justify-content:space-between;gap:clamp(12px,3vw,22px);min-width:0}
+.boot-identity .boot-mark{min-width:0;font-size:clamp(40px,7vw,76px)}
+.boot-logo{display:block;width:clamp(64px,14vw,116px);height:clamp(64px,14vw,116px);flex:none;object-fit:contain}
+@media(max-width:540px){.boot-shell{padding:20px}.boot-identity .boot-mark{font-size:clamp(36px,9.5vw,62px)}.boot-logo{width:clamp(60px,16vw,95px);height:clamp(60px,16vw,95px)}}
+
+/* V49.12: advance to the next available RX without closing the diagnosis panel. */
+.rx-next-dose{display:block;width:min(100%,430px);min-height:50px;margin:4px auto 10px;padding:10px 16px;border:1px solid #d8ff85;border-radius:7px;background:#d8ff85;color:#11180e;text-align:center;font:700 11px/1.35 var(--font-body,'Courier New',monospace);letter-spacing:.07em;cursor:pointer;transition:transform .16s ease,background .16s ease}
+.rx-next-dose[hidden]{display:none!important}.rx-next-dose:hover,.rx-next-dose:focus-visible{background:#efffbc;transform:translateY(-2px);outline:2px solid #e8ffb9;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){.rx-next-dose{transition:none}}

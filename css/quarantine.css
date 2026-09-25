@@ -1,0 +1,20 @@
+/* Restricted CG-000 terminal and the daily D-300 recommendation dossier. */
+.m-specimen-code-trigger{border:0;border-bottom:1px dotted currentColor;background:transparent;color:inherit;padding:0 0 2px;font:inherit;letter-spacing:inherit;cursor:pointer}
+.m-specimen-code-trigger:hover,.m-specimen-code-trigger:focus-visible{color:#638623;outline:2px solid #638623;outline-offset:4px}
+.quarantine-dialog,.quarantine-terminal{width:min(760px,calc(100vw - 24px));max-width:none;max-height:min(90dvh,860px);padding:0;border:1px solid #a0bd79;background:#0b100a;color:#e6efdf;box-shadow:0 22px 95px rgba(0,0,0,.65)}
+.quarantine-dialog::backdrop,.quarantine-terminal::backdrop{background:rgba(3,5,3,.85);backdrop-filter:blur(5px)}
+.quarantine-shell>header,.quarantine-terminal-shell>header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;background:#182317;border-bottom:1px solid #6e9850;color:#d4f6aa;font:700 10px/1.4 'Courier Prime',monospace;letter-spacing:.1em}
+.quarantine-shell>header button,.quarantine-terminal-shell>header button{width:38px;height:38px;flex:none;border:1px solid #8ba482;background:#101a10;color:#f1f9e7;font:24px/1 sans-serif;cursor:pointer}
+.quarantine-body{max-height:calc(min(90dvh,860px) - 59px);overflow:auto;padding:clamp(16px,4vw,30px)}
+.quarantine-kicker{display:block;font:700 10px/1.5 'Courier Prime',monospace;letter-spacing:.1em;color:#b8ff35}
+.quarantine-body h2{margin:13px 0 18px;color:#f5f8ee;font:800 clamp(32px,8vw,58px)/.9 'Orbitron',sans-serif;letter-spacing:-.07em}.quarantine-body h2 em{font-style:normal;color:#b8ff35}
+.quarantine-meta{display:flex;flex-wrap:wrap;gap:7px}.quarantine-meta span{padding:6px;border:1px solid #52654a;color:#cad7c5;font:9px/1.35 'Courier Prime',monospace}
+.quarantine-lead{margin:24px 0 10px;border-left:3px solid #b8ff35;padding:10px 14px;background:#172216;color:#edf6e8;font:700 clamp(13px,3vw,17px)/1.6 'Courier Prime',monospace}
+.quarantine-report{color:#b8c7b3;font:12px/1.65 'Courier Prime',monospace}
+.quarantine-subhead{margin:25px 0 10px;color:#b8ff35;font:700 10px/1.4 'Courier Prime',monospace;letter-spacing:.11em}
+.quarantine-signals{display:grid;gap:9px}.quarantine-signals button{display:grid;gap:6px;width:100%;padding:14px;border:1px solid #52654a;background:#172116;color:#f0f6e9;text-align:left;cursor:pointer;transition:border-color .2s ease,transform .2s ease}.quarantine-signals button:hover,.quarantine-signals button:focus-visible{border-color:#b8ff35;transform:translateX(3px);outline:none}
+.quarantine-signals small{color:#b8ff35;font:700 9px 'Courier Prime',monospace}.quarantine-signals strong{font:800 clamp(15px,4vw,20px)/1.2 'Orbitron',sans-serif;overflow-wrap:anywhere}.quarantine-signals span{font:11px/1.5 'Courier Prime',monospace;color:#c4d2bf}.quarantine-signals b{font:700 9px 'Courier Prime',monospace;color:#b8ff35}
+.quarantine-disclaimer{display:block;margin-top:18px;color:#84947e;font:9px/1.5 'Courier Prime',monospace}
+.quarantine-terminal{width:min(440px,calc(100vw - 24px))}.quarantine-terminal-shell>div{display:grid;gap:13px;padding:20px}.quarantine-terminal label{font:700 10px 'Courier Prime',monospace;color:#d4dfce}.quarantine-terminal input{width:100%;height:48px;background:#050805;border:1px solid #809a72;padding:0 12px;color:#b8ff35;font:16px 'Courier Prime',monospace;text-transform:uppercase}.quarantine-terminal-status{min-height:36px;margin:0;border-left:2px solid #b8ff35;padding:7px;color:#d3dfca;font:10px/1.5 'Courier Prime',monospace}.quarantine-terminal [type=submit]{min-height:46px;border:1px solid #b8ff35;background:#b8ff35;color:#10170c;font:700 11px 'Orbitron',sans-serif;cursor:pointer}
+@media(max-width:480px){.quarantine-meta{display:grid}.quarantine-signals button{padding:12px}.quarantine-dialog,.quarantine-terminal{max-height:94dvh}.quarantine-body{max-height:calc(94dvh - 59px)}}
+@media(prefers-reduced-motion:reduce){.quarantine-signals button{transition:none}}

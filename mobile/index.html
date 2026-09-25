@@ -11,34 +11,44 @@
   <link rel="stylesheet" href="mobile.css">
   <link rel="stylesheet" href="v42-polish.css">
   <link rel="stylesheet" href="../css/anomaly.css">
+  <link rel="stylesheet" href="../css/field-manual.css">
+  <link rel="stylesheet" href="v49-mobile.css">
+  <link rel="stylesheet" href="../css/quarantine.css">
 </head>
 <body>
   <div class="m-boot" id="mBoot">
     <div class="m-boot-inner">
-      <b>CINE<br>GENOME</b>
+      <div class="m-boot-identity">
+        <b>CINE<br>GENOME</b>
+        <img class="m-boot-logo" src="../assets/cinegenome-logo.svg" alt="" aria-hidden="true">
+      </div>
       <span>MOBILE PATHOLOGY TERMINAL</span>
       <div class="m-boot-bar"><i></i></div>
     </div>
   </div>
 
-  <header class="m-topbar">
+  <header class="m-topbar" aria-label="CineGenome laboratory">
+    <div class="m-topbar-kicker"><span>DEPT. OF CINEMATIC PATHOLOGY</span><button class="m-specimen-code-trigger" id="mSpecimenCodeBtn" type="button" aria-label="Open specimen code terminal">CG-09</button></div>
     <button class="m-brand m-brand-lockup" id="mBrand" type="button" aria-label="CineGenome home">
+      <span class="m-brand-text"><strong>CINE<br>GENOME</strong></span>
       <img class="m-brand-symbol" src="../assets/cinegenome-logo.svg" alt="" aria-hidden="true">
-      <span class="m-brand-text">
-        <strong>CINEGENOME</strong>
-        <small>MOBILE PATHOLOGY TERMINAL</small>
-      </span>
     </button>
-    <button class="m-rx-fab" id="mRxBtn" type="button" aria-label="Open daily prescription">
-      <img src="../assets/rx-eye-256.png" alt="">
-      <span id="mRxCount">0/3</span>
-    </button>
+    <p class="m-brand-subtitle">ILLEGAL FILM GENETICS LABORATORY</p>
+    <div class="m-topbar-controls">
+      <span class="m-reactor-status"><i aria-hidden="true"></i> REACTOR ONLINE</span>
+      <button class="m-rx-fab" id="mRxBtn" type="button" aria-label="Open daily prescription">
+        <img src="../assets/rx-eye-256.png" alt=""><span id="mRxCount">0/3</span>
+      </button>
+    </div>
   </header>
 
   <section class="m-mobile-hero" aria-label="CineGenome manifesto">
     <span>DEPT. OF CINEMATIC PATHOLOGY // CG-09</span>
     <h1>FILM ARE<br>ORGANISM<span>.</span></h1>
     <p>Search the archive. Read the genome. Keep the evidence.</p>
+    <button class="field-manual-trigger" type="button" data-field-manual-open aria-haspopup="dialog" aria-controls="fieldManualDialog">
+      <span>UNSEAL FIELD MANUAL</span><b aria-hidden="true">?</b>
+    </button>
   </section>
 
   <div class="m-primary-tabs" role="tablist" aria-label="Main laboratory views">
@@ -172,33 +182,20 @@
       <div class="anomaly-portal" data-anomaly-portal><span>UNMAPPED COORDINATE // DAILY CASES</span><button data-anomaly-open type="button">OPEN CASES <b data-anomaly-progress>0/6</b></button></div>
     </section>
 
-    <section class="m-view" data-view="more" id="mMore">
-      <div class="m-section-head">
-        <div><span>MORE</span><h1>Lab Extensions</h1></div>
+    <section class="m-view" data-view="bloodline" id="mBloodline">
+      <div class="m-section-head"><div><span>MODULE 05</span><h1>Bloodline Lab</h1></div></div>
+      <div class="m-card">
+        <div class="m-card-head"><span>TRACE CINEMATIC RELATIVES</span></div>
+        <label class="m-field"><span>Source specimen</span><input id="mBloodlineSearch" type="search" placeholder="Search source"></label>
+        <div class="m-suggestions" id="mBloodlineSuggestions" hidden></div>
+        <div class="m-list" id="mBloodlineList"></div>
       </div>
-      <div class="m-mobile-memo" aria-label="Lab memo">
-        <span>LAB MEMO</span>
-        <strong>DO NOT TAP<br>CINEGENOME 7×</strong>
-        <small>seriously. do not.</small>
-      </div>
-
-      <div class="m-menu-grid">
-        <button type="button" data-sheet="bloodline"><b>Bloodline Lab</b><small>Trace model relatives</small></button>
+      <div class="m-menu-grid m-side-signals">
         <button type="button" data-open-archive><b>Experiment Archive</b><small>Saved specimens</small></button>
         <button type="button" id="mHumanBtn"><b>Human Specimen</b><small>Operator record / Letterboxd</small></button>
         <button type="button" id="mDeadBtn"><b>Dead Channel</b><small>Weird Stuff / D-300</small></button>
-        <button type="button" id="mDesktopBtn"><b>Desktop Interface</b><small>Open full laboratory</small></button>
       </div>
-
-      <section class="m-more-sheet" id="mBloodlineSheet" hidden>
-        <div class="m-card">
-          <div class="m-card-head"><span>BLOODLINE LAB</span><button class="m-linkbtn" data-close-sheet type="button">CLOSE</button></div>
-          <label class="m-field"><span>Source specimen</span><input id="mBloodlineSearch" type="search" placeholder="Search source"></label>
-          <div class="m-suggestions" id="mBloodlineSuggestions" hidden></div>
-          <div class="m-list" id="mBloodlineList"></div>
-        </div>
-      </section>
-
+      <div class="m-mobile-memo" aria-label="Lab memo"><span>LAB MEMO</span><strong>DO NOT TAP<br>CINEGENOME 7×</strong><small>seriously. do not.</small></div>
     </section>
   </main>
 
@@ -218,14 +215,15 @@
 
   <footer class="m-mobile-footer">
     <span>DEPT. OF CINEMATIC PATHOLOGY // EXPERIMENTAL INTERFACE</span>
-    <nav class="m-bottom-nav" id="mBottomNav" aria-label="Other lab modules">
+  </footer>
+
+  <nav class="m-bottom-nav" id="mBottomNav" aria-label="Laboratory modules">
     <button class="is-active" data-target="scanner"><span>◉</span><small>SCAN</small></button>
     <button data-target="crossbreed"><span>⌘</span><small>MIX</small></button>
     <button data-target="mutation"><span>⌁</span><small>MUTATE</small></button>
     <button data-target="atlas"><span>✣</span><small>ATLAS</small></button>
-    <button data-target="more"><span>•••</span><small>MORE</small></button>
-    </nav>
-  </footer>
+    <button data-target="bloodline"><span>⧉</span><small>BLOODLINE</small></button>
+  </nav>
 
   <dialog class="m-dialog" id="mDossierDialog">
     <div class="m-dialog-shell">
@@ -243,23 +241,46 @@
 
   <dialog class="m-dialog rx-dialog" id="mRxDialog">
     <div class="m-dialog-shell">
-      <header><span>DAILY RX // 3 DOSES</span><button data-close-dialog type="button">×</button></header>
+      <header><span>DAILY RX // 3 DOSES</span><button data-close-dialog type="button" aria-label="Close prescription">×</button></header>
       <div class="m-dialog-body">
-        <div class="m-rx-scan" id="mRxScan"></div>
-        <div class="m-rx-history" id="mRxHistory"></div>
-        <div class="m-rx-carousel">
-          <div class="m-rx-navigation" id="mRxNavigation" hidden aria-label="Browse today's prescriptions">
-            <button type="button" id="mRxPrevious" aria-label="Previous prescribed film"><span class="m-rx-nav-triangle" aria-hidden="true"></span></button>
-            <button type="button" id="mRxNext" aria-label="Next prescribed film"><span class="m-rx-nav-triangle" aria-hidden="true"></span></button>
+        <section class="m-rx-scan-stage" id="mRxScanStage" aria-live="polite">
+          <span class="m-rx-scan-kicker" id="mRxDrawCount">DIAGNOSIS 1 / 3</span>
+          <strong class="m-rx-scan-title">READING<br>YOU.</strong>
+          <div class="m-rx-scan-rule"><span></span></div>
+          <div class="m-rx-scan" id="mRxScan"></div>
+          <small class="m-rx-scan-footer">NO SAFE CHOICES // DAILY RX</small>
+        </section>
+        <section class="m-rx-card-stage" id="mRxCardStage" hidden>
+          <div class="m-rx-history" id="mRxHistory"></div>
+          <div class="m-rx-carousel">
+            <div class="m-rx-navigation" id="mRxNavigation" hidden aria-label="Browse today's prescriptions">
+              <button type="button" id="mRxPrevious" aria-label="Previous prescribed film"><span class="m-rx-nav-triangle" aria-hidden="true"></span></button>
+              <button type="button" id="mRxNext" aria-label="Next prescribed film"><span class="m-rx-nav-triangle" aria-hidden="true"></span></button>
+            </div>
+            <button class="m-rx-card" id="mRxCard" type="button" hidden aria-label="Reveal prescribed film">
+              <span class="m-rx-card-inner">
+                <span class="m-rx-card-face m-rx-sealed" id="mRxSealed"><small>TODAY'S PRESCRIPTION</small><b>CG</b><strong>SEALED<br>SPECIMEN</strong><small>TAP TO REVEAL // 3 DIAGNOSES</small></span>
+                <span class="m-rx-card-face m-rx-card-front" id="mRxFront"><img id="mRxPoster" alt=""><span class="m-rx-poster-shade"></span><span class="m-rx-front-copy"><small id="mRxRole"></small><strong id="mRxTitle"></strong><em id="mRxMeta"></em></span></span>
+              </span>
+            </button>
           </div>
-        <button class="m-rx-card" id="mRxCard" type="button" hidden>
-          <div class="m-rx-sealed" id="mRxSealed">SEALED SPECIMEN<br><small>TAP TO REVEAL</small></div>
+          <span class="m-rx-click-hint" id="mRxHint">CLICK TO REVEAL</span>
+          <button class="m-rx-next-dose" id="mRxNextDoseBtn" type="button" hidden>NEXT RX // DOSE 2 OF 3 ↗</button>
           <div class="m-rx-reveal" id="mRxReveal" hidden></div>
-        </button>
-        </div>
+        </section>
       </div>
     </div>
   </dialog>
+
+  <div class="m-dead-transition" id="mDeadTransition" hidden aria-hidden="true">
+    <div class="m-dead-transition-static"></div>
+    <div class="m-dead-transition-center">
+      <div class="m-dead-transition-label">REMOTE HOST DETECTED</div>
+      <div class="m-dead-transition-url">http://www.dead-channel.invalid/~wtf_archive/</div>
+      <div class="m-dead-transition-progress"><i></i></div>
+      <div class="m-dead-transition-log" id="mDeadTransitionLog">DIALING 56K NODE...</div>
+    </div>
+  </div>
 
   <dialog class="m-dialog" id="mHumanDialog">
     <div class="m-dialog-shell">
@@ -347,6 +368,8 @@
   <script src="../js/anomaly.js"></script>
   <script src="../js/picker-sfx.js"></script>
   <script src="mobile.js"></script>
+  <script src="../js/quarantine.js"></script>
   <script src="../js/visitors.js"></script>
+  <script src="../js/field-manual.js"></script>
 </body>
 </html>

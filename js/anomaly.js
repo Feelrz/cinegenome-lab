@@ -97,9 +97,16 @@
     {id:'ambergraze',name:'AMBERGRAZE',rarity:'B',source:'JURASSIC PARK',kind:'RESIN GRAZER',description:'Ancient life gathers in the reclaimed greenhouse.'},
     {id:'viridra',name:'VIRIDRA',rarity:'A',source:'THE MATRIX',kind:'GLITCH PREDATOR',description:'Its reflection moves before the body does.'},
     {id:'cirrivel',name:'CIRRIVEL',rarity:'S',source:'ARRIVAL',kind:'CIRCULAR MOTH',description:'A fogbound creature with memories written in rings.'},
-    {id:'foldhart',name:'FOLDHART',rarity:'SR',source:'INCEPTION',kind:'DREAM BEAST',description:'The city bends around its antlers.'}
+    {id:'foldhart',name:'FOLDHART',rarity:'SR',source:'INCEPTION',kind:'DREAM BEAST',description:'The city bends around its antlers.'},
+    {id:'parallux',name:'PARALLUX',rarity:'S',source:'EVERYTHING EVERYWHERE ALL AT ONCE',kind:'PARALLEL-TAIL CREATURE',description:'Each of its three tails remembers a different life.'},
+    {id:'glassheron',name:'GLASSHERON',rarity:'A',source:'BLADE RUNNER 2049',kind:'GLASS-FEATHERED HERON',description:'Its reflection remembers a sky it has never seen.'},
+    {id:'briarboar',name:'BRIARBOAR',rarity:'B',source:"PAN’S LABYRINTH",kind:'ROOTBOUND BOAR',description:'A lantern burns between its thorns, even where no path remains.'},
+    {id:'dustbrake',name:'DUSTBRAKE',rarity:'B',source:'MAD MAX: FURY ROAD',kind:'TREAD-SHELL BEETLE',description:'Its armored tracks survive storms that erase every road.'},
+    {id:'skyshell',name:'SKYSHELL',rarity:'C',source:'THE TRUMAN SHOW',kind:'SKY-SHELL SNAIL',description:'Clouds drift across its living shell even when the sky beyond the wall stands still.'},
+    {id:'carpetmink',name:'CARPETMINK',rarity:'C',source:'THE SHINING',kind:'CORRIDOR MINK',description:'Its patterned coat shifts whenever the corridor behind it changes direction.'}
   ];
   const ODDS = [{rarity:'C',weight:60},{rarity:'B',weight:30},{rarity:'A',weight:8},{rarity:'S',weight:1.8},{rarity:'SR',weight:0.2}];
+  const RARITY_ORDER = ['SR','S','A','B','C'];
   const cardById = id => CREATURES.find(c => c.id === id);
   const randomPercent = () => {
     if (globalThis.crypto?.getRandomValues) {
@@ -113,7 +120,12 @@
     let value = randomPercent();
     for (const tier of ODDS) {
       value -= tier.weight;
-      if (value < 0) return CREATURES.find(card => card.rarity === tier.rarity);
+      if (value < 0) {
+        const members=CREATURES.filter(card=>card.rarity===tier.rarity);
+        // Reuse the same roll within each rarity band: adding species never changes tier odds.
+        const withinTier=Math.min(members.length-1,Math.floor((1+value/tier.weight)*members.length));
+        return members[Math.max(0,withinTier)];
+      }
     }
     return CREATURES[CREATURES.length-1];
   }
@@ -365,7 +377,7 @@
       <section class="anomaly-collection">
         <h3>CREATURE COLLECTION // ${Object.values(counts).filter(Boolean).length}/${CREATURES.length} SPECIES</h3>
         <p>${cards.length} cards · ${tickets.length} unopened packs · saved in this browser.</p>
-        <div class="creature-gallery">${CREATURES.slice().reverse().map(card => `
+        <div class="creature-gallery">${CREATURES.slice().sort((a,b)=>RARITY_ORDER.indexOf(a.rarity)-RARITY_ORDER.indexOf(b.rarity)||a.name.localeCompare(b.name)).map(card => `
           <button type="button" class="creature-slot rarity-${card.rarity.toLowerCase()}" data-anomaly-creature="${card.id}" ${counts[card.id]?'':'disabled'}>
             ${counts[card.id]?`<img src="${assetRoot+card.id}.webp" loading="lazy" alt="">`:'<span class="creature-unknown">?</span>'}
             <span><b>${counts[card.id]?card.name:'UNDISCOVERED'}</b><small>${card.rarity} · ${counts[card.id]?'×'+counts[card.id]:'LOCKED'}</small>
