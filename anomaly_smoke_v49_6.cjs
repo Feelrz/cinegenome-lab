@@ -54,8 +54,8 @@ for(const item of status.cases.filter(x=>x.kind==='atlas')){
  assert.equal(app.core.atlas(movies[0],item.xKey,item.yKey),true);
 }
 const mutation=status.cases.find(x=>x.kind==='mutation');
-assert.equal(app.core.mutation({[mutation.high]:79,[mutation.low]:30}),false);
-assert.equal(app.core.mutation({[mutation.high]:80,[mutation.low]:30}),true);
+assert.equal(app.core.mutation({[mutation.high]:mutation.highMin-1,[mutation.low]:mutation.lowMax}),false);
+assert.equal(app.core.mutation({[mutation.high]:mutation.highMin,[mutation.low]:mutation.lowMax}),true);
 const crossbreed=status.cases.find(x=>x.kind==='crossbreed');
 assert.equal(app.core.crossbreed({title:crossbreed.parents[0]},{title:crossbreed.parents[1]},39),false);
 assert.equal(app.core.crossbreed({title:crossbreed.parents[0]},{title:crossbreed.parents[1]},50),true);

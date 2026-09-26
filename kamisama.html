@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#0d110c">
+  <title>KAMISAMA // CINEGENOME</title>
+  <link rel="icon" href="assets/cinegenome-logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/kamisama.css">
+</head>
+<body class="notes-admin-page">
+  <main class="notes-admin-shell">
+    <header class="notes-admin-head">
+      <a href="index.html">← RETURN TO LAB</a>
+      <div><span>CG-09 // KAMISAMA TERMINAL</span><h1>KAMISAMA.</h1><p>Observe incoming records. Preserve valid signals. Purge unauthorized transmissions.</p></div>
+      <div class="notes-admin-badge">AUTHORIZED STAFF ONLY</div>
+    </header>
+
+    <section class="notes-admin-login" id="adminLogin">
+      <label for="adminToken">CG_NOTES_ADMIN_TOKEN</label>
+      <div class="notes-admin-login-row"><input id="adminToken" type="password" autocomplete="current-password" spellcheck="false" placeholder="ENTER MODERATION TOKEN"><button id="adminUnlock" type="button">UNLOCK WALL</button></div>
+      <p>Token stays in this browser tab only. It is never stored in the public wall.</p>
+      <div class="notes-admin-status" id="adminStatus">TERMINAL LOCKED.</div>
+    </section>
+
+    <section class="notes-admin-panel" id="adminPanel" hidden>
+      <div class="notes-admin-toolbar">
+        <div><strong id="adminTotal">—</strong><span>NOTES IN WALL</span></div>
+        <input id="adminSearch" type="search" placeholder="FILTER MESSAGE / LETTERBOXD / NOTE ID" autocomplete="off">
+        <button id="adminRefresh" type="button">REFRESH</button>
+        <button id="adminLock" type="button">LOCK</button>
+      </div>
+      <div class="notes-admin-list" id="adminList"></div>
+    </section>
+  </main>
+  <script src="js/kamisama.js"></script>
+</body>
+</html>

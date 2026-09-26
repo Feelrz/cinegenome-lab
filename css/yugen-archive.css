@@ -1,0 +1,14 @@
+/* CINEGENOME // YUGEN GATEWAY — Beta 61 */
+.yugen-gate-transition{position:fixed;inset:0;z-index:2147483600;background:#e9e4d8;color:#14130f;display:grid;place-items:center;opacity:0;pointer-events:none;clip-path:inset(50% 0 50% 0);transition:opacity .18s linear,clip-path .48s cubic-bezier(.7,0,.18,1);overflow:hidden}
+.yugen-gate-transition.is-on{opacity:1;pointer-events:all;clip-path:inset(0)}
+.yugen-gate-transition:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(20,19,15,.035) 3px 4px);mix-blend-mode:multiply;pointer-events:none}
+.yugen-gate-transition:after{content:"";position:absolute;left:-10%;right:-10%;top:-6px;height:5px;background:#c7352e;box-shadow:0 0 18px rgba(199,53,46,.45);animation:ygtScan .82s linear infinite}
+.ygt-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(20,19,15,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(20,19,15,.08) 1px,transparent 1px);background-size:42px 42px;opacity:.38}
+.ygt-kanji{position:absolute;right:4vw;bottom:-.08em;font:900 clamp(150px,31vw,480px)/.75 "Yu Gothic","Hiragino Kaku Gothic ProN",sans-serif;color:rgba(199,53,46,.09);letter-spacing:-.16em;writing-mode:vertical-rl;user-select:none}
+.ygt-terminal{position:relative;width:min(560px,calc(100% - 38px));border-top:7px solid #14130f;border-bottom:1px solid #14130f;padding:25px 2px 19px;display:grid;gap:9px;transform:translateY(18px);opacity:0;transition:transform .45s .16s cubic-bezier(.16,.8,.22,1),opacity .3s .16s}
+.is-on .ygt-terminal{transform:none;opacity:1}.ygt-node,.ygt-terminal small{font:800 9px/1.3 "Courier New",monospace;letter-spacing:.16em}.ygt-terminal strong{font:900 clamp(44px,8vw,78px)/.88 "Yu Gothic","Arial Black",sans-serif;letter-spacing:-.08em}.ygt-terminal>[data-ygt-sub]{font:800 10px/1.4 "Courier New",monospace;letter-spacing:.08em;color:#655f56}.ygt-terminal i{height:7px;background:rgba(20,19,15,.12);overflow:hidden;margin:9px 0 2px}.ygt-terminal i b{display:block;width:8%;height:100%;background:#c7352e;transition:width .34s cubic-bezier(.16,.8,.22,1)}.ygt-terminal small{color:#c7352e}
+.yugen-gate-transition.is-transfer{animation:ygtExit .34s ease-in forwards}.yugen-gate-transition.is-transfer .ygt-terminal{filter:blur(2px);transform:scale(.985)}
+@keyframes ygtScan{from{transform:translateY(-2vh)}to{transform:translateY(104vh)}}
+@keyframes ygtExit{to{background:#14130f;color:#e9e4d8}}
+@media(max-width:700px){.ygt-kanji{right:-4vw;font-size:55vw}.ygt-terminal{width:calc(100% - 28px)}.ygt-terminal strong{font-size:52px}}
+@media(prefers-reduced-motion:reduce){.yugen-gate-transition,.ygt-terminal,.ygt-terminal i b{transition:none!important}.yugen-gate-transition:after{animation:none}.yugen-gate-transition.is-transfer{animation:none}}

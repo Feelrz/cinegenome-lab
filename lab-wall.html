@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#e8eadf">
+  <meta name="description" content="CineGenome Public Lab Wall — notes left by visiting subjects.">
+  <title>PUBLIC LAB WALL // CINEGENOME</title>
+  <link rel="icon" href="assets/cinegenome-logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/lab-wall.css">
+</head>
+<body class="lab-wall-page">
+  <main class="wall-shell">
+    <header class="wall-header">
+      <a class="wall-return" href="index.html">← RETURN TO LAB</a>
+      <div class="wall-title-block">
+        <span>CG-09 // PUBLIC TRANSMISSION ARCHIVE</span>
+        <h1>LAB WALL.</h1>
+        <p>Messages left by subjects passing through CineGenome. Click any note to inspect its transmission record.</p>
+      </div>
+      <div class="wall-controls">
+        <div class="wall-counter"><strong id="wallTotal">—</strong><span>NOTES PINNED</span></div>
+        <button id="wallShuffle" type="button">RESHUFFLE WALL</button>
+        <a href="index.html#lab-notes">+ PIN A NOTE</a>
+      </div>
+    </header>
+
+    <section class="wall-board" id="wallBoard" aria-live="polite" aria-label="All public lab notes">
+      <div class="wall-loading" id="wallLoading">TUNING PUBLIC WALL SIGNAL…</div>
+    </section>
+
+    <footer class="wall-footer">
+      <span>PUBLIC LAB WALL // LIVE UPSTASH LINK</span>
+      <span>NO LIKES. NO REPLIES. JUST NOTES.</span>
+    </footer>
+  </main>
+
+  <dialog class="wall-note-dialog" id="wallNoteDialog" aria-labelledby="wallNoteMessage">
+    <div class="wall-note-dialog-shell">
+      <div class="wall-note-dialog-head"><span>PUBLIC TRANSMISSION // NOTE DETAIL</span><button id="wallNoteClose" type="button" aria-label="Close note detail">×</button></div>
+      <div class="wall-note-detail-card">
+        <span id="wallNoteMeta">LAB NOTE // —</span>
+        <blockquote id="wallNoteMessage">—</blockquote>
+        <div class="wall-note-detail-footer">
+          <a id="wallNoteAuthor" href="https://letterboxd.com/" target="_blank" rel="noopener noreferrer">/subject ↗</a>
+          <span id="wallNoteTime">TRANSMITTED // —</span>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="js/lab-wall.js"></script>
+</body>
+</html>

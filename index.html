@@ -24,6 +24,9 @@
   <link rel="stylesheet" href="css/anomaly.css" />
   <link rel="stylesheet" href="css/field-manual.css" />
   <link rel="stylesheet" href="css/quarantine.css" />
+  <link rel="stylesheet" href="css/dna-test.css" />
+  <link rel="stylesheet" href="css/lab-notes.css" />
+  <link rel="stylesheet" href="css/yugen-archive.css" />
 </head>
 <body>
 
@@ -78,41 +81,57 @@
         <button class="module-btn" data-view="archive" type="button"><b>06</b><span>EXPERIMENT ARCHIVE<small>saved lab history</small></span></button>
       </nav>
 
-      <section class="containment-card">
+      <button class="module-btn dna-nav-btn" data-view="dna" type="button">
+        <b>β</b><span>FILMPRINT<small>30 SIGNALS // FIND YOUR SPECIMEN</small></span>
+      </button>
+
+      <section class="containment-card sidebar-containment" aria-label="Containment status">
         <div class="section-kicker">CONTAINMENT</div>
         <div class="containment-row"><span>LEVEL</span><strong>B-12</strong></div>
         <div class="containment-row"><span>CONTAMINATION</span><strong id="contaminationReadout">02.1%</strong></div>
         <div class="containment-row"><span>DATASET</span><strong id="datasetVersion">—</strong></div>
-        <button class="containment-row human-record-trigger" id="humanRecordTrigger" type="button">
-          <span>OPERATOR</span><strong>[REDACTED]</strong>
-        </button>
+        <button class="containment-row human-record-trigger" id="humanRecordTrigger" type="button"><span>OPERATOR</span><strong>[REDACTED]</strong></button>
       </section>
-      <div class="visitor-meter" aria-label="Total unique browser visitors">
-        <span>LAB ACCESS // TOTAL VISITORS</span>
-        <strong data-visitor-total aria-live="polite">—</strong>
-        <small data-visitor-status hidden></small>
-      </div>
+
     </aside>
 
     <main class="main-stage">
       <header class="hero-panel">
-        <div>
-          <div class="eyebrow">PROJECT CG-09 / CINEMATIC GENETICS UNIT</div>
-          <h1>FILMS ARE <span>ORGANISMS.</span></h1>
-          <p>Sequence emotional, visual and narrative traits. Crossbreed incompatible films. Mutate cinematic DNA. Find the nearest living specimen.</p>
+        <div class="hero-copy">
+          <div class="hero-title-cluster">
+            <div class="eyebrow">PROJECT CG-09 / CINEMATIC GENETICS UNIT</div>
+            <h1>FILMS ARE <span>ORGANISMS.</span></h1>
+            <p>Sequence emotional, visual and narrative traits. Crossbreed incompatible films. Mutate cinematic DNA. Find the nearest living specimen.</p>
+          </div>
           <button class="field-manual-trigger" type="button" data-field-manual-open aria-haspopup="dialog" aria-controls="fieldManualDialog">
             <span>UNSEAL FIELD MANUAL</span><b aria-hidden="true">?</b>
           </button>
         </div>
         <div class="hero-aside">
-          <button class="easteregg-note" id="eastereggNote" type="button" aria-label="Do not press the CineGenome logo 7 times">
-            <span class="easteregg-note-tape" aria-hidden="true"></span>
-            <span class="easteregg-note-kicker">lab memo</span>
-            <strong>DO NOT PRESS<br>CINEGENOME<br>7×</strong>
-            <small>seriously. do not.</small>
-          </button>
+          <div class="hero-note-board">
+            <button class="add-lab-note" id="addLabNoteBtn" type="button" aria-haspopup="dialog" aria-controls="labNoteDialog" aria-label="Add a public lab note">
+              <span class="add-lab-note-tape" aria-hidden="true"></span>
+              <span class="add-lab-note-kicker">public wall</span>
+              <strong>ADD<br>NOTE +</strong>
+              <small id="labNoteLiveStatus">live public wall</small>
+            </button>
+            <button class="easteregg-note" id="eastereggNote" type="button" aria-label="Do not press the CineGenome logo 7 times">
+              <span class="easteregg-note-tape" aria-hidden="true"></span>
+              <span class="easteregg-note-kicker">lab memo</span>
+              <strong>DO NOT PRESS<br>CINEGENOME<br>7×</strong>
+              <small>seriously. do not.</small>
+            </button>
+          </div>
+          <a class="lab-wall-whiteboard" id="labWallWhiteboard" href="lab-wall.html" aria-label="Open the public lab wall">
+            <span class="lab-wall-whiteboard-tape" aria-hidden="true"></span>
+            <span class="lab-wall-whiteboard-kicker">PUBLIC LAB WALL</span>
+            <strong><span id="labWallCount">—</span> NOTES<br>PINNED</strong>
+            <small>OPEN THE BOARD →</small>
+          </a>
           <div class="warning-stamp">⚠ UNLICENSED<br>CINEMA RESEARCH</div>
         </div>
+        <div class="lab-note-wall" id="labNoteWall" aria-label="Random public lab notes" aria-live="polite" hidden></div>
+        <div class="lab-note-live-flash" id="labNoteLiveFlash" role="status" aria-live="polite" hidden>TRANSMISSION RECEIVED // NEW NOTE PINNED</div>
       </header>
 
       <section class="view is-active" id="view-scanner" data-view-panel="scanner">
@@ -334,11 +353,29 @@
         </div>
       </section>
 
+      <section class="view dna-test-section" id="view-dna" data-view-panel="dna" aria-labelledby="dnaTestHeading">
+        <div class="dna-test-head">
+          <span>PERSONALITY ASSAY // BETA</span>
+          <h2 id="dnaTestHeading">FILMPRINT</h2>
+          <p>30 SIGNALS. NO LUCK. FIND YOUR CINEMATIC DOUBLE.</p>
+        </div>
+        <div class="dna-test-console" data-dna-test></div>
+      </section>
+
       <footer class="site-footer">
-        <span>CINEGENOME LAB ALT / DEAD CHANNEL GUESTBOOK INCIDENT / WTF ARCHIVE</span>
-        <span>DNA SCORES ARE CINEGENOME MODEL OUTPUT — FILM METADATA / IMAGES MAY BE PROVIDED BY TMDB</span>
-        <button class="footer-link" id="specimenCodeBtn" type="button">SPECIMEN CODE</button>
-        <button class="footer-link" id="tmdbSettingsBtn" type="button">TMDB CONNECTION</button>
+        <div class="footer-identity">CINEGENOME LAB // PUBLIC BUILD</div>
+        <div class="footer-status">
+          <span>CG-09 MODEL</span>
+          <span class="footer-separator" aria-hidden="true">/</span>
+          <span>TMDB DATA</span>
+          <span class="footer-separator" aria-hidden="true">/</span>
+          <span class="footer-visitors" aria-label="Total unique browser visitors">VISITORS <strong data-visitor-total aria-live="polite">—</strong><small data-visitor-status hidden></small></span>
+        </div>
+        <div class="footer-actions">
+          <button class="footer-link footer-sfx-toggle" id="globalSfxToggle" type="button" aria-pressed="true">SFX // ON</button>
+          <button class="footer-link" id="specimenCodeBtn" type="button">SPECIMEN CODE</button>
+          <button class="footer-link" id="tmdbSettingsBtn" type="button">TMDB</button>
+        </div>
       </footer>
     </main>
   </div>
@@ -373,7 +410,7 @@
         </div>
 
         <div class="rx-history" id="rxHistory" hidden aria-label="Today's prescription history">
-          <span class="rx-history-label">DAILY RX MEMORY</span>
+          <span class="rx-history-label">DAILY DOSE MEMORY</span>
           <div class="rx-history-slots" id="rxHistorySlots">
             <button type="button" class="rx-history-slot" data-rx-slot="0" disabled><span>01</span><b>WOUND</b><small>EMPTY</small></button>
             <button type="button" class="rx-history-slot" data-rx-slot="1" disabled><span>02</span><b>MIRROR</b><small>EMPTY</small></button>
@@ -415,7 +452,7 @@
           <button class="rx-info-tab" id="rxSynopsisBtn" type="button">SYNOPSIS</button>
           <button class="rx-info-tab" id="rxDnaBtn" type="button">DNA</button>
         </div>
-        <button class="rx-next-dose" id="rxNextDoseBtn" type="button" hidden>NEXT RX // DOSE 2 OF 3 ↗</button>
+        <button class="rx-next-dose" id="rxNextDoseBtn" type="button" hidden>NEXT DAILY DOSE // 2 OF 3 ↗</button>
 
         <div class="rx-detail-panel" id="rxSynopsis" hidden>
           <div class="rx-detail-kicker">FILM DOSSIER</div>
@@ -654,6 +691,54 @@
     </form>
   </dialog>
 
+  <dialog class="lab-note-dialog" id="labNoteDialog" aria-labelledby="labNoteHeading">
+    <div class="lab-note-shell">
+      <div class="lab-note-dialog-head"><span>LAB NOTES // PUBLIC WALL</span><button id="labNoteClose" type="button" aria-label="Close lab notes">×</button></div>
+      <div class="lab-note-grid">
+        <form class="lab-note-compose" id="labNoteForm">
+          <span class="lab-note-kicker">PUBLIC TRANSMISSION TERMINAL</span>
+          <h2 id="labNoteHeading">PIN A NOTE.</h2>
+          <label class="lab-note-field">
+            <span>MESSAGE <b id="labNoteCount">0/180</b></span>
+            <textarea id="labNoteMessage" maxlength="180" required placeholder="leave something for the next subject..."></textarea>
+          </label>
+          <label class="lab-note-field">
+            <span>LETTERBOXD ID</span>
+            <input id="labNoteLetterboxd" maxlength="80" required autocomplete="off" spellcheck="false" placeholder="/yourletterboxdid">
+          </label>
+          <p class="lab-note-help">USE A LETTERBOXD HANDLE, /HANDLE, @HANDLE, OR YOUR LETTERBOXD PROFILE URL. LINKS INSIDE THE MESSAGE ARE BLOCKED.</p>
+          <button class="lab-note-submit" id="labNoteSubmit" type="submit">PIN NOTE</button>
+          <div class="lab-note-status" id="labNoteStatus" role="status" aria-live="polite">PUBLIC WALL LINK // CONNECTING…</div>
+        </form>
+        <section class="lab-wall-direct" aria-label="Open the live public lab wall">
+          <span class="lab-wall-direct-kicker">PUBLIC LAB WALL // LIVE</span>
+          <a class="lab-wall-direct-board" id="labWallDialogShortcut" href="lab-wall.html">
+            <span class="lab-wall-direct-tape" aria-hidden="true"></span>
+            <span class="lab-wall-direct-scribble" aria-hidden="true">///</span>
+            <strong><span id="labWallDialogCount">—</span> NOTES<br>PINNED</strong>
+            <small>OPEN LIVE WALL →</small>
+          </a>
+          <p>RECENT TRANSMISSIONS LIVE ON THE BOARD. OPEN IT TO BROWSE EVERY NOTE AND INSPECT EACH SUBJECT RECORD.</p>
+          <span class="lab-wall-direct-status" id="labWallDialogStatus">SYNCING PUBLIC WALL…</span>
+        </section>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="lab-note-detail-dialog" id="labNoteDetailDialog" aria-labelledby="labNoteDetailHeading">
+    <div class="lab-note-detail-shell">
+      <div class="lab-note-dialog-head"><span>PUBLIC TRANSMISSION // NOTE DETAIL</span><button id="labNoteDetailClose" type="button" aria-label="Close note detail">×</button></div>
+      <div class="lab-note-detail-card">
+        <span class="lab-note-detail-meta" id="labNoteDetailMeta">LAB NOTE // —</span>
+        <blockquote id="labNoteDetailMessage">—</blockquote>
+        <div class="lab-note-detail-footer">
+          <a id="labNoteDetailAuthor" href="https://letterboxd.com/" target="_blank" rel="noopener noreferrer">/subject ↗</a>
+          <span id="labNoteDetailTime">TRANSMITTED // —</span>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
   <dialog class="anomaly-dialog" id="anomalyDialog" aria-labelledby="anomalyHeading">
     <header><span>CG-09 // RESTRICTED INCIDENT</span><button id="anomalyClose" type="button" aria-label="Close anomaly case">×</button></header>
     <div class="anomaly-body" id="anomalyCaseContent"></div>
@@ -663,15 +748,19 @@
   <script src="data/movies.js"></script>
   <script src="data/top500.js"></script>
   <script src="data/top500-enriched.js"></script>
+  <script src="data/fans250.js"></script>
   <script src="data/watch-once-extra.js"></script>
   <script src="data/dead-channel-300.js"></script>
   <script src="js/dna-model.js"></script>
   <script src="data/tmdb-config.js"></script>
   <script src="js/tmdb.js"></script>
+  <script src="js/yugen-archive.js"></script>
   <script src="js/anomaly.js"></script>
   <script src="js/picker-sfx.js"></script>
   <script src="js/app.js"></script>
   <script src="js/quarantine.js"></script>
+  <script src="js/dna-test.js"></script>
+  <script src="js/lab-notes.js"></script>
   <script src="js/visitors.js"></script>
   <script src="js/field-manual.js"></script>
 </body>

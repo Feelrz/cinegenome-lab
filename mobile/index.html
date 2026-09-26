@@ -14,6 +14,8 @@
   <link rel="stylesheet" href="../css/field-manual.css">
   <link rel="stylesheet" href="v49-mobile.css">
   <link rel="stylesheet" href="../css/quarantine.css">
+  <link rel="stylesheet" href="../css/dna-test.css">
+  <link rel="stylesheet" href="../css/yugen-archive.css">
 </head>
 <body>
   <div class="m-boot" id="mBoot">
@@ -199,6 +201,15 @@
     </section>
   </main>
 
+  <section class="m-dna-test-section" id="m-test-ur-dna" aria-labelledby="mDnaTestHeading">
+    <div class="dna-test-head">
+      <span>PERSONALITY ASSAY // BETA</span>
+      <h2 id="mDnaTestHeading">FILMPRINT</h2>
+      <p>30 SIGNALS. NO LUCK. FIND YOUR CINEMATIC DOUBLE.</p>
+    </div>
+    <div class="dna-test-console" data-dna-test></div>
+  </section>
+
   <section class="m-containment-card" aria-label="Containment status">
     <h2>CONTAINMENT</h2>
     <div><span>LEVEL</span><strong>B-12</strong></div>
@@ -207,14 +218,9 @@
     <div><span>OPERATOR</span><strong>[REDACTED]</strong></div>
   </section>
 
-  <div class="m-visitor-meter" aria-label="Total unique browser visitors">
-    <span>LAB ACCESS // TOTAL VISITORS</span>
-    <strong data-visitor-total aria-live="polite">—</strong>
-    <small data-visitor-status hidden></small>
-  </div>
-
   <footer class="m-mobile-footer">
     <span>DEPT. OF CINEMATIC PATHOLOGY // EXPERIMENTAL INTERFACE</span>
+    <span class="m-footer-visitors" aria-label="Total unique browser visitors">VISITORS // <strong data-visitor-total aria-live="polite">—</strong><small data-visitor-status hidden></small></span>
   </footer>
 
   <nav class="m-bottom-nav" id="mBottomNav" aria-label="Laboratory modules">
@@ -241,14 +247,14 @@
 
   <dialog class="m-dialog rx-dialog" id="mRxDialog">
     <div class="m-dialog-shell">
-      <header><span>DAILY RX // 3 DOSES</span><button data-close-dialog type="button" aria-label="Close prescription">×</button></header>
+      <header><span>DAILY DOSE // 3 / DAY</span><button data-close-dialog type="button" aria-label="Close prescription">×</button></header>
       <div class="m-dialog-body">
         <section class="m-rx-scan-stage" id="mRxScanStage" aria-live="polite">
           <span class="m-rx-scan-kicker" id="mRxDrawCount">DIAGNOSIS 1 / 3</span>
           <strong class="m-rx-scan-title">READING<br>YOU.</strong>
           <div class="m-rx-scan-rule"><span></span></div>
           <div class="m-rx-scan" id="mRxScan"></div>
-          <small class="m-rx-scan-footer">NO SAFE CHOICES // DAILY RX</small>
+          <small class="m-rx-scan-footer">NO SAFE CHOICES // DAILY DOSE</small>
         </section>
         <section class="m-rx-card-stage" id="mRxCardStage" hidden>
           <div class="m-rx-history" id="mRxHistory"></div>
@@ -265,7 +271,7 @@
             </button>
           </div>
           <span class="m-rx-click-hint" id="mRxHint">CLICK TO REVEAL</span>
-          <button class="m-rx-next-dose" id="mRxNextDoseBtn" type="button" hidden>NEXT RX // DOSE 2 OF 3 ↗</button>
+          <button class="m-rx-next-dose" id="mRxNextDoseBtn" type="button" hidden>NEXT DAILY DOSE // 2 OF 3 ↗</button>
           <div class="m-rx-reveal" id="mRxReveal" hidden></div>
         </section>
       </div>
@@ -360,15 +366,18 @@
   <script src="../data/movies.js"></script>
   <script src="../data/top500.js"></script>
   <script src="../data/top500-enriched.js"></script>
+  <script src="../data/fans250.js"></script>
   <script src="../data/watch-once-extra.js"></script>
   <script src="../data/dead-channel-300.js"></script>
   <script src="../js/dna-model.js"></script>
   <script src="../data/tmdb-config.js"></script>
   <script src="../js/tmdb.js"></script>
+  <script src="../js/yugen-archive.js"></script>
   <script src="../js/anomaly.js"></script>
   <script src="../js/picker-sfx.js"></script>
   <script src="mobile.js"></script>
   <script src="../js/quarantine.js"></script>
+  <script src="../js/dna-test.js"></script>
   <script src="../js/visitors.js"></script>
   <script src="../js/field-manual.js"></script>
 </body>

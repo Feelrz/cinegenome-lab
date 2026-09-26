@@ -715,3 +715,15 @@ button,input,select,textarea{
   transform:none!important;
   opacity:1!important;
 }
+
+
+/* BETA 40 — same tactile green CTA language on mobile. */
+#mCrossbreedBtn,#mSaveMutation{
+  border:2px solid var(--ink)!important;
+  box-shadow:4px 4px 0 var(--ink)!important;
+  transition:transform .075s ease,box-shadow .075s ease,background .12s ease;
+}
+#mCrossbreedBtn:active,#mSaveMutation:active{
+  transform:translate(4px,4px)!important;
+  box-shadow:none!important;
+}

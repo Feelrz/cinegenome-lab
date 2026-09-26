@@ -85,6 +85,7 @@
 .field-manual-module-grid p{margin:0;font-size:12px}
 .field-manual-side{padding:15px;border-left:4px solid #b8ff35;background:#202b1e}
 .field-manual-side p{margin:7px 0 0}
+.field-manual-start-shortcut{margin:18px 0 6px}
 .field-manual-content p.field-manual-hint{margin-top:16px;color:#b5c4ac;font-size:11px}
 .field-manual-reward-track{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:22px 0}
 .field-manual-reward-track div{display:grid;gap:6px;min-width:0;padding:13px 8px;border:1px solid #b8ff35;background:#1d2b19;text-align:center}

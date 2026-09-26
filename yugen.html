@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#e9e4d8">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>YŪGEN // 日本映画標本庫</title>
+  <link rel="icon" href="assets/cinegenome-logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/yugen.css">
+</head>
+<body>
+  <div class="y-noise" aria-hidden="true"></div>
+  <div class="y-boot" id="yugenBoot" aria-hidden="true">
+    <div class="y-boot-mark">幽玄</div>
+    <div class="y-boot-console"><span>外部研究区画 // CG-09</span><strong>日本映画標本庫</strong><small id="yugenBootLine">RECEIVING ARCHIVE SIGNAL…</small><i><b></b></i></div>
+  </div>
+
+  <div class="y-lock" id="yugenLock" hidden>
+    <div><span>認証拒否 // ACCESS DENIED</span><h1>YŪGEN NODE</h1><p>SPECIMEN KEY REQUIRED. RETURN TO THE MAIN LAB AND AUTHENTICATE THROUGH SPECIMEN CODE.</p><a href="index.html">本館へ戻る // RETURN TO CINEGENOME</a></div>
+  </div>
+
+  <main class="y-page" id="yugenPage">
+    <aside class="y-vertical-rail" aria-hidden="true"><b>日本映画</b><span>標本庫</span><i></i><small>幽玄研究節点</small></aside>
+    <div class="y-topline"><span>CG-09 // 外部研究区画</span><span>東京回線 09:接続済</span><span id="yClock">--:--:-- JST</span></div>
+
+    <header class="y-hero">
+      <div class="y-hero-copy">
+        <div class="y-eyebrow" aria-label="Yūgen Research Node REI-09"><span lang="ja">幽玄回線</span><i>//</i><span>YŪGEN RESEARCH NODE</span><i>/</i><span>REI-09</span></div>
+        <h1 class="y-glitch" data-glitch="YŪGEN ARCHIVE" aria-label="Yūgen Archive">YŪGEN ARCHIVE</h1>
+        <div class="y-jp-title">日本映画標本庫 <em>／</em> 映像記録分類系</div>
+        <p>A restricted Japanese cinema registry. External film signals are indexed as archival specimens and cross-linked against CineGenome DNA whenever a matching profile exists.</p>
+      </div>
+      <div class="y-hero-status">
+        <div class="y-hanko">映<br>画</div>
+        <span>接続状態 // CONNECTION</span><strong>ACTIVE</strong>
+        <small><b id="yCountAll">000</b> UNIQUE RECORDS</small>
+        <small><b id="yCountDNA">000</b> DNA-LINKED</small>
+      </div>
+    </header>
+
+    <section class="y-sources" aria-label="Archive source feeds">
+      <div><span>資料源 01 // SOURCE FEED</span><strong>JP-01 // POLL SIGNAL</strong><small>93 ARCHIVAL RECORDS</small></div>
+      <div><span>資料源 02 // SOURCE FEED</span><strong>JP-02 // CURATED SIGNAL</strong><small>100 ARCHIVAL RECORDS</small></div>
+      <div><span>取得日 // SNAPSHOT</span><strong>2026.09.26</strong><small>STATIC RESEARCH SNAPSHOT</small></div>
+    </section>
+
+    <section class="y-console" aria-label="Archive controls">
+      <div class="y-search-deck">
+        <div class="y-search-head"><span>検索端末 // KENSAKU TERMINAL</span><small id="ySearchMode">SMART INDEX // 000 MOUNTED</small></div>
+        <div class="y-search-box">
+          <b aria-hidden="true">検索</b>
+          <input id="ySearch" type="search" autocomplete="off" spellcheck="false" placeholder="TITLE / DIRECTOR / YEAR / dna:linked / feed:02" aria-autocomplete="list" aria-controls="ySearchSuggestions">
+          <kbd>⌘K</kbd>
+          <button id="ySearchClear" type="button" aria-label="Clear search">×</button>
+          <div class="y-search-suggestions" id="ySearchSuggestions" role="listbox" hidden></div>
+        </div>
+        <div class="y-search-hints" aria-label="Search shortcuts">
+          <button type="button" data-y-query="dna:linked">接続済 // DNA LINKED</button>
+          <button type="button" data-y-query="feed:dual">二重信号 // DUAL FEED</button>
+          <button type="button" data-y-query="era:90s">90年代 // 1990s</button>
+          <button type="button" data-y-query="era:00s">00年代 // 2000s</button>
+          <span>OPERATORS: <b>director:</b> <b>year:</b> <b>era:</b> <b>dna:</b> <b>feed:</b></span>
+        </div>
+      </div>
+
+      <label class="y-control y-control-source"><span>資料源 // SOURCE</span><select id="ySource"><option value="ALL">ALL FEEDS</option><option value="DUAL">DUAL-SOURCE</option><option value="PURE">JP-01</option><option value="JP02">JP-02</option></select></label>
+      <label class="y-control y-control-era"><span>年代 // ERA</span><select id="yEra"><option value="ALL">ALL ERAS</option><option value="PRE1950">–1949</option><option value="1950">1950–1969</option><option value="1970">1970–1989</option><option value="1990">1990–2009</option><option value="2010">2010–NOW</option><option value="UNKNOWN">UNMAPPED YEAR</option></select></label>
+      <button class="y-random-btn" id="yRandom" type="button"><span>無作為抽出</span>RANDOM ISOLATION</button>
+      <button class="y-spin-btn" id="ySpin" type="button"><span>運命抽選機</span>SPIN // WHAT TO WATCH</button>
+    </section>
+
+    <section class="y-workbench">
+      <div class="y-index-wrap">
+        <div class="y-index-head"><span>映画索引 // FILM INDEX</span><span id="yResultCount">000 SIGNALS</span></div>
+        <div class="y-index" id="yIndex"></div>
+      </div>
+      <aside class="y-dossier" id="yDossier" aria-live="polite"></aside>
+    </section>
+
+    <div class="y-spin-overlay" id="ySpinOverlay" hidden>
+      <button class="y-spin-scrim" type="button" data-spin-close aria-label="Close movie draw"></button>
+      <section class="y-spin-machine" role="dialog" aria-modal="true" aria-labelledby="ySpinHeading">
+        <header><div><span>運命抽選機 // UNMEI DRAW UNIT</span><strong id="ySpinHeading">今夜の一本</strong></div><button type="button" data-spin-close aria-label="Close">×</button></header>
+        <div class="y-spin-body">
+          <aside aria-hidden="true"><b>抽</b><b>選</b><i></i><small>零九</small></aside>
+          <div class="y-spin-stage" id="ySpinStage">
+            <div class="y-spin-kicker"><span>現在の検索条件から抽選</span><b id="ySpinPool">POOL // 000</b></div>
+            <div class="y-spin-reel">
+              <small id="ySpinCounter">STANDBY // 待機</small>
+              <strong id="ySpinTitle">PRESS SPIN</strong>
+              <span id="ySpinMeta">CURRENT FILTERS BECOME THE DRAW POOL.</span>
+            </div>
+            <div class="y-spin-tape" id="ySpinTape" aria-hidden="true"></div>
+            <div class="y-spin-signal"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+        </div>
+        <footer>
+          <button type="button" id="ySpinAgain"><span>再抽選</span>SPIN AGAIN</button>
+          <button type="button" id="ySpinOpen" disabled><span>標本を開く</span>OPEN DOSSIER</button>
+        </footer>
+      </section>
+    </div>
+
+    <footer class="y-footer">
+      <a href="index.html">← CINEGENOME 本館</a>
+      <span>YŪGEN NODE // CG-09 / REI-09</span>
+      <span>幽玄は、見えないものの気配。</span>
+    </footer>
+  </main>
+
+  <script src="data/tmdb-config.js"></script>
+  <script src="js/tmdb.js"></script>
+  <script src="data/top500-enriched.js"></script>
+  <script src="data/yugen-films.js"></script>
+  <script src="js/yugen-page.js"></script>
+</body>
+</html>

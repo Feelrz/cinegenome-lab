@@ -1,0 +1,432 @@
+/* ===== CINEGENOME ALT v49.13 BETA43 / LIVING PUBLIC LAB WALL ===== */
+
+.hero-panel{min-height:430px;isolation:isolate}
+.hero-panel>div:not(.lab-note-wall):not(.lab-note-live-flash){z-index:5}
+.hero-aside{width:min(100%,330px);position:relative;z-index:6}
+.hero-note-board{gap:14px;flex-wrap:nowrap}
+
+.add-lab-note{
+  -webkit-appearance:none;appearance:none;position:relative;width:136px;min-height:108px;
+  border:1px solid #7f8856;background:linear-gradient(180deg,#dfff83 0%,#cfff5a 100%);
+  color:#11140f;padding:18px 13px 12px;text-align:left;box-shadow:0 2px 0 rgba(255,255,255,.35) inset,0 10px 18px rgba(17,20,15,.13);
+  transform:rotate(-1.7deg);cursor:pointer;font-family:var(--sans);transition:transform .14s ease,filter .14s ease,box-shadow .14s ease;
+}
+.add-lab-note:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg,transparent 0 15px,rgba(52,72,27,.10) 15px 16px);opacity:.38;pointer-events:none}
+.add-lab-note-tape{position:absolute;top:-8px;left:50%;transform:translateX(-50%) rotate(2deg);width:56px;height:17px;background:linear-gradient(180deg,rgba(247,250,220,.74),rgba(202,212,164,.72));border:1px solid rgba(94,105,69,.34);box-shadow:0 2px 5px rgba(17,20,15,.08)}
+.add-lab-note-kicker{position:relative;display:block;margin-bottom:7px;font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:#526039}
+.add-lab-note strong{position:relative;display:block;font-family:var(--display);font-size:24px;line-height:.86;letter-spacing:-.03em;color:#10140d}
+.add-lab-note small{position:relative;display:block;margin-top:9px;font-size:7px;letter-spacing:.06em;text-transform:uppercase;color:#465134}
+.add-lab-note:hover,.add-lab-note:focus-visible{transform:rotate(-.6deg) translateY(-2px);filter:brightness(1.025);box-shadow:0 2px 0 rgba(255,255,255,.35) inset,0 13px 20px rgba(17,20,15,.16);outline:none}
+.add-lab-note:active{transform:rotate(-.3deg) translate(2px,2px);box-shadow:0 1px 0 rgba(255,255,255,.28) inset,0 4px 9px rgba(17,20,15,.13)}
+
+/* Small whiteboard: does not create another sidebar tab. */
+.lab-wall-whiteboard{position:relative;display:block;width:100%;min-height:78px;padding:12px 15px 10px;border:4px solid #232820;background:linear-gradient(180deg,#f4f6ed,#e4e8dc);color:#20251d;text-decoration:none;box-shadow:inset 0 0 0 2px #8d9686,5px 6px 0 rgba(17,20,15,.13);transform:rotate(.7deg);font-family:var(--sans);transition:transform .14s ease,box-shadow .14s ease,filter .14s ease;overflow:hidden}
+.lab-wall-whiteboard:before{content:"";position:absolute;inset:4px;background:repeating-linear-gradient(0deg,transparent 0 17px,rgba(31,40,27,.055) 17px 18px);pointer-events:none}
+.lab-wall-whiteboard-tape{position:absolute;right:22px;top:-8px;width:76px;height:17px;background:rgba(229,224,184,.75);border:1px solid rgba(113,109,79,.32);transform:rotate(-2deg)}
+.lab-wall-whiteboard-kicker,.lab-wall-whiteboard strong,.lab-wall-whiteboard small{position:relative;z-index:1;display:block}
+.lab-wall-whiteboard-kicker{font-size:7px;letter-spacing:.15em;color:#697164}
+.lab-wall-whiteboard strong{margin-top:3px;font:900 16px/.94 var(--display);letter-spacing:-.02em}
+.lab-wall-whiteboard small{margin-top:5px;font-size:7px;letter-spacing:.09em;color:#6d7568}
+.lab-wall-whiteboard:hover,.lab-wall-whiteboard:focus-visible{transform:rotate(0deg) translateY(-2px);box-shadow:inset 0 0 0 2px #8d9686,7px 8px 0 rgba(17,20,15,.15);filter:brightness(1.025);outline:2px dashed #20251d;outline-offset:3px}
+
+/* Random sticky-note field. Notes are shuffled once per page refresh. */
+.lab-note-wall{position:absolute!important;inset:0;z-index:3!important;pointer-events:none;overflow:hidden;transition:filter .2s ease}
+.lab-note-wall[hidden]{display:none!important}
+.lab-note-wall.has-live-update{filter:drop-shadow(0 0 7px rgba(184,255,53,.72))}
+.public-lab-note{--note-rot:0deg;--note-age:1;position:relative;display:flex;flex-direction:column;min-width:0;border:1px solid #aea36b;background:linear-gradient(180deg,rgba(249,241,184,.98),rgba(232,221,151,.98));color:#292719;padding:13px 12px 10px;box-shadow:0 5px 11px rgba(17,20,15,.13);transform:rotate(var(--note-rot));opacity:var(--note-age);text-decoration:none;font-family:var(--sans);overflow:hidden;text-align:left}
+.public-lab-note:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg,transparent 0 15px,rgba(112,104,59,.10) 15px 16px);opacity:.44;pointer-events:none}
+.public-lab-note>*{position:relative;z-index:1}.public-lab-note-meta{font-size:7px;letter-spacing:.1em;color:#6e6745}.public-lab-note p{margin:7px 0 9px;font-family:var(--display);font-size:14px;line-height:1.02;letter-spacing:-.02em;color:#201f15;overflow-wrap:anywhere}.public-lab-note-author{margin-top:auto;color:#4f5b32;font-size:8px;font-weight:700;text-decoration:none}.public-lab-note-author:hover{text-decoration:underline}
+.public-lab-note.is-compact{min-height:78px;padding:10px 10px 8px}.public-lab-note.is-compact p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin:5px 0 7px;font-size:11px;line-height:1.05}.public-lab-note.is-compact .public-lab-note-meta{font-size:6px}.public-lab-note.is-compact .public-lab-note-author{font-size:7px}
+.public-lab-note.is-scatter{position:absolute;width:122px;min-height:82px;max-height:102px;pointer-events:auto;cursor:pointer;border-radius:0;appearance:none;-webkit-appearance:none;transition:transform .14s ease,box-shadow .14s ease,filter .14s ease;transform:translate3d(var(--note-x,0),var(--note-y,0),0) rotate(var(--note-rot));z-index:var(--note-z,1)}
+.public-lab-note.is-scatter:nth-child(3n+2){background:linear-gradient(180deg,rgba(225,247,171,.98),rgba(204,230,139,.98))}.public-lab-note.is-scatter:nth-child(4n){background:linear-gradient(180deg,rgba(244,236,177,.98),rgba(229,214,139,.98))}
+.public-lab-note.is-scatter:hover,.public-lab-note.is-scatter:focus-visible{transform:translate3d(var(--note-x,0),calc(var(--note-y,0) - 5px),0) rotate(0deg) scale(1.065);z-index:30;box-shadow:0 12px 24px rgba(17,20,15,.24);filter:brightness(1.035);outline:2px solid rgba(32,37,29,.7);outline-offset:2px}
+.public-lab-note.is-scatter p{font-size:10px;line-height:1.04;margin:5px 0 6px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.public-lab-note.is-scatter .public-lab-note-meta{font-size:5.8px}.public-lab-note.is-scatter .public-lab-note-author{font-size:6.5px}
+.public-lab-note.is-new-note{animation:labNotePin .72s cubic-bezier(.2,.95,.25,1.15) both}
+@keyframes labNotePin{0%{opacity:0;filter:blur(3px);transform:translate3d(var(--note-x,0),calc(var(--note-y,0) - 48px),0) rotate(-9deg) scale(.88)}55%{opacity:1;filter:none;transform:translate3d(var(--note-x,0),calc(var(--note-y,0) + 4px),0) rotate(calc(var(--note-rot) + 1deg)) scale(1.035)}100%{opacity:1;filter:none;transform:translate3d(var(--note-x,0),var(--note-y,0),0) rotate(var(--note-rot)) scale(1)}}
+.lab-note-live-flash{position:absolute;left:18px;bottom:13px;z-index:12;padding:7px 10px;border:1px solid #b8ff35;background:#071006;color:#b8ff35;font:800 7px var(--sans);letter-spacing:.1em;box-shadow:3px 3px 0 rgba(17,20,15,.35)}
+.lab-note-live-flash[hidden]{display:none!important}
+
+/* Composer dialog */
+.lab-note-dialog,.lab-note-detail-dialog{width:min(880px,calc(100vw - 26px));max-height:min(760px,calc(100vh - 28px));padding:0;border:1px solid #b8ff35;background:#071006;color:#dce7d7;box-shadow:0 0 0 2px #10180e,12px 12px 0 rgba(0,0,0,.5);overflow:auto}
+.lab-note-dialog::backdrop,.lab-note-detail-dialog::backdrop{background:rgba(4,8,4,.78);backdrop-filter:blur(2px)}
+.lab-note-shell,.lab-note-detail-shell{min-height:100%;background:repeating-linear-gradient(0deg,transparent 0 4px,rgba(184,255,53,.025) 4px 5px)}
+.lab-note-dialog-head{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;border-bottom:1px solid #35482d;background:#091108;color:#b8ff35;font-size:9px;letter-spacing:.11em}.lab-note-dialog-head button{width:32px;height:32px;border:1px solid #516a45;background:#0d160c;color:#dce7d7;cursor:pointer;font-size:18px}.lab-note-dialog-head button:hover{border-color:#b8ff35;color:#b8ff35}
+.lab-note-grid{display:grid;grid-template-columns:minmax(270px,.82fr) minmax(320px,1.18fr);gap:0}
+.lab-note-compose{padding:20px;border-right:1px solid #35482d}.lab-note-compose .lab-note-kicker,.lab-note-feed-head span{display:block;color:#71816b;font-size:8px;letter-spacing:.12em;margin-bottom:8px}.lab-note-compose h2{margin:0 0 17px;color:#b8ff35;font-size:29px;line-height:.92;letter-spacing:-.04em}.lab-note-field{display:block;margin-bottom:14px}.lab-note-field>span{display:flex;justify-content:space-between;gap:12px;margin-bottom:6px;color:#aebaa8;font-size:8px;letter-spacing:.1em}.lab-note-field textarea,.lab-note-field input{width:100%;border:1px solid #465d3b;background:#0b140a;color:#e2e9de;border-radius:0;padding:11px;font:12px/1.5 var(--sans);outline:none}.lab-note-field textarea{min-height:125px;resize:vertical}.lab-note-field textarea:focus,.lab-note-field input:focus{border-color:#b8ff35;box-shadow:0 0 0 1px rgba(184,255,53,.16)}
+.lab-note-help{margin:-5px 0 15px;color:#6f7e69;font-size:8px;line-height:1.5}.lab-note-submit{width:100%;min-height:48px;border:1px solid #b8ff35;background:#b8ff35;color:#0b1009;font:800 10px var(--sans);letter-spacing:.09em;box-shadow:4px 4px 0 #263421;cursor:pointer;transition:transform .08s ease,box-shadow .08s ease}.lab-note-submit:hover{background:#d5ff81}.lab-note-submit:active{transform:translate(3px,3px);box-shadow:1px 1px 0 #263421}.lab-note-submit:disabled{opacity:.55;cursor:wait}.lab-note-status{min-height:28px;margin-top:13px;padding-top:10px;border-top:1px dashed #35482d;color:#82927b;font-size:8px;letter-spacing:.07em;line-height:1.45}
+.lab-note-feed-wrap{padding:20px;min-width:0}.lab-note-feed-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}.lab-note-feed-head span{margin:0;color:#b8ff35}.lab-note-feed-head button{border:1px solid #405537;background:#0b140a;color:#9daa98;padding:7px 9px;font:700 7px var(--sans);letter-spacing:.08em;cursor:pointer}.lab-note-feed-head button:hover{border-color:#b8ff35;color:#b8ff35}.lab-note-feed{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.lab-note-feed .public-lab-note{min-height:132px;width:100%;cursor:pointer;appearance:none;-webkit-appearance:none}.lab-note-feed .public-lab-note:hover,.lab-note-feed .public-lab-note:focus-visible{transform:translateY(-3px) rotate(0deg);box-shadow:0 10px 18px rgba(0,0,0,.25);outline:2px solid #b8ff35;outline-offset:2px}.lab-note-feed .public-lab-note:nth-child(3n+2){background:linear-gradient(180deg,rgba(225,247,171,.98),rgba(204,230,139,.98))}.lab-note-empty{grid-column:1/-1;border:1px dashed #3a4d32;padding:28px;color:#758370;text-align:center;font-size:8px;letter-spacing:.08em;line-height:1.6}
+
+/* Single-note popup */
+.lab-note-detail-dialog{width:min(560px,calc(100vw - 26px))}
+.lab-note-detail-card{position:relative;margin:28px;padding:28px 26px 22px;border:1px solid #aaa069;background:linear-gradient(180deg,#f7efb7,#e8dd98);color:#262419;box-shadow:8px 9px 0 rgba(0,0,0,.32);transform:rotate(-.45deg)}
+.lab-note-detail-card:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg,transparent 0 20px,rgba(112,104,59,.10) 20px 21px);opacity:.46;pointer-events:none}.lab-note-detail-card>*{position:relative;z-index:1}
+.lab-note-detail-meta{display:block;font:700 8px var(--sans);letter-spacing:.12em;color:#706847}.lab-note-detail-card blockquote{margin:17px 0 25px;font:900 29px/1.02 var(--display);letter-spacing:-.035em;overflow-wrap:anywhere}.lab-note-detail-footer{display:flex;align-items:end;justify-content:space-between;gap:18px;border-top:1px dashed rgba(63,60,40,.35);padding-top:12px;font:700 8px var(--sans);letter-spacing:.07em}.lab-note-detail-footer a{color:#405128;text-decoration:none}.lab-note-detail-footer a:hover{text-decoration:underline}.lab-note-detail-footer span{color:#786f4f;text-align:right}
+
+body.filmprint-mode .add-lab-note{filter:saturate(.8) brightness(.78);border-color:#516a45;background:linear-gradient(180deg,#152115,#101b10);color:#b8ff35;box-shadow:0 0 0 1px rgba(184,255,53,.1) inset,0 8px 18px rgba(0,0,0,.25)}
+body.filmprint-mode .add-lab-note strong{color:#b8ff35}body.filmprint-mode .add-lab-note-kicker,body.filmprint-mode .add-lab-note small{color:#788c70}
+body.filmprint-mode .lab-wall-whiteboard{filter:brightness(.62) saturate(.55);border-color:#53604e}
+body.filmprint-mode .public-lab-note.is-scatter{filter:brightness(.64) saturate(.6)}
+body.filmprint-mode .public-lab-note.is-scatter:hover,body.filmprint-mode .public-lab-note.is-scatter:focus-visible{filter:brightness(.82) saturate(.72)}
+
+@media(max-width:1180px){
+  .hero-panel{min-height:470px}.hero-aside{width:310px}.hero-note-board{flex-direction:row;align-items:flex-start;gap:12px}.add-lab-note{width:132px}.easteregg-note{width:150px}.public-lab-note.is-scatter{width:110px;min-height:76px;max-height:92px}
+}
+@media(max-width:760px){
+  .hero-panel{min-height:0;overflow:hidden}.hero-aside{width:100%}.hero-note-board{flex-direction:row;align-items:flex-start;gap:12px;overflow-x:auto;padding-top:8px}.add-lab-note,.easteregg-note{flex:0 0 145px}.lab-wall-whiteboard{width:min(100%,320px)}
+  .lab-note-wall{position:relative!important;inset:auto!important;z-index:4!important;display:flex!important;gap:9px;width:100%;overflow-x:auto;padding:14px 2px 6px;grid-column:1/-1;pointer-events:auto}.lab-note-wall[hidden]{display:none!important}.public-lab-note.is-scatter{position:relative;width:146px;min-width:146px;min-height:92px;max-height:none;transform:rotate(var(--note-rot))!important}.public-lab-note.is-scatter:hover,.public-lab-note.is-scatter:focus-visible{transform:translateY(-3px) rotate(0deg)!important}
+  .lab-note-grid{grid-template-columns:1fr}.lab-note-compose{border-right:0;border-bottom:1px solid #35482d}.lab-note-feed{grid-template-columns:1fr}.lab-note-dialog,.lab-note-detail-dialog{width:calc(100vw - 14px);max-height:calc(100vh - 14px)}.lab-note-detail-card{margin:18px;padding:22px 18px 18px}.lab-note-detail-card blockquote{font-size:23px}.lab-note-live-flash{left:12px;bottom:8px}
+}
+@media(prefers-reduced-motion:reduce){.add-lab-note,.lab-note-wall,.public-lab-note,.lab-wall-whiteboard{transition:none}.public-lab-note.is-new-note{animation:none}}
+
+
+/* ===== CINEGENOME ALT v49.13 BETA44 / hero spacing + tactile note writing + wall transition ===== */
+@media(min-width:761px){
+  .hero-panel{min-height:448px;padding-top:12px}
+  .hero-panel>div:first-child{align-self:start;padding-top:5px}
+  .hero-panel .eyebrow{margin-top:0}
+  .hero-panel h1{margin:3px 0 8px;max-width:850px}
+  .hero-panel p{max-width:760px}
+  .field-manual-trigger{margin-top:18px}
+  .hero-aside{padding-top:2px}
+  .lab-wall-whiteboard{margin-top:34px;transform:rotate(.95deg)}
+  .warning-stamp{margin-top:16px;justify-self:end;transform:rotate(-3deg) translateY(2px)}
+}
+
+.lab-note-dialog{background:#10130d;border-color:#8f9d60;box-shadow:0 0 0 2px #10180e,16px 16px 0 rgba(0,0,0,.42)}
+.lab-note-shell{background:linear-gradient(180deg,#171d14,#0f140d 18%,#10150f 100%)}
+.lab-note-grid{grid-template-columns:minmax(320px,.95fr) minmax(280px,1.05fr);align-items:start;padding:0 0 8px}
+.lab-note-compose{
+  position:relative;margin:22px 16px 22px 22px;padding:24px 22px 18px;
+  border:1px solid #b7ac75;border-right-color:#a2945d;
+  background:linear-gradient(180deg,#fbf4c9 0%,#f3e8b4 100%);
+  color:#262418;box-shadow:0 2px 0 rgba(255,255,255,.45) inset,8px 10px 0 rgba(0,0,0,.22);
+  transform:rotate(-.7deg)
+}
+.lab-note-compose:before{
+  content:"";position:absolute;top:-11px;left:50%;transform:translateX(-50%) rotate(-2deg);
+  width:96px;height:22px;background:linear-gradient(180deg,rgba(255,250,221,.82),rgba(212,202,156,.8));
+  border:1px solid rgba(122,116,92,.4);box-shadow:0 2px 6px rgba(17,20,15,.12)
+}
+.lab-note-compose:after{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.42;
+  background:repeating-linear-gradient(180deg,transparent 0 27px,rgba(114,103,56,.12) 27px 28px)
+}
+.lab-note-compose > *{position:relative;z-index:1}
+.lab-note-compose .lab-note-kicker{color:#746c4a;font-size:8px;letter-spacing:.15em;margin-bottom:7px}
+.lab-note-compose h2{margin:0 0 18px;color:#1c1b13;font-size:35px;line-height:.9;letter-spacing:-.05em}
+.lab-note-field{margin-bottom:15px}
+.lab-note-field>span{margin-bottom:8px;color:#625a3e;font-size:8px;letter-spacing:.12em}
+.lab-note-field textarea,.lab-note-field input{
+  border:1px solid #b8ae78;border-radius:0;color:#1d1c16;
+  background:
+    linear-gradient(90deg,transparent 0 24px,rgba(197,63,63,.18) 24px 25px,transparent 25px),
+    repeating-linear-gradient(180deg,#fff8d7 0 28px,#e8ddb1 28px 29px);
+  box-shadow:0 1px 0 rgba(255,255,255,.55) inset;font:15px/1.75 "Courier Prime","Courier New",monospace;padding:12px 14px 12px 34px;
+}
+.lab-note-field textarea{min-height:174px;resize:vertical}
+.lab-note-field input{min-height:48px}
+.lab-note-field textarea::placeholder,.lab-note-field input::placeholder{color:#8f8869}
+.lab-note-field textarea:focus,.lab-note-field input:focus{border-color:#807543;box-shadow:0 0 0 2px rgba(136,125,77,.18)}
+.lab-note-help{margin:-1px 0 15px;color:#6d664d;font-size:8px;line-height:1.55}
+.lab-note-submit{
+  min-height:46px;border:1px solid #201f17;background:#201f17;color:#f5f0c6;
+  box-shadow:4px 4px 0 rgba(73,65,39,.55);font:800 9px var(--sans);letter-spacing:.14em;text-transform:uppercase
+}
+.lab-note-submit:hover{background:#353221;color:#fff9d0}
+.lab-note-submit:active{box-shadow:1px 1px 0 rgba(73,65,39,.55)}
+.lab-note-status{min-height:30px;margin-top:14px;padding-top:11px;border-top:1px dashed rgba(74,67,45,.42);color:#655d44;font-size:8px;letter-spacing:.08em}
+.lab-note-feed-wrap{padding:22px 22px 22px 12px}
+.lab-note-feed-head span{color:#b8ff35}
+.lab-note-feed{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+
+.wall-nav-transition{
+  --x:0px;--y:0px;--w:200px;--h:100px;
+  position:fixed;inset:0;z-index:3000;pointer-events:none;opacity:0;
+  background:radial-gradient(circle at center,rgba(248,248,237,.14),rgba(6,8,6,.82) 70%);
+  transition:opacity .18s ease
+}
+.wall-nav-transition.is-active{opacity:1}
+.wall-nav-transition-board{
+  position:absolute;left:var(--x);top:var(--y);width:var(--w);height:var(--h);overflow:hidden;
+  border:4px solid #232820;background:linear-gradient(180deg,#f4f6ed,#e4e8dc);color:#20251d;
+  box-shadow:inset 0 0 0 2px #8d9686,6px 7px 0 rgba(17,20,15,.16);
+  transform:rotate(.95deg);transition:left .42s cubic-bezier(.2,.9,.22,1),top .42s cubic-bezier(.2,.9,.22,1),width .42s cubic-bezier(.2,.9,.22,1),height .42s cubic-bezier(.2,.9,.22,1),transform .42s cubic-bezier(.2,.9,.22,1),box-shadow .42s ease
+}
+.wall-nav-transition-board:before{content:"";position:absolute;inset:4px;background:repeating-linear-gradient(0deg,transparent 0 17px,rgba(31,40,27,.055) 17px 18px)}
+.wall-nav-transition-tape{position:absolute;right:28px;top:-8px;width:92px;height:18px;background:rgba(229,224,184,.82);border:1px solid rgba(113,109,79,.35);transform:rotate(-2deg)}
+.wall-nav-transition-copy{position:absolute;left:22px;top:18px;z-index:1;display:block}
+.wall-nav-transition-copy em,.wall-nav-transition-copy strong,.wall-nav-transition-copy small{display:block;font-style:normal}
+.wall-nav-transition-copy em{font:700 9px/1 var(--sans);letter-spacing:.15em;color:#6a7262}
+.wall-nav-transition-copy strong{margin-top:12px;font:900 clamp(28px,4vw,52px)/.88 var(--display);letter-spacing:-.05em}
+.wall-nav-transition-copy small{margin-top:12px;font:700 8px/1 var(--sans);letter-spacing:.14em;color:#6d7568}
+.wall-nav-transition-note{
+  position:absolute;right:7%;bottom:11%;width:168px;height:118px;border:1px solid #aea36b;
+  background:linear-gradient(180deg,rgba(225,247,171,.98),rgba(204,230,139,.98));box-shadow:0 8px 18px rgba(17,20,15,.2);
+  transform:rotate(-7deg);opacity:.96
+}
+.wall-nav-transition-note:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg,transparent 0 15px,rgba(112,104,59,.1) 15px 16px);opacity:.42}
+.wall-nav-transition.is-active .wall-nav-transition-board{
+  left:50%;top:50%;width:min(84vw,960px);height:min(72vh,570px);transform:translate(-50%,-50%) rotate(.35deg);
+  box-shadow:inset 0 0 0 2px #8d9686,0 28px 54px rgba(0,0,0,.32)
+}
+.wall-nav-transition.is-active .wall-nav-transition-note{animation:wallNavSticky .42s cubic-bezier(.18,.9,.28,1.12) both}
+@keyframes wallNavSticky{0%{transform:translateY(-54px) rotate(-13deg) scale(.88);opacity:0}100%{transform:translateY(0) rotate(-7deg) scale(1);opacity:.96}}
+
+@media(max-width:760px){
+  .lab-note-grid{grid-template-columns:1fr;padding:0}
+  .lab-note-compose{margin:14px 14px 12px;transform:none}
+  .lab-note-feed-wrap{padding:8px 14px 16px}
+  .lab-wall-whiteboard{margin-top:16px}
+  .warning-stamp{margin-top:12px}
+}
+@media(prefers-reduced-motion:reduce){
+  .wall-nav-transition,.wall-nav-transition-board{transition:none}
+  .wall-nav-transition.is-active .wall-nav-transition-note{animation:none}
+}
+
+
+/* ===== CINEGENOME ALT v49.13 BETA45 / centered hero + clear public-wall choreography ===== */
+@media(min-width:761px){
+  .hero-panel{min-height:448px;padding-top:18px}
+  .hero-copy{align-self:stretch!important;min-height:410px;padding-top:0!important;display:grid;grid-template-rows:1fr auto}
+  .hero-title-cluster{align-self:center;transform:translateY(-7px)}
+  .hero-panel .hero-title-cluster .eyebrow{margin:0 0 7px}
+  .hero-panel .hero-title-cluster h1{margin:0 0 10px;max-width:900px}
+  .hero-panel .hero-title-cluster p{max-width:760px}
+  .hero-copy .field-manual-trigger{align-self:end;justify-self:start;margin-top:0;margin-bottom:0}
+  .hero-aside{height:100%;padding-top:0;display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-start}
+  .hero-note-board{flex:0 0 auto}
+  .hero-aside .lab-wall-whiteboard{margin-top:auto;margin-bottom:0;transform:rotate(.95deg)}
+  .hero-aside .warning-stamp{margin-top:18px;margin-bottom:0;justify-self:auto;align-self:flex-end;transform:rotate(-3deg)}
+}
+
+/* One readable action: lift the physical whiteboard, open it, pin notes, then enter. */
+.wall-nav-transition{background:rgba(7,10,7,.16);backdrop-filter:blur(0);transition:background .32s ease,opacity .24s ease}
+.wall-nav-transition.is-active{background:rgba(7,10,7,.72);backdrop-filter:blur(1.5px)}
+.wall-nav-transition-board{transition:left .62s cubic-bezier(.16,.86,.22,1),top .62s cubic-bezier(.16,.86,.22,1),width .62s cubic-bezier(.16,.86,.22,1),height .62s cubic-bezier(.16,.86,.22,1),transform .62s cubic-bezier(.16,.86,.22,1),box-shadow .62s ease;transform-origin:center}
+.wall-nav-transition-board:after{content:"";position:absolute;left:0;right:0;top:-8%;height:7%;background:linear-gradient(180deg,transparent,rgba(184,255,53,.24),transparent);opacity:0;z-index:3}
+.wall-nav-transition-copy{transition:opacity .22s ease,transform .4s ease}
+.wall-nav-transition-copy strong{font-size:clamp(26px,4.2vw,58px)}
+.wall-nav-transition-progress{position:absolute;left:22px;right:22px;bottom:22px;height:4px;border:1px solid #7d8678;background:rgba(255,255,255,.4);z-index:5;overflow:hidden;opacity:0}
+.wall-nav-transition-progress i{display:block;width:0;height:100%;background:#b8ff35}
+.wall-nav-transition-sticky{position:absolute;width:142px;min-height:98px;padding:13px 12px;border:1px solid #aaa069;background:linear-gradient(180deg,#f7efb7,#e8dd98);box-shadow:0 8px 17px rgba(17,20,15,.18);opacity:0;z-index:4;font:800 9px/1.2 var(--sans);color:#2b291c}
+.wall-nav-transition-sticky:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg,transparent 0 15px,rgba(112,104,59,.10) 15px 16px);opacity:.42}
+.wall-nav-transition-sticky span{position:relative;z-index:1;display:block}
+.wall-nav-transition-sticky.s1{right:8%;top:17%;transform:rotate(5deg)}
+.wall-nav-transition-sticky.s2{right:25%;bottom:18%;transform:rotate(-4deg);background:linear-gradient(180deg,#ddf0a9,#cce68b)}
+.wall-nav-transition-sticky.s3{left:45%;top:31%;transform:rotate(2deg)}
+.wall-nav-transition.is-active .wall-nav-transition-board{left:50%;top:50%;width:min(88vw,1080px);height:min(78vh,620px);transform:translate(-50%,-50%) rotate(.15deg)}
+.wall-nav-transition.is-active .wall-nav-transition-board:after{animation:wallBoardScan .72s ease .38s both}
+.wall-nav-transition.is-active .wall-nav-transition-progress{opacity:1;transition:opacity .18s ease .38s}
+.wall-nav-transition.is-active .wall-nav-transition-progress i{animation:wallBoardProgress .62s cubic-bezier(.2,.8,.2,1) .42s forwards}
+.wall-nav-transition.is-active .wall-nav-transition-sticky.s1{animation:wallStickyPin .34s cubic-bezier(.18,.9,.28,1.12) .48s both}
+.wall-nav-transition.is-active .wall-nav-transition-sticky.s2{animation:wallStickyPin2 .34s cubic-bezier(.18,.9,.28,1.12) .62s both}
+.wall-nav-transition.is-active .wall-nav-transition-sticky.s3{animation:wallStickyPin3 .34s cubic-bezier(.18,.9,.28,1.12) .75s both}
+.wall-nav-transition.is-linked .wall-nav-transition-copy small{color:#3f5d28}
+.wall-nav-transition.is-linked .wall-nav-transition-board{box-shadow:inset 0 0 0 2px #8d9686,0 0 0 3px rgba(184,255,53,.42),0 28px 54px rgba(0,0,0,.34)}
+.wall-nav-transition.is-linked{background:rgba(7,10,7,.82)}
+@keyframes wallBoardScan{0%{top:-8%;opacity:0}15%{opacity:1}100%{top:105%;opacity:0}}
+@keyframes wallBoardProgress{0%{width:0}100%{width:100%}}
+@keyframes wallStickyPin{0%{opacity:0;transform:translateY(-48px) rotate(-12deg) scale(.86)}100%{opacity:1;transform:translateY(0) rotate(5deg) scale(1)}}
+@keyframes wallStickyPin2{0%{opacity:0;transform:translateY(-48px) rotate(8deg) scale(.86)}100%{opacity:1;transform:translateY(0) rotate(-4deg) scale(1)}}
+@keyframes wallStickyPin3{0%{opacity:0;transform:translateY(-48px) rotate(-7deg) scale(.86)}100%{opacity:1;transform:translateY(0) rotate(2deg) scale(1)}}
+.wall-nav-transition.is-leaving{opacity:0;transition:opacity .22s ease}
+@media(max-width:760px){.wall-nav-transition-sticky{width:105px;min-height:78px;font-size:7px}.wall-nav-transition-sticky.s3{display:none}.wall-nav-transition-copy strong{font-size:32px}}
+
+
+/* ===== CINEGENOME ALT v49.13 BETA46 / calm wall choreography + balanced sticky field ===== */
+.public-lab-note.is-scatter{
+  width:118px;min-height:80px;max-height:98px;
+  box-shadow:0 7px 15px rgba(17,20,15,.14);
+  transition:transform .28s cubic-bezier(.2,.72,.2,1),box-shadow .28s ease,filter .28s ease,opacity .28s ease
+}
+.public-lab-note.is-scatter:hover,.public-lab-note.is-scatter:focus-visible{
+  transform:translate3d(var(--note-x,0),calc(var(--note-y,0) - 7px),0) rotate(0deg) scale(1.045);
+}
+
+.wall-nav-transition{
+  background:rgba(7,10,7,0);backdrop-filter:blur(0);
+  transition:background .72s ease,backdrop-filter .72s ease,opacity .42s ease
+}
+.wall-nav-transition.is-active{background:rgba(7,10,7,.64);backdrop-filter:blur(2.5px)}
+.wall-nav-transition-board{
+  transition:left 1.08s cubic-bezier(.22,.74,.18,1),top 1.08s cubic-bezier(.22,.74,.18,1),width 1.08s cubic-bezier(.22,.74,.18,1),height 1.08s cubic-bezier(.22,.74,.18,1),transform 1.08s cubic-bezier(.22,.74,.18,1),box-shadow 1.08s ease;
+}
+.wall-nav-transition-board:after{height:5%;background:linear-gradient(180deg,transparent,rgba(184,255,53,.18),transparent)}
+.wall-nav-transition-copy{transition:opacity .55s ease,transform .75s ease}
+.wall-nav-transition-progress{bottom:24px;height:3px;transition:opacity .4s ease 1.02s}
+.wall-nav-transition.is-active .wall-nav-transition-board:after{animation:wallBoardScanSlow 1.42s cubic-bezier(.35,.05,.25,1) 1.02s both}
+.wall-nav-transition.is-active .wall-nav-transition-progress{opacity:1}
+.wall-nav-transition.is-active .wall-nav-transition-progress i{animation:wallBoardProgressSlow 1.38s cubic-bezier(.32,.02,.2,1) 1.04s forwards}
+.wall-nav-transition.is-active .wall-nav-transition-sticky.s1{animation:wallStickyFloatA .72s cubic-bezier(.2,.72,.2,1) 1.08s both}
+.wall-nav-transition.is-active .wall-nav-transition-sticky.s2{animation:wallStickyFloatB .72s cubic-bezier(.2,.72,.2,1) 1.36s both}
+.wall-nav-transition.is-active .wall-nav-transition-sticky.s3{animation:wallStickyFloatC .72s cubic-bezier(.2,.72,.2,1) 1.64s both}
+.wall-nav-transition.is-linked .wall-nav-transition-board{box-shadow:inset 0 0 0 2px #8d9686,0 0 0 2px rgba(184,255,53,.28),0 30px 64px rgba(0,0,0,.34)}
+.wall-nav-transition.is-linked{background:rgba(7,10,7,.72)}
+.wall-nav-transition.is-leaving{opacity:0;transition:opacity .38s ease}
+@keyframes wallBoardScanSlow{0%{top:-7%;opacity:0}14%{opacity:.85}86%{opacity:.65}100%{top:106%;opacity:0}}
+@keyframes wallBoardProgressSlow{0%{width:0}100%{width:100%}}
+@keyframes wallStickyFloatA{0%{opacity:0;transform:translateY(-18px) rotate(1deg) scale(.96)}100%{opacity:1;transform:translateY(0) rotate(5deg) scale(1)}}
+@keyframes wallStickyFloatB{0%{opacity:0;transform:translateY(-16px) rotate(-1deg) scale(.96)}100%{opacity:1;transform:translateY(0) rotate(-4deg) scale(1)}}
+@keyframes wallStickyFloatC{0%{opacity:0;transform:translateY(-14px) rotate(0deg) scale(.96)}100%{opacity:1;transform:translateY(0) rotate(2deg) scale(1)}}
+
+/* ===== CINEGENOME ALT v49.13 BETA47 / stable wall + clickable notes + slow portal ===== */
+/* Notes live above the broad hero-copy stacking context, while the actual UI controls stay above notes. */
+.lab-note-wall{z-index:8!important;pointer-events:none}
+.public-lab-note.is-scatter{pointer-events:auto;will-change:transform,opacity}
+.hero-title-cluster,.hero-copy .field-manual-trigger,.hero-aside{position:relative;z-index:12}
+.public-lab-note.is-retiring{pointer-events:none!important;animation:labNoteRetire .62s cubic-bezier(.25,.7,.25,1) both}
+.public-lab-note.is-new-note{animation-duration:1.05s;animation-timing-function:cubic-bezier(.2,.72,.2,1)}
+@keyframes labNoteRetire{
+  from{opacity:var(--note-age,1);filter:none}
+  to{opacity:0;filter:blur(1px);transform:translate3d(var(--note-x,0),calc(var(--note-y,0) + 12px),0) rotate(var(--note-rot)) scale(.96)}
+}
+
+/* Progressive enhancement: on modern Chromium the physical whiteboard morphs into the full wall board. */
+@view-transition{navigation:auto}
+.lab-wall-whiteboard{view-transition-name:cg-public-wall}
+::view-transition-group(cg-public-wall){animation-duration:1.55s;animation-timing-function:cubic-bezier(.22,.68,.18,1)}
+::view-transition-old(root),::view-transition-new(root){animation-duration:1.15s;animation-timing-function:ease-in-out}
+
+/* The pre-navigation motion is intentionally calm: lift, inspect, then enter. */
+.wall-nav-transition{transition:background 1s ease,backdrop-filter 1s ease,opacity .65s ease}
+.wall-nav-transition.is-active{background:rgba(7,10,7,.58);backdrop-filter:blur(2px)}
+.wall-nav-transition-board{
+  transition:left 1.32s cubic-bezier(.22,.68,.18,1),top 1.32s cubic-bezier(.22,.68,.18,1),width 1.32s cubic-bezier(.22,.68,.18,1),height 1.32s cubic-bezier(.22,.68,.18,1),transform 1.32s cubic-bezier(.22,.68,.18,1),box-shadow 1.32s ease!important
+}
+.wall-nav-transition-copy{transition:opacity .8s ease,transform 1.05s ease}
+.wall-nav-transition.is-active .wall-nav-transition-board:after{animation:wallBoardScanB47 1.62s cubic-bezier(.35,.05,.25,1) 1.18s both}
+.wall-nav-transition.is-active .wall-nav-transition-progress{opacity:1;transition:opacity .55s ease 1.12s}
+.wall-nav-transition.is-active .wall-nav-transition-progress i{animation:wallBoardProgressB47 1.58s cubic-bezier(.3,.04,.18,1) 1.18s forwards}
+.wall-nav-transition.is-active .wall-nav-transition-sticky.s1{animation:wallStickyB47A .92s cubic-bezier(.2,.68,.2,1) 1.38s both}
+.wall-nav-transition.is-active .wall-nav-transition-sticky.s2{animation:wallStickyB47B .92s cubic-bezier(.2,.68,.2,1) 1.78s both}
+.wall-nav-transition.is-active .wall-nav-transition-sticky.s3{animation:wallStickyB47C .92s cubic-bezier(.2,.68,.2,1) 2.18s both}
+.wall-nav-transition.is-linked{background:rgba(7,10,7,.68)}
+.wall-nav-transition.is-leaving{opacity:0;transition:opacity .64s ease}
+@keyframes wallBoardScanB47{0%{top:-7%;opacity:0}16%{opacity:.6}84%{opacity:.5}100%{top:106%;opacity:0}}
+@keyframes wallBoardProgressB47{from{width:0}to{width:100%}}
+@keyframes wallStickyB47A{from{opacity:0;transform:translateY(-12px) rotate(3deg) scale(.975)}to{opacity:1;transform:translateY(0) rotate(5deg) scale(1)}}
+@keyframes wallStickyB47B{from{opacity:0;transform:translateY(-10px) rotate(-2deg) scale(.975)}to{opacity:1;transform:translateY(0) rotate(-4deg) scale(1)}}
+@keyframes wallStickyB47C{from{opacity:0;transform:translateY(-9px) rotate(1deg) scale(.975)}to{opacity:1;transform:translateY(0) rotate(2deg) scale(1)}}
+.lab-wall-whiteboard-kicker{font-size:8.5px;letter-spacing:.14em}
+.lab-wall-whiteboard strong{font-size:19px;line-height:.92}
+
+
+/* ===== CINEGENOME ALT v49.13 BETA49 / live-wall shortcut + taped header notes ===== */
+.lab-wall-direct{
+  position:relative;min-width:0;margin:22px 22px 22px 8px;padding:16px 16px 18px;
+  border-left:1px solid #31402d;display:flex;flex-direction:column;justify-content:center
+}
+.lab-wall-direct-kicker{display:block;margin:0 0 13px;color:#b8ff35;font:800 8px/1 var(--sans);letter-spacing:.14em}
+.lab-wall-direct-board{
+  position:relative;display:block;min-height:250px;padding:34px 28px 24px;border:6px solid #30362d;
+  background:linear-gradient(180deg,#f3f6ed,#e5e9dc);color:#20251d;text-decoration:none;
+  box-shadow:inset 0 0 0 2px #929b8c,8px 10px 0 rgba(0,0,0,.28);overflow:visible;
+  transform:rotate(.45deg);transition:transform .32s cubic-bezier(.2,.72,.2,1),box-shadow .32s ease,filter .32s ease
+}
+.lab-wall-direct-board:before{content:"";position:absolute;inset:8px;background:repeating-linear-gradient(0deg,transparent 0 24px,rgba(54,64,49,.055) 24px 25px);pointer-events:none}
+.lab-wall-direct-tape{position:absolute;left:50%;top:-14px;transform:translateX(-50%) rotate(-2deg);width:118px;height:27px;background:linear-gradient(180deg,rgba(244,240,203,.83),rgba(210,204,161,.78));border:1px solid rgba(115,109,82,.35);box-shadow:0 3px 7px rgba(17,20,15,.12)}
+.lab-wall-direct-scribble{position:absolute;right:24px;top:20px;color:#a5aea0;font:900 28px/1 var(--sans);letter-spacing:-.18em;transform:rotate(-12deg)}
+.lab-wall-direct-board strong,.lab-wall-direct-board small{position:relative;z-index:1;display:block}
+.lab-wall-direct-board strong{margin-top:26px;font:900 clamp(35px,4.5vw,64px)/.86 var(--display);letter-spacing:-.05em}
+.lab-wall-direct-board small{margin-top:32px;font:800 9px/1 var(--sans);letter-spacing:.14em;color:#5d6659}
+.lab-wall-direct-board:hover,.lab-wall-direct-board:focus-visible{transform:rotate(0deg) translateY(-4px);box-shadow:inset 0 0 0 2px #929b8c,12px 15px 0 rgba(0,0,0,.3);filter:brightness(1.025);outline:2px dashed #b8ff35;outline-offset:5px}
+.lab-wall-direct p{max-width:430px;margin:17px 0 10px;color:#7f8b78;font:700 8px/1.65 var(--sans);letter-spacing:.045em}
+.lab-wall-direct-status{color:#566752;font:800 7px/1 var(--sans);letter-spacing:.12em}
+
+/* Header notes are slightly larger and physically taped to the hero wall. */
+.public-lab-note.is-scatter{
+  width:126px;min-height:90px;max-height:112px;padding:14px 11px 10px;overflow:visible;
+  box-shadow:0 8px 17px rgba(17,20,15,.16)
+}
+.public-lab-note.is-scatter:after{
+  content:"";position:absolute;z-index:4;top:-9px;left:50%;width:50px;height:17px;
+  transform:translateX(-50%) rotate(var(--tape-rot,-2deg));
+  background:linear-gradient(180deg,rgba(249,245,211,.78),rgba(211,204,163,.75));
+  border:1px solid rgba(111,106,80,.32);box-shadow:0 2px 5px rgba(17,20,15,.1);pointer-events:none
+}
+.public-lab-note.is-scatter:nth-child(2n):after{--tape-rot:2.4deg}.public-lab-note.is-scatter:nth-child(3n):after{--tape-rot:-3.4deg}
+.public-lab-note.is-scatter p{font-size:10.8px;line-height:1.08;-webkit-line-clamp:3;margin:7px 0 7px}
+.public-lab-note.is-scatter .public-lab-note-meta{font-size:6.2px}.public-lab-note.is-scatter .public-lab-note-author{font-size:7px}
+
+@media(max-width:1180px){
+  .public-lab-note.is-scatter{width:118px;min-height:86px;max-height:104px}
+  .lab-wall-direct-board{min-height:210px}
+}
+@media(max-width:760px){
+  .lab-wall-direct{margin:8px 14px 18px;padding:14px 0 4px;border-left:0;border-top:1px solid #31402d}
+  .lab-wall-direct-board{min-height:180px;padding:26px 22px 20px}
+  .lab-wall-direct-board strong{font-size:40px}
+  .public-lab-note.is-scatter{width:158px;min-width:158px;min-height:100px;max-height:none;padding-top:15px}
+}
+
+
+/* ===== CINEGENOME ALT v49.13 BETA51 / organic note wall + lifted detail ===== */
+.public-lab-note.is-scatter{
+  transform:translate3d(var(--note-x,0),var(--note-y,0),0) rotate(var(--note-rot)) scale(var(--note-scale,1));
+  transition:transform 360ms cubic-bezier(.2,.72,.2,1),box-shadow 360ms ease,filter 360ms ease,opacity 360ms ease
+}
+.public-lab-note.is-scatter:after{left:var(--tape-x,50%);transform:translateX(-50%) rotate(var(--tape-rot,-2deg));width:48px;height:16px}
+.public-lab-note.is-scatter:hover,.public-lab-note.is-scatter:focus-visible{
+  transform:translate3d(var(--note-x,0),calc(var(--note-y,0) - 7px),0) rotate(0deg) scale(1.055);
+}
+.lab-note-detail-dialog .lab-note-detail-shell{opacity:0;transform:translate(var(--note-origin-x,0),var(--note-origin-y,18px)) scale(.72) rotate(-2deg);filter:blur(1px);transition:opacity 330ms ease,transform 460ms cubic-bezier(.18,.82,.2,1),filter 360ms ease}
+.lab-note-detail-dialog.is-note-open .lab-note-detail-shell{opacity:1;transform:translate(0,0) scale(1) rotate(0);filter:none}
+.lab-note-detail-dialog::backdrop{opacity:0;transition:opacity 300ms ease}
+.lab-note-detail-dialog.is-note-open::backdrop{opacity:1}
+.lab-note-detail-card:after{content:"";position:absolute;z-index:3;left:46%;top:-11px;width:78px;height:22px;transform:translateX(-50%) rotate(-2deg);background:linear-gradient(180deg,rgba(248,244,210,.82),rgba(210,203,161,.76));border:1px solid rgba(111,106,80,.32);box-shadow:0 2px 5px rgba(17,20,15,.1);pointer-events:none}
+@media(max-width:760px){.public-lab-note.is-scatter{transform:rotate(var(--note-rot)) scale(var(--note-scale,1))!important}.public-lab-note.is-scatter:hover,.public-lab-note.is-scatter:focus-visible{transform:translateY(-3px) rotate(0deg) scale(1.035)!important}}
+@media(prefers-reduced-motion:reduce){.lab-note-detail-dialog .lab-note-detail-shell{transition:none;opacity:1;transform:none;filter:none}}
+
+
+/* ===== CINEGENOME ALT v49.13 BETA52 / calmer note detail motion ===== */
+.lab-note-detail-dialog .lab-note-detail-shell{
+  opacity:0;transform:translate(var(--note-origin-x,0),var(--note-origin-y,20px)) scale(.88) rotate(-.8deg);filter:blur(.45px);
+  transition:opacity 480ms ease,transform 680ms cubic-bezier(.18,.72,.18,1),filter 560ms ease;transform-origin:center center
+}
+.lab-note-detail-dialog.is-note-open .lab-note-detail-shell{opacity:1;transform:translate(0,0) scale(1) rotate(0);filter:none}
+.lab-note-detail-dialog::backdrop{opacity:0;backdrop-filter:blur(0);transition:opacity 520ms ease,backdrop-filter 620ms ease}
+.lab-note-detail-dialog.is-note-open::backdrop{opacity:1;backdrop-filter:blur(3px)}
+@media(prefers-reduced-motion:reduce){.lab-note-detail-dialog .lab-note-detail-shell{transition:none!important;opacity:1;transform:none;filter:none}.lab-note-detail-dialog::backdrop{transition:none!important}}
+
+
+/* ===== CINEGENOME ALT v49.13 BETA53 / smooth note dialogs ===== */
+.lab-note-dialog .lab-note-shell{opacity:0;transform:translateY(10px) scale(.985);filter:blur(.3px);transition:opacity 360ms ease,transform 440ms cubic-bezier(.2,.7,.2,1),filter 360ms ease}
+.lab-note-dialog.is-dialog-open .lab-note-shell{opacity:1;transform:none;filter:none}
+.lab-note-dialog.is-dialog-closing .lab-note-shell{opacity:0;transform:translateY(8px) scale(.992);filter:blur(.25px);transition-duration:330ms}
+.lab-note-dialog::backdrop{opacity:0;backdrop-filter:blur(0);transition:opacity 360ms ease,backdrop-filter 420ms ease}
+.lab-note-dialog.is-dialog-open::backdrop{opacity:1;backdrop-filter:blur(2.5px)}
+.lab-note-dialog.is-dialog-closing::backdrop{opacity:0;backdrop-filter:blur(0)}
+
+.lab-note-detail-dialog .lab-note-detail-shell{opacity:0;transform:translate(var(--note-origin-x,0),var(--note-origin-y,12px)) scale(.95) rotate(-.35deg);filter:blur(.3px);transition:opacity 360ms ease,transform 460ms cubic-bezier(.2,.72,.2,1),filter 360ms ease;transform-origin:center center}
+.lab-note-detail-dialog.is-note-open .lab-note-detail-shell{opacity:1;transform:translate(0,0) scale(1) rotate(0);filter:none}
+.lab-note-detail-dialog.is-note-closing .lab-note-detail-shell{opacity:0;transform:translateY(9px) scale(.975) rotate(.15deg);filter:blur(.35px);transition:opacity 340ms ease,transform 430ms cubic-bezier(.35,0,.25,1),filter 340ms ease}
+.lab-note-detail-dialog::backdrop{opacity:0;backdrop-filter:blur(0);transition:opacity 360ms ease,backdrop-filter 420ms ease}
+.lab-note-detail-dialog.is-note-open::backdrop{opacity:1;backdrop-filter:blur(2.5px)}
+.lab-note-detail-dialog.is-note-closing::backdrop{opacity:0;backdrop-filter:blur(0)}
+@media(prefers-reduced-motion:reduce){.lab-note-dialog .lab-note-shell,.lab-note-detail-dialog .lab-note-detail-shell,.lab-note-dialog::backdrop,.lab-note-detail-dialog::backdrop{transition:none!important;filter:none!important}}
+
+
+/* ===== CINEGENOME ALT v49.13 BETA54 / whole-window note motion ===== */
+/* Fade/move the dialog itself rather than hiding only its inner shell. That keeps the
+   paper and the dark frame together on exit and removes the black-box pause. */
+.lab-note-dialog,
+.lab-note-detail-dialog{
+  opacity:0;transform:translateY(10px) scale(.985);
+  transition:opacity 300ms ease,transform 360ms cubic-bezier(.2,.72,.2,1),border-color 300ms ease,box-shadow 300ms ease
+}
+.lab-note-dialog[open].is-dialog-open,
+.lab-note-detail-dialog[open].is-note-open{opacity:1;transform:none}
+.lab-note-dialog.is-dialog-closing,
+.lab-note-detail-dialog.is-note-closing{opacity:0;transform:translateY(7px) scale(.99)}
+.lab-note-dialog .lab-note-shell,
+.lab-note-detail-dialog .lab-note-detail-shell{
+  opacity:1!important;transform:none!important;filter:none!important;transition:none!important
+}
+.lab-note-dialog::backdrop,
+.lab-note-detail-dialog::backdrop{opacity:0;backdrop-filter:blur(0);transition:opacity 300ms ease,backdrop-filter 320ms ease}
+.lab-note-dialog.is-dialog-open::backdrop,
+.lab-note-detail-dialog.is-note-open::backdrop{opacity:1;backdrop-filter:blur(2.5px)}
+.lab-note-dialog.is-dialog-closing::backdrop,
+.lab-note-detail-dialog.is-note-closing::backdrop{opacity:0;backdrop-filter:blur(0)}
+@media(prefers-reduced-motion:reduce){.lab-note-dialog,.lab-note-detail-dialog{opacity:1!important;transform:none!important;transition:none!important}}

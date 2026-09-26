@@ -301,6 +301,31 @@
     });
   }
 
+  let mobileUiAudioContext=null;
+  function playMobileMenuSfx(){
+    try{
+      if(localStorage.getItem('cinegenome_ui_sfx_v1')==='off')return;
+      const AudioCtx=window.AudioContext||window.webkitAudioContext;if(!AudioCtx)return;
+      const ctx=mobileUiAudioContext||(mobileUiAudioContext=new AudioCtx());
+      if(ctx.state==='suspended')ctx.resume().catch(()=>{});
+      const t=ctx.currentTime;
+      const master=ctx.createGain(),comp=ctx.createDynamicsCompressor();
+      master.gain.setValueAtTime(.0001,t);master.gain.exponentialRampToValueAtTime(.082,t+.002);master.gain.exponentialRampToValueAtTime(.0001,t+.132);
+      comp.threshold.setValueAtTime(-20,t);comp.ratio.setValueAtTime(5,t);comp.attack.setValueAtTime(.001,t);comp.release.setValueAtTime(.05,t);
+      master.connect(comp);comp.connect(ctx.destination);
+
+      const nLen=Math.max(1,Math.floor(ctx.sampleRate*.030)),buf=ctx.createBuffer(1,nLen,ctx.sampleRate),d=buf.getChannelData(0);
+      for(let i=0;i<nLen;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/nLen,4);
+      const ns=ctx.createBufferSource(),hp=ctx.createBiquadFilter(),bp=ctx.createBiquadFilter(),ng=ctx.createGain();
+      ns.buffer=buf;hp.type='highpass';hp.frequency.setValueAtTime(1350,t);bp.type='bandpass';bp.frequency.setValueAtTime(4300,t);bp.Q.setValueAtTime(1.2,t);
+      ng.gain.setValueAtTime(.58,t);ng.gain.exponentialRampToValueAtTime(.0001,t+.025);ns.connect(hp);hp.connect(bp);bp.connect(ng);ng.connect(master);ns.start(t);ns.stop(t+.03);
+
+      const tick=ctx.createOscillator(),tg=ctx.createGain();tick.type='square';tick.frequency.setValueAtTime(1500,t);tick.frequency.exponentialRampToValueAtTime(720,t+.017);tg.gain.setValueAtTime(.54,t);tg.gain.exponentialRampToValueAtTime(.0001,t+.021);tick.connect(tg);tg.connect(master);tick.start(t);tick.stop(t+.023);
+      const ping=ctx.createOscillator(),pg=ctx.createGain();ping.type='triangle';ping.frequency.setValueAtTime(1700,t+.006);ping.frequency.exponentialRampToValueAtTime(1280,t+.06);pg.gain.setValueAtTime(.0001,t);pg.gain.exponentialRampToValueAtTime(.36,t+.008);pg.gain.exponentialRampToValueAtTime(.0001,t+.078);ping.connect(pg);pg.connect(master);ping.start(t+.004);ping.stop(t+.082);
+      const body=ctx.createOscillator(),bg=ctx.createGain();body.type='sine';body.frequency.setValueAtTime(125,t);body.frequency.exponentialRampToValueAtTime(76,t+.032);bg.gain.setValueAtTime(.36,t);bg.gain.exponentialRampToValueAtTime(.0001,t+.036);body.connect(bg);bg.connect(master);body.start(t);body.stop(t+.039);
+    }catch{}
+  }
+
   function switchView(name){
     $$('.m-view').forEach(v=>v.classList.toggle('is-active',v.dataset.view===name));
     $$('.m-bottom-nav button').forEach(b=>b.classList.toggle('is-active',b.dataset.target===name));
@@ -342,7 +367,7 @@
   function updateRxNextDose(){
     const next=$('#mRxNextDoseBtn'),used=loadRxDay().draws.length;
     next.hidden=used>=3||!$('#mRxCard').classList.contains('is-revealed');
-    if(!next.hidden)next.textContent=`NEXT RX // DOSE ${used+1} OF 3 ↗`;
+    if(!next.hidden)next.textContent=`NEXT DAILY DOSE // ${used+1} OF 3 ↗`;
   }
   function rxShowCard(index,sealed){
     const card=$('#mRxCard'),stage=$('#mRxCardStage');
@@ -407,7 +432,7 @@
     $('#mRxScanStage').hidden=false;$('#mRxScanStage').classList.remove('is-leaving');
     $('#mRxScan').innerHTML='';
     const day=loadRxDay(),lines=rxHackLines(day.draws.length>=3);
-    $('#mRxDrawCount').textContent=day.draws.length>=3?'DAILY RX MEMORY // 3 / 3':`DIAGNOSIS ${day.draws.length+1} / 3`;
+    $('#mRxDrawCount').textContent=day.draws.length>=3?'DAILY DOSE MEMORY // 3 / 3':`DIAGNOSIS ${day.draws.length+1} / 3`;
     await rxDelay(230);
     for(let i=0;i<lines.length;i++){
       if(!dialog.open||token!==rxRunToken)return;
@@ -542,9 +567,15 @@
     setupSearch($('#mBloodlineSearch'),$('#mBloodlineSuggestions'),m=>{bloodlineSource=m;renderBloodline()},bloodlineSource);
     renderScanner(current);renderCrossbreed();setMutationSeed(mutationSeed);renderBloodline();renderArchive();updateRxCount();
 
-    $$('.m-bottom-nav button').forEach(b=>b.onclick=()=>switchView(b.dataset.target));
-    $$('[data-primary-view]').forEach(b=>b.onclick=()=>switchView(b.dataset.primaryView));
-    $('[data-open-archive]').onclick=()=>switchView('archive');
+    $$('.m-bottom-nav button').forEach(b=>{
+      b.addEventListener('pointerdown',()=>{if(!b.classList.contains('is-active'))playMobileMenuSfx()});
+      b.onclick=()=>{switchView(b.dataset.target)};
+    });
+    $$('[data-primary-view]').forEach(b=>{
+      b.addEventListener('pointerdown',()=>{if(!b.classList.contains('is-active'))playMobileMenuSfx()});
+      b.onclick=()=>{switchView(b.dataset.primaryView)};
+    });
+    $('[data-open-archive]').onclick=()=>{playMobileMenuSfx();switchView('archive')};
     $('#mDatasetVersion').textContent=`TOP500 + ${(window.CINEGENOME_WATCH_ONCE_EXTRA||[]).length} WATCH-ONCE`;
     $('#mContamination').textContent=`${(1.2+MOVIES.length/40).toFixed(1)}%`;
     $$('.m-info').forEach(b=>b.onclick=()=>openInfo(b.dataset.info));

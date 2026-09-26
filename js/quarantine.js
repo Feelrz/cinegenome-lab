@@ -26,7 +26,7 @@
   const hash=text=>{let n=2166136261;for(const c of text){n^=c.charCodeAt(0);n=Math.imul(n,16777619)}return n>>>0};
   const day=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
   const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const normalize=value=>String(value||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+  const normalize=value=>String(value||'').trim().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'');
   const select=date=>groups.map((items,i)=>items[hash(`${date}|CG-000|${i}`)%items.length]).filter(item=>byRank.has(item.rank));
   let dossier;
   function open(){
@@ -71,6 +71,11 @@
     e.preventDefault();const code=normalize(terminal.querySelector('input').value);
     if(code==='CG000'){terminal.close();open()}
     else if(code==='DEAD300'){terminal.close();document.dispatchEvent(new CustomEvent('cinegenome:quarantine-weird'))}
+    else if(code===window.CINEGENOME_YUGEN?.ACCESS || code==='CGYUGENREI09'){
+      terminal.querySelector('.quarantine-terminal-status').textContent='KEY ACCEPTED // 幽玄回線 接続準備';
+      terminal.close();
+      setTimeout(()=>window.CINEGENOME_YUGEN?.enter(),45);
+    }
     else terminal.querySelector('.quarantine-terminal-status').textContent='SPECIMEN DOES NOT EXIST. STOP LOOKING FOR IT.';
   });
 })();

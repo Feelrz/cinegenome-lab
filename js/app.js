@@ -137,6 +137,147 @@
   let deadPickerSelection = null;
   let deadPickerTimer = null;
   let bootDismissTimer = null;
+  let labUiAudioContext = null;
+  const LAB_SFX_KEY='cinegenome_ui_sfx_v1';
+  let labSfxEnabled=true;
+  try{ labSfxEnabled=localStorage.getItem(LAB_SFX_KEY)!=='off'; }catch{}
+
+  function syncLabSfxButton(){
+    const btn=$('#globalSfxToggle');
+    if(!btn)return;
+    btn.textContent=`SFX // ${labSfxEnabled?'ON':'OFF'}`;
+    btn.setAttribute('aria-pressed',String(labSfxEnabled));
+    btn.classList.toggle('is-muted',!labSfxEnabled);
+  }
+
+  function playLabMenuSfx(isFilmprint=false){
+    if(!labSfxEnabled)return;
+    try{
+      const AudioCtx=window.AudioContext||window.webkitAudioContext;
+      if(!AudioCtx)return;
+      const ctx=labUiAudioContext||(labUiAudioContext=new AudioCtx());
+      if(ctx.state==='suspended')ctx.resume().catch(()=>{});
+      const now=ctx.currentTime;
+
+      // Master bus: short, dry and deliberately restrained so repeated navigation
+      // feels like a tactile laboratory switch rather than a notification sound.
+      const master=ctx.createGain();
+      const compressor=ctx.createDynamicsCompressor();
+      compressor.threshold.setValueAtTime(-20,now);
+      compressor.knee.setValueAtTime(8,now);
+      compressor.ratio.setValueAtTime(5,now);
+      compressor.attack.setValueAtTime(0.001,now);
+      compressor.release.setValueAtTime(0.055,now);
+      master.gain.setValueAtTime(0.0001,now);
+      master.gain.exponentialRampToValueAtTime(isFilmprint?0.112:0.090,now+0.002);
+      master.gain.exponentialRampToValueAtTime(0.0001,now+(isFilmprint?0.19:0.14));
+      master.connect(compressor); compressor.connect(ctx.destination);
+
+      // 1) Mechanical contact: a tiny filtered noise snap gives the click its tactile edge.
+      const noiseLen=Math.max(1,Math.floor(ctx.sampleRate*0.035));
+      const noiseBuffer=ctx.createBuffer(1,noiseLen,ctx.sampleRate);
+      const noise=noiseBuffer.getChannelData(0);
+      for(let i=0;i<noiseLen;i++){
+        const env=Math.pow(1-i/noiseLen,4);
+        noise[i]=(Math.random()*2-1)*env;
+      }
+      const noiseSrc=ctx.createBufferSource();
+      const noiseHP=ctx.createBiquadFilter();
+      const noisePeak=ctx.createBiquadFilter();
+      const noiseGain=ctx.createGain();
+      noiseHP.type='highpass'; noiseHP.frequency.setValueAtTime(1200,now);
+      noisePeak.type='bandpass'; noisePeak.frequency.setValueAtTime(isFilmprint?3900:4550,now); noisePeak.Q.setValueAtTime(1.25,now);
+      noiseGain.gain.setValueAtTime(isFilmprint?0.76:0.64,now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.0001,now+0.028);
+      noiseSrc.buffer=noiseBuffer;
+      noiseSrc.connect(noiseHP); noiseHP.connect(noisePeak); noisePeak.connect(noiseGain); noiseGain.connect(master);
+      noiseSrc.start(now); noiseSrc.stop(now+0.035);
+
+      // 2) Hard digital switch transient.
+      const tick=ctx.createOscillator();
+      const tickGain=ctx.createGain();
+      tick.type='square';
+      tick.frequency.setValueAtTime(isFilmprint?1650:1420,now);
+      tick.frequency.exponentialRampToValueAtTime(isFilmprint?760:690,now+0.018);
+      tickGain.gain.setValueAtTime(0.58,now);
+      tickGain.gain.exponentialRampToValueAtTime(0.0001,now+0.022);
+      tick.connect(tickGain); tickGain.connect(master); tick.start(now); tick.stop(now+0.024);
+
+      // 3) Glassy confirmation ping — the 'high-tech lab' part of the sound.
+      const ping=ctx.createOscillator();
+      const pingGain=ctx.createGain();
+      ping.type='triangle';
+      ping.frequency.setValueAtTime(isFilmprint?1280:1760,now+0.006);
+      ping.frequency.exponentialRampToValueAtTime(isFilmprint?2140:1320,now+(isFilmprint?0.105:0.064));
+      pingGain.gain.setValueAtTime(0.0001,now);
+      pingGain.gain.exponentialRampToValueAtTime(isFilmprint?0.54:0.42,now+0.009);
+      pingGain.gain.exponentialRampToValueAtTime(0.0001,now+(isFilmprint?0.135:0.086));
+      ping.connect(pingGain); pingGain.connect(master); ping.start(now+0.004); ping.stop(now+(isFilmprint?0.14:0.09));
+
+      // 4) Very short sub 'thunk' prevents the click from sounding thin on speakers/headphones.
+      const body=ctx.createOscillator();
+      const bodyGain=ctx.createGain();
+      body.type='sine';
+      body.frequency.setValueAtTime(isFilmprint?165:135,now);
+      body.frequency.exponentialRampToValueAtTime(isFilmprint?88:78,now+0.035);
+      bodyGain.gain.setValueAtTime(0.42,now);
+      bodyGain.gain.exponentialRampToValueAtTime(0.0001,now+0.040);
+      body.connect(bodyGain); bodyGain.connect(master); body.start(now); body.stop(now+0.043);
+
+      // FILMPRINT gets one extra micro data-chirp, keeping it recognisable without being louder.
+      if(isFilmprint){
+        const chirp=ctx.createOscillator();
+        const chirpGain=ctx.createGain();
+        chirp.type='sine';
+        chirp.frequency.setValueAtTime(2250,now+0.065);
+        chirp.frequency.exponentialRampToValueAtTime(3100,now+0.125);
+        chirpGain.gain.setValueAtTime(0.0001,now+0.060);
+        chirpGain.gain.exponentialRampToValueAtTime(0.28,now+0.073);
+        chirpGain.gain.exponentialRampToValueAtTime(0.0001,now+0.145);
+        chirp.connect(chirpGain); chirpGain.connect(master); chirp.start(now+0.060); chirp.stop(now+0.148);
+      }
+    }catch{}
+  }
+
+  function playLabActionSfx(){
+    if(!labSfxEnabled)return;
+    try{
+      const AudioCtx=window.AudioContext||window.webkitAudioContext;
+      if(!AudioCtx)return;
+      const ctx=labUiAudioContext||(labUiAudioContext=new AudioCtx());
+      if(ctx.state==='suspended')ctx.resume().catch(()=>{});
+      const now=ctx.currentTime;
+      const master=ctx.createGain();
+      master.gain.setValueAtTime(0.0001,now);
+      master.gain.exponentialRampToValueAtTime(0.075,now+0.002);
+      master.gain.exponentialRampToValueAtTime(0.0001,now+0.095);
+      master.connect(ctx.destination);
+
+      const snap=ctx.createOscillator(), snapGain=ctx.createGain();
+      snap.type='square';
+      snap.frequency.setValueAtTime(1760,now);
+      snap.frequency.exponentialRampToValueAtTime(860,now+0.018);
+      snapGain.gain.setValueAtTime(0.56,now);
+      snapGain.gain.exponentialRampToValueAtTime(0.0001,now+0.024);
+      snap.connect(snapGain); snapGain.connect(master); snap.start(now); snap.stop(now+0.026);
+
+      const relay=ctx.createOscillator(), relayGain=ctx.createGain();
+      relay.type='triangle';
+      relay.frequency.setValueAtTime(540,now+0.018);
+      relay.frequency.exponentialRampToValueAtTime(1180,now+0.066);
+      relayGain.gain.setValueAtTime(0.0001,now);
+      relayGain.gain.exponentialRampToValueAtTime(0.34,now+0.022);
+      relayGain.gain.exponentialRampToValueAtTime(0.0001,now+0.085);
+      relay.connect(relayGain); relayGain.connect(master); relay.start(now+0.015); relay.stop(now+0.09);
+
+      const body=ctx.createOscillator(), bodyGain=ctx.createGain();
+      body.type='sine'; body.frequency.setValueAtTime(118,now);
+      body.frequency.exponentialRampToValueAtTime(72,now+0.038);
+      bodyGain.gain.setValueAtTime(0.22,now);
+      bodyGain.gain.exponentialRampToValueAtTime(0.0001,now+0.042);
+      body.connect(bodyGain); bodyGain.connect(master); body.start(now); body.stop(now+0.045);
+    }catch{}
+  }
 
   // One TMDB request per specimen at a time, shared by Scanner/Crossbreed/Mutation.
   const metadataHydrationInFlight = new Map();
@@ -508,11 +649,28 @@
     deadAudioTimer=setTimeout(playDeadLaugh,pause);
   }
 
+  function primeDeadAudio(){
+    const audio=$('#deadChannelAudio');
+    if(!audio || !deadSoundEnabled)return;
+    try{
+      audio.pause();
+      audio.currentTime=0;
+      audio.muted=true;
+      audio.volume=.13;
+      audio.playbackRate=.88;
+      const p=audio.play();
+      if(p?.catch)p.catch(()=>{ audio.muted=false; });
+    }catch{ audio.muted=false; }
+  }
+
   function startDeadAudio(){
     const audio=$('#deadChannelAudio');
     if(!audio || !deadSoundEnabled)return;
     clearDeadAudioTimer();
     try{
+      audio.pause();
+      audio.currentTime=0;
+      audio.muted=false;
       audio.volume=.01;
       audio.playbackRate=.88;
       audio.currentTime=0;
@@ -634,14 +792,15 @@
       $('#deadPickerOpen').disabled=true;
     }
 
-    // Trigger audio from the initiating user gesture before the transition delay.
-    startDeadAudio();
+    // Unlock the audio element silently from the initiating gesture. The laugh itself
+    // starts only after the hijack transition has finished, so loading and page ambience
+    // can never overlap.
+    primeDeadAudio();
     await runDeadTransition();
 
     dialog.classList.remove('is-leaving');
     dialog.showModal();
-    // If autoplay was deferred by the browser, this second attempt follows the same user-triggered sequence.
-    if(deadSoundEnabled) setTimeout(playDeadLaugh,350);
+    if(deadSoundEnabled) setTimeout(startDeadAudio,520);
     log('DEAD CHANNEL MIRROR LOADED // NORMAL SITE SUSPENDED');
   }
 
@@ -823,16 +982,38 @@
       const wave = Math.sin(t * Math.PI * (4 + pacing * 16) + seed) * (22 + intensity * 47);
       const distortion = Math.sin(t * Math.PI * (17 + chaos * 29) + seed*2.7) * chaos * 20;
       const drift = Math.sin(t * Math.PI * 2 + dream * 3) * dream * 23;
-      const y = mid + wave * (.55 + .35 * Math.sin(t * Math.PI * 3 + dream)) + distortion + drift;
-      const y2 = mid - wave * .58 + Math.sin(t*Math.PI*11 + seed) * visual * 15;
+      const genomeSignature = DIMS.slice(0, 12).reduce((sum, d, i) => {
+        const centered = (clamp(dna[d.key]) - 50) / 50;
+        return sum + Math.sin(t * Math.PI * (3.1 + i * 1.37) + seed * .013 * (i + 1)) * centered;
+      }, 0) * 2.35;
+      const y = mid + wave * (.55 + .35 * Math.sin(t * Math.PI * 3 + dream)) + distortion + drift + genomeSignature;
+      const y2 = mid - wave * .58 + Math.sin(t*Math.PI*11 + seed) * visual * 15 - genomeSignature * .55;
       p1 += `${x===0?'M':'L'}${x.toFixed(1)},${y.toFixed(1)} `;
       p2 += `${x===0?'M':'L'}${x.toFixed(1)},${y2.toFixed(1)} `;
     }
-    DIMS.slice(0, 12).forEach((d, i) => {
+    // The raw DNA values often cluster around the mid-range for grounded films.
+    // Keep those raw 0-100 values intact, but give the scanner a specimen-relative
+    // contrast pass so the shape of each profile is actually readable at a glance.
+    // The tiny number above every bar is always the unmodified raw DNA score.
+    const scopeDims = DIMS.slice(0, 12);
+    const scopeValues = scopeDims.map(d => clamp(dna[d.key]));
+    const scopeMin = Math.min(...scopeValues);
+    const scopeMax = Math.max(...scopeValues);
+    const scopeRange = Math.max(8, scopeMax - scopeMin);
+    scopeDims.forEach((d, i) => {
       const x = 45 + i * 72;
-      const v = clamp(dna[d.key]);
-      const bh = 10 + v * .55;
-      bars += `<rect x="${x}" y="${242-bh}" width="12" height="${bh}" fill="${v>88?'#d03728':'#b8ff35'}" opacity=".82"/><text x="${x+6}" y="258" text-anchor="middle" fill="#8e9887" font-size="7">${esc(d.label.slice(0,3).toUpperCase())}</text>`;
+      const v = scopeValues[i];
+      const relative = clamp((v - scopeMin) / scopeRange, 0, 1);
+      // 35% absolute magnitude + 65% local profile contrast. This exaggerates
+      // differences visually without modifying the underlying DNA data.
+      const expression = clamp((v / 100) * .35 + relative * .65, 0, 1);
+      const bh = 16 + expression * 78;
+      const y = 242 - bh;
+      const hot = v > 88;
+      bars += `<rect x="${x}" y="${y.toFixed(1)}" width="12" height="${bh.toFixed(1)}" fill="${hot?'#d03728':'#b8ff35'}" opacity=".88"/>`
+        + `<line x1="${x-3}" y1="${y.toFixed(1)}" x2="${x+15}" y2="${y.toFixed(1)}" stroke="${hot?'#d03728':'#b8ff35'}" stroke-width="1" opacity=".36"/>`
+        + `<text x="${x+6}" y="${Math.max(36,y-5).toFixed(1)}" text-anchor="middle" fill="${hot?'#d03728':'#b8ff35'}" font-size="7" opacity=".92">${Math.round(v)}</text>`
+        + `<text x="${x+6}" y="258" text-anchor="middle" fill="#8e9887" font-size="7">${esc(d.label.slice(0,3).toUpperCase())}</text>`;
     });
     svg.innerHTML = `
       <rect width="900" height="270" fill="#121712"/>
@@ -1164,6 +1345,7 @@
     log(`MUTATION SEED LOADED: ${movie.title.toUpperCase()} // ${activeMutationSeedCode}`);
   }
 
+
   function renderMutation(options={}) {
     const match = nearest(mutationDNA, [], 1)[0];
     if (!match) return;
@@ -1198,6 +1380,8 @@
   function renderTubes() {
     const host = $('#testTubes');
     const sample = DIMS.slice(0, 6);
+    // Beta49 mechanics: the liquid level is a pure CSS level on the vessel.
+    // Keep the newer 3×2 chamber layout, but avoid extra badges/inner boxes.
     host.innerHTML = sample.map(d => `<div class="tube-wrap"><div class="tube" style="--level:${clamp(mutationDNA[d.key])}%"></div><div class="tube-label">${esc(d.label.toUpperCase())}</div></div>`).join('');
   }
 
@@ -1281,6 +1465,10 @@
         const id=Number(node.dataset.id);
         inspectAtlasNode(id, xKey, yKey);
         if(!showLabels) revealAtlasNodeTitle(node,id);
+        else {
+          clearAtlasNodeTitle();
+          node.classList.add('is-selected');
+        }
       };
       node.addEventListener('click', e => { e.stopPropagation(); inspect(); });
       node.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){e.preventDefault();inspect();} });
@@ -1374,7 +1562,19 @@
   function inspectAtlasNode(id, xKey, yKey) {
     const m = movieById(id); if(!m) return;
     const xl=DIMS.find(d=>d.key===xKey)?.label||xKey, yl=DIMS.find(d=>d.key===yKey)?.label||yKey;
-    $('#atlasDetail').innerHTML = `<strong>${esc(m.title)} (${m.year})</strong> — ${esc(m.director)} · ${esc(xl)} ${m.dna[xKey]} · ${esc(yl)} ${m.dna[yKey]} · <button class="table-action" type="button" id="atlasScanBtn">SCAN SPECIMEN</button>`;
+    $('#atlasDetail').innerHTML = `
+      <div class="atlas-detail-card">
+        <div class="atlas-detail-copy">
+          <span>SELECTED SPECIMEN</span>
+          <strong>${esc(m.title)} <em>${m.year||'—'}</em></strong>
+          <small>${esc(m.director||'UNKNOWN DIRECTOR')}</small>
+        </div>
+        <div class="atlas-detail-coordinates">
+          <span><i>X // ${esc(xl.toUpperCase())}</i><b>${m.dna[xKey]}</b></span>
+          <span><i>Y // ${esc(yl.toUpperCase())}</i><b>${m.dna[yKey]}</b></span>
+        </div>
+        <button class="table-action atlas-detail-scan" type="button" id="atlasScanBtn">SCAN SPECIMEN →</button>
+      </div>`;
     window.CINEGENOME_ANOMALY?.atlas(m,xKey,yKey);
     $('#atlasScanBtn').addEventListener('click', () => { renderScanner(m.id); switchView('scanner'); });
   }
@@ -1530,7 +1730,7 @@
     const nextDose=$('#rxNextDoseBtn');
     const usedDoses=loadRxDay().draws.length;
     nextDose.hidden=stage<2 || usedDoses>=3;
-    if(!nextDose.hidden) nextDose.textContent=`NEXT RX // DOSE ${usedDoses+1} OF 3 ↗`;
+    if(!nextDose.hidden) nextDose.textContent=`NEXT DAILY DOSE // ${usedDoses+1} OF 3 ↗`;
     $('#rxSynopsis').hidden = true;
     $('#rxDNA').hidden = true;
     $('#rxSynopsisBtn').classList.remove('is-active');
@@ -1621,7 +1821,7 @@
 
     const isMemoryRecheck = used >= 3;
     const drawNo = isMemoryRecheck ? 3 : used + 1;
-    $('#rxDrawCount').textContent = isMemoryRecheck ? 'DAILY RX MEMORY // 3 / 3' : `DIAGNOSIS ${drawNo} / 3`;
+    $('#rxDrawCount').textContent = isMemoryRecheck ? 'DAILY DOSE MEMORY // 3 / 3' : `DIAGNOSIS ${drawNo} / 3`;
     const lines=$('#rxDiagnosticLines');
     lines.innerHTML='';
     const seedBase=hash32(`${HACK_SESSION_SEED}|${day.date}|${drawNo}|${isMemoryRecheck ? 'memory-recheck' : 'fresh-diagnosis'}`);
@@ -1736,7 +1936,7 @@
       link:[
         'SUBJECT LINK RE-ESTABLISHED',
         'RETURNING SUBJECT DETECTED',
-        'RX MEMORY CHANNEL REOPENED',
+        'DAILY DOSE MEMORY REOPENED',
         'KNOWN VIEWER SIGNATURE CONFIRMED',
         'PRIOR DIAGNOSTIC SESSION RECOVERED',
         'DAILY SUBJECT CACHE RESTORED',
@@ -1745,8 +1945,8 @@
       ],
       quota:[
         'DAILY PRESCRIPTION QUOTA DETECTED // 03 OF 03',
-        'THREE ACTIVE DOSES FOUND // NO FOURTH ENTRY',
-        'DAILY RX LIMIT CONFIRMED // ARCHIVE LOCKED',
+        'THREE DAILY DOSES FOUND // NO FOURTH ENTRY',
+        'DAILY DOSE LIMIT CONFIRMED // ARCHIVE LOCKED',
         'PRESCRIPTION CAPACITY SATURATED // 03/03',
         'NO UNUSED DIAGNOSTIC SLOTS REMAIN',
         'DAILY CINEMATIC DOSAGE COMPLETE'
@@ -1769,14 +1969,14 @@
       ],
       restore:[
         'RE-INDEXING SAVED SPECIMENS',
-        'RECONSTRUCTING DAILY RX MEMORY',
+        'RECONSTRUCTING DAILY DOSE MEMORY',
         'MOUNTING THREE SEALED PRESCRIPTIONS',
         'RECOVERING PRIOR SPECIMEN STATES',
         'REASSEMBLING CINEMATIC MEMORY',
         'RESTORING SAVED MATCHES FROM CACHE'
       ],
       final:[
-        'RX MEMORY UNSEALED // LAST MATCH RESTORED',
+        'DAILY DOSE MEMORY UNSEALED // LAST MATCH RESTORED',
         'DAILY ARCHIVE OPEN // SELECT A SAVED DOSE',
         'MEMORY RESTORED // THREE PRESCRIPTIONS AVAILABLE',
         'RX HISTORY MOUNTED // NO NEW MATCH GENERATED',
@@ -2036,7 +2236,114 @@
     if(test) test.addEventListener('click',()=>updateTMDBState(true));
   }
 
+  function filmprintFingerprintSvg(){
+    return `<svg viewBox="0 0 140 170" aria-hidden="true">
+      <path d="M70 12c-31 0-55 23-55 55 0 18 5 28 7 45"/>
+      <path d="M70 25c-24 0-43 18-43 43 0 16 5 27 6 43"/>
+      <path d="M70 38c-17 0-31 13-31 31 0 23 9 35 7 63"/>
+      <path d="M70 51c-10 0-18 8-18 19 0 27 13 37 8 76"/>
+      <path d="M70 51c10 0 18 8 18 19 0 32-16 42-11 83"/>
+      <path d="M70 38c17 0 31 13 31 31 0 29-14 44-10 69"/>
+      <path d="M70 25c24 0 43 18 43 43 0 24-10 38-8 58"/>
+      <path d="M70 12c31 0 55 23 55 55 0 22-8 35-8 49"/>
+    </svg>`;
+  }
+
+  function ensureFilmprintScanGate(){
+    let gate=document.getElementById('filmprintScanGate');
+    if(gate)return gate;
+    gate=document.createElement('div');
+    gate.id='filmprintScanGate';
+    gate.className='filmprint-scan-gate';
+    gate.setAttribute('aria-hidden','true');
+    const axisCodes=['RLT','SOL','ROM','NOS','INT','PAC','VIS','CMP','DRK','HMR','DRM','ACT','HOR','WRM','ITM'];
+    gate.innerHTML=`
+      <div class="fp-entry-flash" aria-hidden="true"></div>
+      <div class="fp-scan-terminal">
+        <div class="fp-scan-kicker">CINEGENOME // SUBJECT PRINT ACQUISITION</div>
+        <div class="fp-assay-rig" aria-hidden="true">
+          <div class="fp-rig-side fp-rig-left"><span>PORT // 09</span><span>RIDGE MAP</span><span>NO BIOMETRIC DATA</span></div>
+          <div class="fp-scan-core">
+            <div class="fp-orbit fp-orbit-a"></div>
+            <div class="fp-orbit fp-orbit-b"></div>
+            <div class="fp-reticle"><i></i><i></i><i></i><i></i></div>
+            <div class="fp-sensor">
+              <div class="fp-sensor-grid"></div>
+              ${filmprintFingerprintSvg()}
+              <div class="fp-scan-sweep"></div>
+              <div class="fp-lock-mark"><b>+</b><span>PRINT<br>LOCKED</span></div>
+            </div>
+          </div>
+          <div class="fp-rig-side fp-rig-right"><span>30 SIGNALS</span><span>15 AXES</span><span>LOCAL ASSAY</span></div>
+        </div>
+        <div class="fp-scan-title" data-fp-entry-title>FILMPRINT ACCESS</div>
+        <div class="fp-scan-copy" data-fp-entry-copy>CALIBRATING RIDGE FIELD…</div>
+        <div class="fp-axis-strip" aria-hidden="true">${axisCodes.map((code,i)=>`<span style="--i:${i}"><i></i><b>${code}</b></span>`).join('')}</div>
+        <div class="fp-scan-meter"><i data-fp-entry-meter></i></div>
+        <div class="fp-scan-readouts"><span>SUBJECT // PRESENT</span><span>PRINT // UNRESOLVED</span><span>ASSAY // STANDBY</span></div>
+      </div>`;
+    document.body.appendChild(gate);
+    return gate;
+  }
+
+  function playFilmprintEntryScan(){
+    const gate=ensureFilmprintScanGate();
+    const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+    const copy=gate.querySelector('[data-fp-entry-copy]');
+    const title=gate.querySelector('[data-fp-entry-title]');
+    const meter=gate.querySelector('[data-fp-entry-meter]');
+    const cells=[...gate.querySelectorAll('.fp-scan-readouts span')];
+    const phases=['phase-reading','phase-mapping','phase-lock','is-release'];
+    phases.forEach(c=>gate.classList.remove(c));
+    gate.classList.add('is-active');
+    gate.setAttribute('aria-hidden','false');
+    if(title) title.textContent='FILMPRINT ACCESS';
+    if(copy) copy.textContent='CALIBRATING RIDGE FIELD…';
+    if(meter) meter.style.width='5%';
+    cells.forEach(x=>x.classList.remove('is-on'));
+    cells[0]?.classList.add('is-on');
+    const end=()=>{
+      gate.classList.remove('is-active','phase-reading','phase-mapping','phase-lock','is-release');
+      gate.setAttribute('aria-hidden','true');
+    };
+    if(reduced){
+      if(title) title.textContent='PRINT LOCKED';
+      if(copy) copy.textContent='FILMPRINT CHAMBER UNSEALED.';
+      if(meter) meter.style.width='100%';
+      cells.forEach(x=>x.classList.add('is-on'));
+      gate.classList.add('phase-lock');
+      setTimeout(end,320);
+      return;
+    }
+    requestAnimationFrame(()=>gate.classList.add('phase-reading'));
+    setTimeout(()=>{
+      gate.classList.add('phase-mapping');
+      if(copy) copy.textContent='TRACING SUBJECT CINEMA SIGNATURE…';
+      if(meter) meter.style.width='44%';
+      cells[1]?.classList.add('is-on');
+    },560);
+    setTimeout(()=>{
+      if(copy) copy.textContent='MAPPING RIDGES TO 15 TASTE AXES…';
+      if(meter) meter.style.width='76%';
+    },1120);
+    setTimeout(()=>{
+      gate.classList.add('phase-lock');
+      if(title) title.textContent='PRINT LOCKED';
+      if(copy) copy.textContent='FILMPRINT CHAMBER UNSEALED.';
+      if(meter) meter.style.width='100%';
+      cells[2]?.classList.add('is-on');
+    },1700);
+    setTimeout(()=>gate.classList.add('is-release'),2200);
+    setTimeout(end,2680);
+  }
+
   function switchView(view) {
+    const wasFilmprint=document.body.classList.contains('filmprint-mode');
+    const filmprintMode=view==='dna';
+    // Cover the paper interface first, then swap the underlying theme. This prevents
+    // a single white/black repaint before the fingerprint terminal becomes visible.
+    if(filmprintMode && !wasFilmprint) playFilmprintEntryScan();
+    document.body.classList.toggle('filmprint-mode',filmprintMode);
     $$('.module-btn').forEach(b => b.classList.toggle('is-active', b.dataset.view === view));
     $$('.view').forEach(v => v.classList.toggle('is-active', v.dataset.viewPanel === view));
     if(view==='scanner') renderScanner(currentScannerId);
@@ -2050,6 +2357,8 @@
   }
 
   function init() {
+    // Mount the FILMPRINT cover during boot so the first click never pays a DOM-create frame.
+    ensureFilmprintScanGate();
     $('#mobileReturnLink')?.addEventListener('click',()=>{
       try{sessionStorage.removeItem('cinegenome_force_desktop')}catch{}
     });
@@ -2123,12 +2432,36 @@
     }));
     $('#moduleInfoClose')?.addEventListener('click',()=>$('#moduleInfoDialog')?.close());
 
-    $$('.module-btn').forEach(btn => btn.addEventListener('click', () => switchView(btn.dataset.view)));
+    $$('.module-btn').forEach(btn => {
+      btn.addEventListener('pointerdown', () => {
+        if(!btn.classList.contains('is-active')) playLabMenuSfx(btn.dataset.view==='dna');
+      });
+      btn.addEventListener('keydown', event => {
+        if((event.key==='Enter' || event.key===' ') && !btn.classList.contains('is-active')) playLabMenuSfx(btn.dataset.view==='dna');
+      });
+      btn.addEventListener('click', () => {
+        switchView(btn.dataset.view);
+      });
+    });
+    syncLabSfxButton();
+    $('#globalSfxToggle')?.addEventListener('click',()=>{
+      labSfxEnabled=!labSfxEnabled;
+      try{localStorage.setItem(LAB_SFX_KEY,labSfxEnabled?'on':'off')}catch{}
+      syncLabSfxButton();
+      window.dispatchEvent(new CustomEvent('cinegenome:sfx-change',{detail:{enabled:labSfxEnabled}}));
+      if(labSfxEnabled) playLabMenuSfx(false);
+    });
+    window.CINEGENOME_UI_SFX={
+      menu:playLabMenuSfx,
+      action:playLabActionSfx,
+      enabled:()=>labSfxEnabled
+    };
     $('#scannerSelect').addEventListener('change', e => renderScanner(Number(e.currentTarget.value)));
     $('#scannerSearch').addEventListener('input', e => handleScannerSearch(e.currentTarget.value));
     $('#scannerSearch').addEventListener('keydown', e => { if(e.key==='Enter') handleScannerSearch(e.currentTarget.value); });
     $('#openDossierBtn').addEventListener('click', () => openMovieDossier(movieById(currentScannerId)));
     $('#rxFab').addEventListener('click',()=>togglePrescriptionPanel());
+    $('#rxHeaderNote')?.addEventListener('click',()=>togglePrescriptionPanel(true));
     $('#rxCloseBtn').addEventListener('click',()=>togglePrescriptionPanel(false));
     $('#rxFloat').addEventListener('click',e=>e.stopPropagation());
     $('#rxBackdrop').addEventListener('click',()=>togglePrescriptionPanel(false));
@@ -2139,7 +2472,7 @@
     });
     $('#rxNext').addEventListener('click',()=>{
       const index=Number(currentPrescription?.drawNo||1)-1;
-      if(index+1<loadRxDay().draws.length)showSavedPrescription(index+1,true);
+      if(index+1<loadRxDay().draws.length)showSavedPrescription(index+1);
     });
     $('#rxTarotCard').addEventListener('click',advancePrescriptionCard);
     $('#rxNextDoseBtn').addEventListener('click',()=>{
@@ -2153,6 +2486,10 @@
       if(state.favorites.includes(id)) state.favorites=state.favorites.filter(x=>x!==id); else state.favorites.push(id);
       persistState(); renderScanner(id); renderArchive();
       log(state.favorites.includes(id)?'SPECIMEN SAVED TO ARCHIVE':'SPECIMEN REMOVED FROM ARCHIVE');
+    });
+
+    ['#breedBtn','#saveMutationBtn','#traceBloodlineBtn'].forEach(selector=>{
+      $(selector)?.addEventListener('pointerdown',playLabActionSfx);
     });
 
     $('#blendSlider').addEventListener('input', renderCrossbreed);
@@ -2248,7 +2585,7 @@
     });
     $('#specimenCodeForm')?.addEventListener('submit',e=>{
       e.preventDefault();
-      const raw=String($('#specimenCodeInput').value||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+      const raw=String($('#specimenCodeInput').value||'').trim().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'');
       if(raw==='CG000'){
         $('#specimenCodeReadout').textContent='ACCESS GRANTED // QUARANTINE FILE CG-000';
         $('#specimenCodeDialog')?.close();
@@ -2256,6 +2593,10 @@
       }else if(raw==='DEAD300'){
         $('#specimenCodeReadout').textContent='ACCESS GRANTED // CHANNEL D-300';
         setTimeout(()=>{ $('#specimenCodeDialog')?.close(); openSecretArchive(); },220);
+      }else if(raw===window.CINEGENOME_YUGEN?.ACCESS || raw==='CGYUGENREI09'){
+        $('#specimenCodeReadout').textContent='KEY ACCEPTED // 幽玄回線 接続準備';
+        $('#specimenCodeDialog')?.close();
+        setTimeout(()=>window.CINEGENOME_YUGEN?.enter(),45);
       }else{
         $('#specimenCodeReadout').textContent='SPECIMEN DOES NOT EXIST. STOP LOOKING FOR IT.';
       }
