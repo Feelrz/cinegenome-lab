@@ -18,4 +18,4 @@ window.CINEGENOME_DIMENSIONS = [
   {key:'humor',label:'Humor',group:'Tone'},
   {key:'dreamLogic',label:'Dream Logic',group:'Mind'}
 ];
-window.CINEGENOME_DATA_VERSION = 'top500-dna-2.0.0';
+window.CINEGENOME_DATA_VERSION = 'cinegenome-v5-beta78-data';

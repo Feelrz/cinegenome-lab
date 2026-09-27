@@ -5,6 +5,19 @@
   const $$=s=>[...document.querySelectorAll(s)];
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const norm=s=>String(s||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+  function bindReturnToLab(){
+    $$('a[href="index.html"]').forEach(link=>link.addEventListener('click',event=>{
+      if(event.defaultPrevented||(event.button&&event.button!==0)||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+      event.preventDefault();
+      try{
+        sessionStorage.setItem('cg_return_to_lab','yugen');
+        sessionStorage.setItem('cinegenome_boot_seen','1');
+      }catch{}
+      document.body.classList.add('y-returning-to-lab');
+      window.setTimeout(()=>window.location.assign(link.href),360);
+    }));
+  }
+  bindReturnToLab();
   const hasAccess=()=>{try{return localStorage.getItem(KEY)==='1'}catch{return false}};
   if(!hasAccess()){$('#yugenPage').classList.add('is-hidden');$('#yugenBoot').hidden=true;$('#yugenLock').hidden=false;return}
 
@@ -174,12 +187,39 @@
   $('#yRandom').addEventListener('click',()=>{if(!visible.length)return;const r=visible[Math.floor(Math.random()*visible.length)];renderDossier(r);dossier.scrollIntoView({behavior:'smooth',block:'nearest'})});
 
   const spinOverlay=$('#ySpinOverlay'),spinStage=$('#ySpinStage'),spinTitle=$('#ySpinTitle'),spinMeta=$('#ySpinMeta'),spinCounter=$('#ySpinCounter'),spinPool=$('#ySpinPool'),spinTape=$('#ySpinTape'),spinOpen=$('#ySpinOpen');
+  let spinAudio=null,spinSound=true,spinTimer=null,spinStartTimer=null;
+  try{spinSound=localStorage.getItem('cinegenome_yugen_sound_v1')!=='off' && localStorage.getItem('cinegenome_ui_sfx_v1')!=='off'}catch{}
+  function unlockSpinAudio(){
+    if(!spinSound)return;
+    try{
+      const Audio=window.AudioContext||window.webkitAudioContext;
+      if(!Audio)return;
+      spinAudio=spinAudio||new Audio();
+      if(spinAudio.state==='suspended')spinAudio.resume().catch(()=>{});
+    }catch{}
+  }
+  function spinTone(frequency,duration=.035,delay=0,volume=.025){
+    if(!spinSound || !spinAudio || document.hidden)return;
+    try{
+      const ctx=spinAudio,t=ctx.currentTime+delay,o=ctx.createOscillator(),g=ctx.createGain();
+      o.type='triangle';o.frequency.setValueAtTime(frequency,t);
+      o.frequency.exponentialRampToValueAtTime(frequency*.72,t+duration);
+      g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(volume,t+.004);
+      g.gain.exponentialRampToValueAtTime(.0001,t+duration);
+      o.connect(g).connect(ctx.destination);o.start(t);o.stop(t+duration+.015);
+      o.onended=()=>{o.disconnect();g.disconnect()};
+    }catch{}
+  }
+  const soundButton=$('#ySpinSound');
+  function paintSpinSound(){if(soundButton){soundButton.textContent='SFX '+(spinSound?'ON':'OFF');soundButton.setAttribute('aria-pressed',String(spinSound))}}
+  soundButton?.addEventListener('click',()=>{spinSound=!spinSound;try{localStorage.setItem('cinegenome_yugen_sound_v1',spinSound?'on':'off')}catch{}unlockSpinAudio();paintSpinSound()});
+  paintSpinSound();
   const rand=n=>{if(n<=1)return 0;try{const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]%n}catch{return Math.floor(Math.random()*n)}};
   const spinMetaText=r=>`${r.year||'YEAR —'} // ${r.sources.map(id=>id==='PURE'?'JP-01':'JP-02').join(' + ')} // ${r.dna?'DNA LINKED':'SOURCE ONLY'}`;
-  function openSpin(){if(!visible.length)return;spinOverlay.hidden=false;requestAnimationFrame(()=>spinOverlay.classList.add('is-open'));spinPool.textContent=`POOL // ${String(visible.length).padStart(3,'0')}`;spinPick=null;spinOpen.disabled=true;spinCounter.textContent='STANDBY // 待機';spinTitle.textContent='PRESS SPIN';spinMeta.textContent='CURRENT FILTERS BECOME THE DRAW POOL.';spinTape.innerHTML=visible.slice(0,7).map(r=>`<span>${esc(r.title)}</span>`).join('');setTimeout(()=>doSpin(),180)}
-  function closeSpin(){if(spinning)return;spinOverlay.classList.remove('is-open');setTimeout(()=>spinOverlay.hidden=true,240)}
-  function doSpin(){if(spinning||!visible.length)return;spinning=true;spinPick=null;spinOpen.disabled=true;spinStage.classList.add('is-spinning');spinCounter.textContent='抽選中 // SPINNING';let frame=0,total=Math.min(34,Math.max(24,visible.length>40?31:27));
-    const tick=()=>{const r=visible[rand(visible.length)];spinTitle.textContent=r.title;spinMeta.textContent=spinMetaText(r);const tape=[];for(let i=0;i<7;i++)tape.push(visible[rand(visible.length)]);spinTape.innerHTML=tape.map((x,i)=>`<span${i===3?' class="is-hot"':''}>${esc(x.title)}</span>`).join('');frame++;if(frame<total){setTimeout(tick,42+Math.pow(frame/total,3)*190)}else{spinPick=visible[rand(visible.length)];spinTitle.textContent=spinPick.title;spinMeta.textContent=spinMetaText(spinPick);spinCounter.textContent='抽選完了 // SPECIMEN LOCKED';spinStage.classList.remove('is-spinning');spinStage.classList.add('is-locked');setTimeout(()=>spinStage.classList.remove('is-locked'),520);spinOpen.disabled=false;spinning=false}};tick();
+  function openSpin(){if(!visible.length)return;unlockSpinAudio();spinOverlay.hidden=false;requestAnimationFrame(()=>spinOverlay.classList.add('is-open'));spinPool.textContent=`POOL // ${String(visible.length).padStart(3,'0')}`;spinPick=null;spinOpen.disabled=true;spinCounter.textContent='STANDBY // 待機';spinTitle.textContent='PRESS SPIN';spinMeta.textContent='CURRENT FILTERS BECOME THE DRAW POOL.';spinTape.innerHTML=visible.slice(0,7).map(r=>`<span>${esc(r.title)}</span>`).join('');clearTimeout(spinStartTimer);spinStartTimer=setTimeout(()=>doSpin(),180)}
+  function closeSpin(){clearTimeout(spinStartTimer);clearTimeout(spinTimer);spinning=false;spinStage.classList.remove('is-spinning','is-locked');spinOverlay.classList.remove('is-open');setTimeout(()=>spinOverlay.hidden=true,240)}
+  function doSpin(){if(spinning||!visible.length)return;unlockSpinAudio();spinning=true;spinPick=null;spinOpen.disabled=true;spinStage.classList.add('is-spinning');spinCounter.textContent='抽選中 // SPINNING';let frame=0,total=Math.min(34,Math.max(24,visible.length>40?31:27));
+    const tick=()=>{if(!spinning||spinOverlay.hidden)return;spinTone(940-(frame/total)*540);const r=visible[rand(visible.length)];spinTitle.textContent=r.title;spinMeta.textContent=spinMetaText(r);const tape=[];for(let i=0;i<7;i++)tape.push(visible[rand(visible.length)]);spinTape.innerHTML=tape.map((x,i)=>`<span${i===3?' class="is-hot"':''}>${esc(x.title)}</span>`).join('');frame++;if(frame<total){spinTimer=setTimeout(tick,42+Math.pow(frame/total,3)*190)}else{spinPick=visible[rand(visible.length)];spinTitle.textContent=spinPick.title;spinMeta.textContent=spinMetaText(spinPick);spinCounter.textContent='抽選完了 // SPECIMEN LOCKED';[440,660,880].forEach((f,i)=>spinTone(f,.16,i*.075,.025));spinStage.classList.remove('is-spinning');spinStage.classList.add('is-locked');setTimeout(()=>spinStage.classList.remove('is-locked'),520);spinOpen.disabled=false;spinning=false}};tick();
   }
   $('#ySpin').addEventListener('click',openSpin);$('#ySpinAgain').addEventListener('click',doSpin);spinOpen.addEventListener('click',()=>{if(!spinPick)return;renderDossier(spinPick);closeSpin();setTimeout(()=>dossier.scrollIntoView({behavior:'smooth',block:'start'}),260)});$$('[data-spin-close]').forEach(x=>x.addEventListener('click',closeSpin));
 

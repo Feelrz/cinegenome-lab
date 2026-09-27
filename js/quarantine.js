@@ -65,10 +65,23 @@
   const terminal=document.createElement('dialog');terminal.className='quarantine-terminal';terminal.setAttribute('aria-labelledby','quarantineTerminalTitle');
   terminal.innerHTML=`<form class="quarantine-terminal-shell"><header><span id="quarantineTerminalTitle">SPECIMEN ACCESS TERMINAL</span><button type="button" data-terminal-close aria-label="Close specimen terminal">×</button></header><div><label for="quarantineCodeInput">ENTER SPECIMEN CODE</label><input id="quarantineCodeInput" autocomplete="off" spellcheck="false" placeholder="CG-____"><p class="quarantine-terminal-status" aria-live="polite">AWAITING CODE… // CASE ZERO: CG-000</p><button type="submit">AUTHENTICATE</button></div></form>`;
   document.body.appendChild(terminal);
+  const mobileCodeInput=terminal.querySelector('input');
+  mobileCodeInput.addEventListener('keydown',e=>{
+    if(e.key!==' '||e.isComposing)return;
+    e.preventDefault();
+    mobileCodeInput.setRangeText('-',mobileCodeInput.selectionStart,mobileCodeInput.selectionEnd,'end');
+  });
+  mobileCodeInput.addEventListener('input',()=>{
+    if(!/\s/.test(mobileCodeInput.value))return;
+    const before=mobileCodeInput.value.slice(0,mobileCodeInput.selectionStart).replace(/\s/g,'-');
+    mobileCodeInput.value=mobileCodeInput.value.replace(/\s/g,'-');
+    mobileCodeInput.setSelectionRange(before.length,before.length);
+  });
   mobileTrigger.addEventListener('click',()=>{terminal.querySelector('input').value='';terminal.querySelector('.quarantine-terminal-status').textContent='AWAITING CODE… // CASE ZERO: CG-000';terminal.showModal();terminal.querySelector('input').focus()});
   terminal.querySelector('[data-terminal-close]').addEventListener('click',()=>terminal.close());
   terminal.querySelector('form').addEventListener('submit',e=>{
     e.preventDefault();const code=normalize(terminal.querySelector('input').value);
+    if(window.CINEGENOME_SPECIMEN_CODES?.run(code,{close:()=>terminal.close(),status:message=>{terminal.querySelector('.quarantine-terminal-status').textContent=message}}))return;
     if(code==='CG000'){terminal.close();open()}
     else if(code==='DEAD300'){terminal.close();document.dispatchEvent(new CustomEvent('cinegenome:quarantine-weird'))}
     else if(code===window.CINEGENOME_YUGEN?.ACCESS || code==='CGYUGENREI09'){

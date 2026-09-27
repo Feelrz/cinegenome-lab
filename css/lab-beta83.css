@@ -1,0 +1,95 @@
+/* Scoped laboratory instruments. Physical rules, clear labels, measured space. */
+.cg83-lab{--cg83-rule:#718169;--cg83-quiet:#465641}
+.cg83-lab .lab-panel{border-width:1px;box-shadow:3px 3px 0 #1720151c}
+.cg83-lab .panel-head{padding:12px 15px;min-height:45px;font-size:11px;line-height:1.4}
+.cg83-lab .panel-body{padding:clamp(16px,2vw,26px)}
+.cg83-protocol{display:flex;align-items:baseline;justify-content:space-between;gap:14px 28px;flex-wrap:wrap;padding:0 0 18px;margin:0 0 21px;border-bottom:1px solid #74836a}
+.cg83-protocol>div{flex:1 1 330px;min-width:0}
+.cg83-protocol span{font:700 10px/1.5 var(--mono,"Courier New",monospace);letter-spacing:.07em;color:#704334}
+.cg83-protocol h2{font:800 clamp(25px,3.1vw,42px)/1.07 var(--font-brand,Arial,sans-serif);letter-spacing:-.045em;margin:6px 0 9px}
+.cg83-protocol p{max-width:66ch;margin:0;font:500 13px/1.65 var(--font-body,Arial,sans-serif);color:#34482f}
+.cg83-protocol ol{list-style:none;display:flex;flex-wrap:wrap;gap:7px 16px;padding:0;margin:0;font:700 10px/1.6 var(--mono,"Courier New",monospace);color:#43573b}
+.cg83-lab .field label,.cg83-lab .micro,.cg83-lab .bloodline-note{font-size:11px;line-height:1.6;color:#46533f}
+.cg83-lab .parent-grid{gap:14px;align-items:center}
+.cg83-lab .balance-block{padding:20px 0;margin:9px 0;border-block:1px solid #9ba88e}
+.cg83-lab .balance-label{gap:12px;align-items:center;flex-wrap:wrap;line-height:1.5}
+.cg83-lab .balance-numbers{font-size:16px;font-weight:800}
+.cg83-lab .action-row{gap:9px;margin:16px 0 22px;flex-wrap:wrap}
+.cg83-lab .scope-wrap{border:1px solid #5f7453;box-shadow:none}
+.cg83-lab .result-title{font-size:clamp(22px,2.5vw,33px);line-height:1.12;overflow-wrap:anywhere;margin:9px 0}
+.cg83-lab .massive-number{font-size:clamp(38px,5vw,67px);line-height:1.1;margin:5px 0}
+.cg83-lab .report-box{font-size:12px;line-height:1.65;padding:15px;border-color:#879778;box-shadow:none}
+.cg83-lab .mutation-control{min-height:50px;gap:14px;border-bottom:1px solid #a8b298}
+.cg83-lab .mutation-control>span{font-size:11px;line-height:1.5}
+.cg83-lab .mutation-control>strong{font-size:14px}
+.cg83-lab .atlas-wrap,.cg83-lab .bloodline-wrap{border:1px solid #677e56;margin-top:20px;box-shadow:none}
+.cg83-lab .atlas-grid{stroke:#42513b;stroke-width:1}
+.cg83-lab .atlas-tick{fill:#b3c3a6;font-size:12px}
+.cg83-lab .atlas-axis-label{fill:#d7e6c9;font-size:14px}
+.cg83-lab .bloodline-link{stroke-width:1.7;opacity:.9}
+.cg83-lab .bloodline-node text{font-size:12px;fill:#ebf3df}
+.cg83-lab .bloodline-node .bloodline-rel{font-size:9px;fill:#bfceb3}
+.cg83-lab .bloodline-detail{color:#31422b;font-size:13px;line-height:1.6;padding:15px 0}
+.cg83-lab .bloodline-node:focus-visible{outline:none}
+.cg83-lab .bloodline-node:focus-visible circle{stroke:#ebff94;stroke-width:4}
+.cg83-instrument{padding:17px 0;margin:18px 0;border-top:2px solid #536b43;border-bottom:1px solid #8b9a7c;color:#253720}
+.cg83-instrument-head{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font:700 10px/1.5 var(--mono,"Courier New",monospace);margin-bottom:10px}
+.cg83-instrument-head span{color:#516346;font-size:9px}
+.cg83-differential{width:100%;border-collapse:collapse;font:600 12px/1.5 var(--mono,"Courier New",monospace);table-layout:fixed}
+.cg83-differential th,.cg83-differential td{padding:9px 5px;border-bottom:1px solid #a1ae93;text-align:right;overflow-wrap:anywhere}
+.cg83-differential th:first-child{width:40%;text-align:left}
+.cg83-differential thead th{font-size:9px;color:#435c36}
+.cg83-differential .is-blend{background:#d5e0bc;color:#223718}
+.cg83-instrument-empty{font:12px/1.5 var(--mono,monospace)}
+.cg83-map-note{font:11px/1.6 var(--mono,"Courier New",monospace);color:#4d6340;margin:12px 0}
+
+.cg83-archive-tabs{display:flex;gap:0;border-bottom:2px solid #526846;margin:7px 0 19px}
+.cg83-archive-tabs button{flex:1;min-height:48px;border:1px solid #78886b;border-bottom:0;background:#dce3d0;color:#30402a;font:800 11px/1.4 var(--mono,"Courier New",monospace);padding:12px}
+.cg83-archive-tabs button[aria-pressed="true"]{background:#263520;color:#deefc8}
+.cg83-archive-tools{display:flex;flex-wrap:wrap;gap:12px;align-items:end}
+.cg83-archive-tools label{flex:1 1 170px;min-width:0}
+.cg83-archive-tools label[hidden]{display:none}
+.cg83-archive-tools span{display:block;color:#4a5d3e;font:700 9px/1.5 var(--mono,monospace);margin-bottom:5px}
+.cg83-archive-tools input,.cg83-archive-tools select{width:100%;min-height:44px;padding:10px;border:1px solid #6c805a;background:#e9eedf;color:#28371f;border-radius:0;font:13px/1.4 var(--mono,monospace)}
+.cg83-archive-caption{font:11px/1.7 var(--mono,"Courier New",monospace);color:#4e6141;margin:16px 0}
+.cg83-archive-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;padding:18px 0;border-top:1px solid #8a9b79;color:#26371f}
+.cg83-archive-row>div{flex:1 1 200px;min-width:0}
+.cg83-archive-row small{font:700 9px/1.6 var(--mono,"Courier New",monospace);color:#5b4c34}
+.cg83-archive-row h3{font:800 19px/1.25 var(--font-brand,Arial,sans-serif);margin:5px 0;overflow-wrap:anywhere}
+.cg83-archive-row p{font:12px/1.6 var(--mono,"Courier New",monospace);margin:3px 0;color:#4c5f40;overflow-wrap:anywhere}
+.cg83-archive-row>button{min-height:42px;padding:10px;border:1px solid #61784d;background:transparent;color:#304526;font:800 10px/1.4 var(--mono,monospace)}
+.cg83-archive-row details{flex:1 1 100%;font:11px/1.6 var(--mono,monospace)}
+.cg83-archive-row summary{cursor:pointer;min-height:36px;padding:8px 0;color:#405e2d}
+.cg83-vector-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 20px;margin:5px 0 10px}
+.cg83-vector-list>div{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dotted #96a186;padding:6px 0}
+.cg83-vector-list dd{margin:0;font-weight:700}
+.cg83-archive-empty{padding:30px 10px;border:1px dashed #7b8f65;font:12px/1.7 var(--mono,monospace);color:#4e6440}
+.cg83-archive-tabs button:focus-visible,.cg83-archive-row>button:focus-visible{outline:3px solid #85503b;outline-offset:3px}
+
+.anomaly-checkin{padding:16px 0;border-block:1px solid #69724e;margin:20px 0;color:#d5ddc8}
+.anomaly-checkin span{font:700 10px/1.5 "Courier Prime",monospace;color:#dfc67e}
+.anomaly-checkin strong{display:block;margin:6px 0;font:700 13px/1.5 "Courier Prime",monospace}
+.anomaly-checkin p{margin:7px 0;font:12px/1.6 "Courier Prime",monospace;color:#b8c4ae}
+.anomaly-checkin button{min-height:42px;margin-top:7px;padding:10px;border:1px solid #d4bd79;color:#ead598;background:#252617;font:700 11px/1.4 "Courier Prime",monospace}
+.anomaly-checkin button:disabled{opacity:.55;cursor:default}
+.creature-pack.is-gold .creature-pack-face{border-color:#d4ba73;color:#ecd38d;background:#26281b}
+.creature-pack.is-gold .anomaly-export{background:#dac58e}
+
+@media(max-width:1000px){.cg83-lab .two-col{grid-template-columns:1fr}.cg83-lab .parent-grid{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}}
+@media(max-width:600px){.cg83-protocol{gap:15px;padding:0 0 17px}.cg83-protocol h2{font-size:28px}.cg83-protocol p{font-size:12px}.cg83-differential{font-size:11px}.cg83-vector-list{grid-template-columns:1fr}.cg83-lab .parent-grid{grid-template-columns:1fr}.cg83-lab .cross-glyph{display:none}}
+
+/* Mobile lab keeps its existing paper surfaces and navigation. */
+.m-view.cg83-lab .m-card{border-radius:0;border-color:#8c9b7b;padding:17px;overflow:visible}
+.m-view.cg83-lab .m-section-head{padding-bottom:15px;border-bottom:2px solid #536b43}
+.m-view.cg83-lab .m-section-head h1{line-height:1.12}
+.m-view.cg83-lab .m-card-head{font-size:10px;line-height:1.5;flex-wrap:wrap;color:#425938}
+.m-view.cg83-lab .m-muted{font-size:12px;line-height:1.6}
+.m-view.cg83-lab .m-field>span{font-size:11px;line-height:1.5}
+.m-view.cg83-lab .m-field input,.m-view.cg83-lab .m-field select{min-height:44px;font-size:14px}
+.m-view.cg83-lab .m-result-title{font-size:26px;line-height:1.15}
+#mBloodlineInspect:empty{display:none}
+#mBloodlineInspect{padding-top:15px;margin-top:15px;border-top:2px solid #6b7f57}
+#mBloodlineInspect h3{font:800 21px/1.2 var(--display,Arial,sans-serif);margin:6px 0}
+#mArchiveList{display:block}
+#mArchiveList .cg83-archive-tabs button{border-radius:0;display:block;grid-template-columns:none;font-size:11px!important}
+#mArchiveList .cg83-archive-row>button{width:auto;display:block;border-radius:0;background:transparent;font-size:10px!important}

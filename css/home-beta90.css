@@ -1,0 +1,59 @@
+/* ===== CINEGENOME V5.0 BETA 90 / head researcher welcome letter ===== */
+.cg90-welcome-wrap{margin-top:30px;margin-bottom:48px}
+.cg82-operator-wrap .cg90-welcome-letter{
+  display:block;position:relative;overflow:visible;min-height:0;padding:26px 28px 24px;
+  background:
+    linear-gradient(rgba(255,255,255,.16),rgba(255,255,255,0)),
+    repeating-linear-gradient(0deg,rgba(36,47,35,.025) 0 1px,transparent 1px 5px),
+    #efe7bd;
+  border-color:#364638;box-shadow:7px 8px 0 rgba(25,41,27,.16);
+}
+.cg90-welcome-letter:before{width:90px;height:18px;top:-10px;background:#ded7b8dc;transform:translateX(-50%) rotate(-1.4deg)}
+.cg90-letter-grid{display:grid;grid-template-columns:minmax(230px,.78fr) minmax(0,1.42fr);gap:26px;align-items:start;margin-top:14px}
+.cg90-letter-heading{min-width:0;padding-right:24px;border-right:1px dashed rgba(30,43,32,.42)}
+.cg90-letter-heading>small{display:block;margin-bottom:10px;color:#546052;font:700 9px/1.35 var(--font-body,monospace);letter-spacing:.11em}
+.cg82-operator-wrap .cg90-welcome-letter h2{margin:0 0 17px;font-size:clamp(31px,3.7vw,50px);line-height:.91;grid-column:auto;grid-row:auto}
+.cg90-exit-stamp{display:inline-block;padding:5px 7px;border:2px solid #8b2e24;color:#8b2e24;transform:rotate(-1.8deg);font:800 8px/1 var(--font-body,monospace);letter-spacing:.08em}
+.cg90-letter-copy{display:grid;gap:11px;padding-top:2px}
+.cg82-operator-wrap .cg90-letter-copy p{grid-column:auto;grid-row:auto;max-width:72ch;margin:0;color:#223127;font:500 13px/1.58 var(--font-body,Arial,sans-serif)}
+.cg90-letter-copy .cg90-last-line{margin-top:3px!important;padding-top:11px;border-top:1px solid rgba(29,42,31,.28)}
+.cg90-letter-copy .cg90-last-line strong{font-weight:800;color:#171f19}
+.cg90-researcher-signoff{
+  position:relative;display:grid;grid-template-columns:auto auto 1fr;gap:12px;align-items:center;
+  width:min(520px,94%);margin:22px 0 -42px 36%;padding:12px 14px 11px;
+  border:1px solid #4c5130;background:#f4df55;color:#15190f;box-shadow:4px 5px 0 rgba(32,37,19,.18);transform:rotate(-1deg);z-index:2;
+}
+.cg90-researcher-signoff:before{content:"";position:absolute;top:-8px;left:46%;width:62px;height:14px;background:rgba(226,218,188,.72);transform:rotate(2deg)}
+.cg90-signature{font:800 29px/1 Georgia,serif;font-style:italic;letter-spacing:-.08em}
+.cg90-researcher-signoff>span:nth-child(2){display:grid;gap:2px}
+.cg90-researcher-signoff b{font:800 9px/1.15 var(--font-body,monospace);letter-spacing:.09em}
+.cg90-researcher-signoff small{font:700 7px/1.2 var(--font-body,monospace);letter-spacing:.08em;color:#57572f}
+.cg90-researcher-signoff a{justify-self:end;color:#15190f;text-decoration:none;border-bottom:1px solid currentColor;font:800 8px/1.25 var(--font-body,monospace);letter-spacing:.07em}
+.cg90-researcher-signoff a:hover,.cg90-researcher-signoff a:focus-visible{background:#15190f;color:#f4df55;outline:2px solid #15190f;outline-offset:2px}
+
+/* Field manual: compact status legend replaces duplicated technical FAQ copy. */
+.field-manual-status-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:18px 0}
+.field-manual-status-grid>div{display:grid;gap:5px;padding:12px;border:1px solid #506547;background:#151f15}
+.field-manual-status-grid b{color:#b8ff35;font:800 10px/1.2 "Courier Prime","Courier New",monospace;letter-spacing:.07em}
+.field-manual-status-grid span{color:#c6d4c0;font:11px/1.45 "Courier Prime","Courier New",monospace}
+
+/* Slightly tighter motion cadence: faster, not abrupt. */
+.module-entry-progress i{transition-duration:.42s!important}
+.module-entry-sequence.is-stage-changing .module-entry-terminal>strong,
+.module-entry-sequence.is-stage-changing .module-entry-terminal>small{animation-duration:.28s!important}
+.module-entry-scanline{animation-duration:2.35s!important}
+.scanner-scan-progress i{transition-duration:.2s!important}
+
+@media(max-width:780px){
+  .cg90-letter-grid{grid-template-columns:1fr;gap:14px}
+  .cg90-letter-heading{padding-right:0;padding-bottom:15px;border-right:0;border-bottom:1px dashed rgba(30,43,32,.42)}
+  .cg90-researcher-signoff{grid-template-columns:auto 1fr;margin:20px 0 -34px 8%;width:92%}
+  .cg90-researcher-signoff a{grid-column:1/-1;justify-self:start;margin-left:1px}
+}
+@media(max-width:600px){
+  .cg82-operator-wrap .cg90-welcome-letter{padding:21px 17px 20px}
+  .cg90-letter-copy{gap:10px}
+  .cg82-operator-wrap .cg90-letter-copy p{font-size:12.5px;line-height:1.55}
+  .cg90-researcher-signoff{margin-left:2%;width:96%}
+  .field-manual-status-grid{grid-template-columns:1fr}
+}

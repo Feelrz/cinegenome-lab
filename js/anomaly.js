@@ -12,7 +12,12 @@
   const FILMS = window.CINEGENOME_ENRICHED_TOP500 || [];
   const DEAD = window.CINEGENOME_DEAD_CHANNEL || [];
   const DIMS = window.CINEGENOME_DIMENSIONS || [];
-  if (!FILMS.length || !DEAD.length) return;
+  if (!FILMS.length) return;
+  const knownAxis = value => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 100;
+  const sameFilm = (a,b) => !!a && !!b && (a.id != null && b.id != null
+    ? String(a.id) === String(b.id)
+    : a.sourceId != null && b.sourceId != null ? String(a.sourceId) === String(b.sourceId)
+    : a.title === b.title && a.year != null && b.year != null && Number.isFinite(Number(a.year)) && Number(a.year) === Number(b.year));
 
   // Deep-rotation case bank. Scanner and crossbreed clues are authored from
   // established film premises; Atlas and Mutation protocols are generated from
@@ -342,6 +347,10 @@
     .map(([title,clue]) => ({target:FILMS.find(movie=>movie.title===title),clue}))
     .filter(item=>item.target);
 
+  for(const extra of window.CINEGENOME_EXTRA_RIDDLES||[]){
+    const target=FILMS.find(movie=>movie.sourceId===extra.sourceId && movie.title===extra.title && movie.year===extra.year);
+    if(target && !SCANNER_TRIVIA.some(item=>item.target===target))SCANNER_TRIVIA.push({target,clue:extra.clue});
+  }
   const AXIS_KEYS = DIMS.map(dim=>dim.key).filter(Boolean);
   const ATLAS_PROFILES = [
     {id:'dual-peak',name:'DUAL PEAK',x:[.62,.92],y:[.62,.92]},
@@ -569,7 +578,8 @@
     scanner:SCANNER_TRIVIA.length,
     atlas:ATLAS_BLUEPRINTS.length,
     mutation:MUTATION_PROTOCOLS.length,
-    crossbreed:CROSSBREED_PROTOCOLS.length
+    crossbreed:CROSSBREED_PROTOCOLS.length,
+    bloodline:SCANNER_TRIVIA.length
   };
   const esc = value => String(value ?? '').replace(/[&<>'"]/g, c => ({
     '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'
@@ -596,11 +606,23 @@
     {id:'briarboar',name:'BRIARBOAR',rarity:'B',source:"PAN’S LABYRINTH",kind:'ROOTBOUND BOAR',description:'A lantern burns between its thorns, even where no path remains.'},
     {id:'dustbrake',name:'DUSTBRAKE',rarity:'B',source:'MAD MAX: FURY ROAD',kind:'TREAD-SHELL BEETLE',description:'Its armored tracks survive storms that erase every road.'},
     {id:'skyshell',name:'SKYSHELL',rarity:'C',source:'THE TRUMAN SHOW',kind:'SKY-SHELL SNAIL',description:'Clouds drift across its living shell even when the sky beyond the wall stands still.'},
-    {id:'carpetmink',name:'CARPETMINK',rarity:'C',source:'THE SHINING',kind:'CORRIDOR MINK',description:'Its patterned coat shifts whenever the corridor behind it changes direction.'}
+    {id:'carpetmink',name:'CARPETMINK',rarity:'C',source:'THE SHINING',kind:'CORRIDOR MINK',description:'Its patterned coat shifts whenever the corridor behind it changes direction.'},
+    {id:'vaporveil',name:'VAPORVEIL',rarity:'SR',source:'SPIRITED AWAY',kind:'RIVER OTTER / VAPOR ANOMALY',description:'It carries warm river water through halls that have forgotten the way to the sea.'},
+    {id:'siltoracle',name:'SILTORACLE',rarity:'S',source:'DUNE: PART TWO',kind:'DESERT GECKO / WATER-SENSE ANOMALY',description:'Its ear fins read the shifting dunes and hear water deep beneath the sand.'},
+    {id:'remnella',name:'REMNELLA',rarity:'A',source:'ETERNAL SUNSHINE OF THE SPOTLESS MIND',kind:'SNOW FOX / MEMORY-LOSS ANOMALY',description:'Its winter coat sheds fragments of places it can no longer remember visiting.'},
+    {id:'brinelamp',name:'BRINELAMP',rarity:'B',source:'THE LIGHTHOUSE',kind:'SALT-CRESTED SEABIRD',description:'A salt-crested seabird keeps watch over the lighthouse in a relentless sea.'},
+    {id:'underroot',name:'UNDERROOT',rarity:'B',source:'PARASITE',kind:'BASEMENT CIVET / THRESHOLD ANOMALY',description:'It nests below immaculate gardens and comes out whenever the stairwell floods.'},
+    {id:'verdigrub',name:'VERDIGRUB',rarity:'C',source:'WALL-E',kind:'SEED BEETLE / RECLAMATION ANOMALY',description:'It rolls living seeds across dead ground until the rusted soil begins to root.'},
+    {id:'trailwick',name:'TRAILWICK',rarity:'C',source:'MOONRISE KINGDOM',kind:'ISLAND HEDGEHOG / COMPASS ANOMALY',description:'The compass rosette in its quills turns toward quiet paths no map has marked.'}
   ];
+  const NEW_CREATURE_IDS=['vaporveil','siltoracle','remnella','brinelamp','underroot','verdigrub','trailwick'];
   const ODDS = [{rarity:'C',weight:60},{rarity:'B',weight:30},{rarity:'A',weight:8},{rarity:'S',weight:1.8},{rarity:'SR',weight:0.2}];
+  // One earned pack every seven consecutive completed daily files. B or better;
+  // A+ rises only from 10% to 13%, S+ from 2% to 3%. No paid draws.
+  const GOLD_ODDS = [{rarity:'B',weight:87},{rarity:'A',weight:10},{rarity:'S',weight:2.7},{rarity:'SR',weight:0.3}];
   const RARITY_ORDER = ['SR','S','A','B','C'];
   const cardById = id => CREATURES.find(c => c.id === id);
+  const cardArt = card => assetRoot + (card.asset || card.id + '.webp');
   const randomPercent = () => {
     if (globalThis.crypto?.getRandomValues) {
       const value = new Uint32Array(1);
@@ -609,9 +631,9 @@
     }
     return Math.random() * 100;
   };
-  function rollCard() {
+  function rollCard(odds=ODDS) {
     let value = randomPercent();
-    for (const tier of ODDS) {
+    for (const tier of odds) {
       value -= tier.weight;
       if (value < 0) {
         const members=CREATURES.filter(card=>card.rarity===tier.rarity);
@@ -630,7 +652,7 @@
   let audioContext = null;
   let date = today(), cases = [];
   let selected = null;
-  let state = { date, solved: {}, traces: {}, collection: [], pulls: [], migrated: false, rewardVersion: 4 };
+  let state = { date, solved: {}, traces: {}, collection: [], pulls: [], redeemedCodes: [], migrated: false, rewardVersion: 4 };
   let revealing = false;
   let activeReveal = null;
   let toastTimer = null;
@@ -696,7 +718,7 @@
       for(let c=0;c<=cycle;c++){
         order=seededShuffle(items.slice(),hash(`${salt}:${c}`));
         if(previousOrder && order.length>count){
-          const previous=previousOrder.slice(-count);
+          const previous=previousOrder.slice((cycleDays-1)*count,cycleDays*count);
           let guard=0;
           while(order.slice(0,count).some(item=>previous.includes(item)) && guard++<order.length)
             order.push(order.shift());
@@ -712,7 +734,7 @@
       const lo=Math.floor(pos),hi=Math.ceil(pos),mix=pos-lo;
       return sorted[lo]+(sorted[hi]-sorted[lo])*mix;
     };
-    const axisValues=key=>FILMS.map(movie=>Number(movie?.dna?.[key])).filter(Number.isFinite);
+    const axisValues=key=>FILMS.map(movie=>movie?.dna?.[key]).filter(knownAxis);
     const resolveAtlas=(blueprint,slot)=>{
       const {xKey,yKey,profile}=blueprint;
       const xv=axisValues(xKey),yv=axisValues(yKey);
@@ -722,7 +744,7 @@
         const yLo=Math.max(0,profile.y[0]-widen),yHi=Math.min(1,profile.y[1]+widen);
         const xMin=Math.max(0,Math.round(quantile(xv,xLo))),xMax=Math.min(100,Math.round(quantile(xv,xHi)));
         const yMin=Math.max(0,Math.round(quantile(yv,yLo))),yMax=Math.min(100,Math.round(quantile(yv,yHi)));
-        const available=FILMS.filter(movie=>Number(movie?.dna?.[xKey])>=xMin&&Number(movie?.dna?.[xKey])<=xMax&&Number(movie?.dna?.[yKey])>=yMin&&Number(movie?.dna?.[yKey])<=yMax).length;
+        const available=FILMS.filter(movie=>knownAxis(movie?.dna?.[xKey])&&knownAxis(movie?.dna?.[yKey])&&movie.dna[xKey]>=xMin&&movie.dna[xKey]<=xMax&&movie.dna[yKey]>=yMin&&movie.dna[yKey]<=yMax).length;
         axis={xKey,yKey,xMin,xMax,yMin,yMax,profileId:profile.id,profileName:profile.name,available};
         if(available>=18) break;
         widen+=.06;
@@ -730,11 +752,12 @@
       return axis;
     };
 
-    const scanners=deckPick(SCANNER_TRIVIA,2,'scanner');
-    const atlasBlueprints=deckPick(ATLAS_BLUEPRINTS,2,'atlas');
+    const scanners=deckPick(SCANNER_TRIVIA,3,'scanner');
+    const atlasBlueprints=deckPick(ATLAS_BLUEPRINTS,1,'atlas');
     const coordinates=atlasBlueprints.map(resolveAtlas);
     const mutation=deckPick(MUTATION_PROTOCOLS,1,'mutation')[0];
     const crossbreed=deckPick(CROSSBREED_PROTOCOLS,1,'crossbreed')[0];
+    const bloodline=deckPick(SCANNER_TRIVIA,1,'bloodline')[0];
     const balance=CROSSBREED_BALANCE[hash(`${day}:balance`)%CROSSBREED_BALANCE.length];
     const atlasNames=['GHOST COORDINATE','BROKEN CONSTELLATION','POLAR TRACE','STATIC ORBIT','NULL SECTOR','ECHO VECTOR'];
     const scannerNames=['IDENTITY LEAK','SPLIT SIGNAL','FALSE MEMORY','NAMELESS FRAME','GHOST CREDIT','ARCHIVE BREACH'];
@@ -744,15 +767,18 @@
     const atlas=(id,axis,index)=>({id,kind:'atlas',name:nameFor(atlasNames,'atlas-name',index),...axis,
       hint:`${axis.profileName} protocol. Plot X = ${label(axis.xKey)} between ${axis.xMin} and ${axis.xMax}; Y = ${label(axis.yKey)} between ${axis.yMin} and ${axis.yMax}. Inspect any specimen inside both bands. ${axis.available} viable nodes detected in the current archive.`});
     const mutationHint=`Push ${label(mutation.high)} to ${mutation.highMin}+ and suppress ${label(mutation.low)} to ${mutation.lowMax} or lower. ${AXIS_HIGH_FLAVOR[mutation.high]||''} ${AXIS_LOW_FLAVOR[mutation.low]||''}`;
-    const crossbreedHint=`PARENT A // ${crossbreed.left.capsule}. PARENT B // ${crossbreed.right.capsule}. Identify both specimens, initiate a crossbreed, and hold the blend inside the ${balance.min}–${balance.max}% ${balance.label.toLowerCase()}.`;
-    return [
-      {id:'S1',kind:'scan',name:nameFor(scannerNames,'scan-name',0),...scanners[0],hint:scanners[0].clue},
-      {id:'S2',kind:'scan',name:nameFor(scannerNames,'scan-name',1),...scanners[1],hint:scanners[1].clue},
+    const crossbreedHint=`SPLICE ORDER // ${crossbreed.left.movie.title} (${crossbreed.left.movie.year}) × ${crossbreed.right.movie.title} (${crossbreed.right.movie.year}). Load these two parents in either order. Set Parent A dominance between ${balance.min}% and ${balance.max}% inclusive, then press INITIATE CROSSBREED.`;
+    const protocols=[
       atlas('A1',coordinates[0],0),
-      atlas('A2',coordinates[1],1),
       {id:'M1',kind:'mutation',name:nameFor(mutationNames,'mutation-name'),...mutation,hint:mutationHint},
       {id:'X1',kind:'crossbreed',name:nameFor(crossbreedNames,'cross-name'),parents:[crossbreed.left.movie,crossbreed.right.movie],
-        ratioMin:balance.min,ratioMax:balance.max,balanceId:balance.id,hint:crossbreedHint}
+        ratioMin:balance.min,ratioMax:balance.max,balanceId:balance.id,hint:crossbreedHint},
+      {id:'B1',kind:'bloodline',name:'KINSHIP TRACE',target:bloodline.target,
+        hint:`Trace ${bloodline.target.title} (${bloodline.target.year}) in Bloodline Lab, then inspect any of its connected relatives. The source itself does not count. These links are model similarities, not historical influence.`}
+    ];
+    return [
+      ...scanners.map((item,index)=>({id:'S'+(index+1),kind:'scan',name:nameFor(scannerNames,'scan-name',index),...item,hint:item.clue})),
+      ...protocols.filter((_,index)=>index!==dayIndex%4)
     ];
   }
 
@@ -767,7 +793,11 @@
       date:day,
       solved:saved.date === day && saved.solved && typeof saved.solved === 'object' ? saved.solved : {},
       traces:saved.date === day && saved.traces && typeof saved.traces === 'object' ? saved.traces : {},
-      collection, pulls, migrated:saved.migrated === true, rewardVersion:4
+      collection, pulls, redeemedCodes:Array.isArray(saved.redeemedCodes)?saved.redeemedCodes.filter(x=>x==='CGTRIPLICATE'):[],
+      migrated:saved.migrated === true, rewardVersion:4,caseVersion:83,
+      dailyFileUpdated:saved.date===day && (saved.dailyFileUpdated===true || (saved.caseVersion!==83 && Object.keys(saved.solved||{}).length>0)),
+      streak: saved.streak && /^\d{4}-\d{2}-\d{2}$/.test(saved.streak.lastDate) && Number.isSafeInteger(saved.streak.count) && saved.streak.count>0
+        ? {lastDate:saved.streak.lastDate,count:saved.streak.count} : {lastDate:null,count:0}
     };
     // Preserve older case stamps and convert already solved v49.2 cases
     // into unclaimed draw tickets once. A repeat load cannot mint extras.
@@ -781,7 +811,7 @@
       } } catch {}
       result.migrated = true;
     }
-    const caseIds = new Set(['S1','S2','A1','A2','M1','X1']);
+    const caseIds = new Set(['S1','S2','S3','A1','A2','M1','X1','B1']);
     // Previous releases awarded one pack per case and a bonus. Keep cards
     // already obtained; convert unopened packs to the new two-cases-per-pack
     // rule, including packs earned on earlier dates.
@@ -798,11 +828,14 @@
     if (saved.rewardVersion !== 4) pulls = pulls.filter(p => !!p.cardId);
     for (const [earnedDate, completed] of earnedByDay) {
       const eligible = Math.floor(completed.size / 2);
-      const existing = pulls.filter(p => p.date === earnedDate).length;
+      const existing = pulls.filter(p => p.date === earnedDate && (String(p.caseId).startsWith('PAIR:') || caseIds.has(p.caseId))).length;
       for (let i = existing + 1; i <= eligible; i++)
         pulls.push({id:earnedDate + ':PAIR:' + i,date:earnedDate,caseId:'PAIR:'+i,cardId:null});
     }
     result.pulls = pulls;
+    // A legacy S1 stamp refers to a different daily deck. Preserve its earned
+    // tickets above; it must not silently complete a newly assigned riddle.
+    if(saved.caseVersion!==83){result.solved={};result.traces={};}
     return result;
   }
 
@@ -821,9 +854,33 @@
   save();
 
   const caseCount = () => cases.filter(item => state.solved[item.id]).length;
+  const dayNumber = day => Date.parse(day+'T12:00:00Z') / 86400000;
+  const liveStreak = () => {
+    const gap=dayNumber(date)-dayNumber(state.streak.lastDate);
+    return gap===0 || gap===1 ? state.streak.count : 0;
+  };
+  function checkIn() {
+    resetIfNewDay();
+    state=loadState(date);
+    if(state.streak.lastDate===date)return 'claimed';
+    if(caseCount()!==6)return 'incomplete';
+    if(state.streak.lastDate && dayNumber(date)<dayNumber(state.streak.lastDate))return 'clock_mismatch';
+    const count=liveStreak()+1;
+    const previous=state;
+    const id=date+':STREAK7';
+    const gold=count%7===0 && !state.pulls.some(p=>p.id===id);
+    state={...state,streak:{lastDate:date,count},pulls:[...state.pulls,
+      ...(gold?[{id,date,caseId:'STREAK7',pack:'gold',cardId:null}]:[])]};
+    try {
+      const serialized=JSON.stringify(state);
+      progressStorage.setItem(KEY,serialized);
+      if(progressStorage.getItem(KEY)!==serialized)throw new Error('storage_unavailable');
+    } catch {state=previous;return 'storage_unavailable';}
+    render();return gold?'gold':'sealed';
+  }
   const pending = () => state.pulls.filter(p => !p.cardId);
   const owned = () => state.pulls.filter(p => !!p.cardId && cardById(p.cardId));
-  const typeName = kind => ({scan:'SCANNER',atlas:'ATLAS',mutation:'MUTATION',crossbreed:'CROSSBREED'})[kind] || 'CASE';
+  const typeName = kind => ({scan:'SCANNER',atlas:'ATLAS',mutation:'MUTATION',crossbreed:'CROSSBREED',bloodline:'BLOODLINE'})[kind] || 'CASE';
   const TRACE_INTEGRITY = [100,85,65,40];
   const traceLevel = item => Math.max(0,Math.min(3,Number(state.traces?.[item?.id])||0));
   const caseIntegrity = item => TRACE_INTEGRITY[traceLevel(item)] || 40;
@@ -834,7 +891,7 @@
     const chars=[...word];
     return chars.map((char,index)=>index===0 || /[^A-Za-z0-9]/.test(char) ? char : '•').join('');
   }).join(' ');
-  const atlasCandidates = item => FILMS.filter(movie=>Number(movie?.dna?.[item.xKey])>=item.xMin && Number(movie?.dna?.[item.xKey])<=item.xMax && Number(movie?.dna?.[item.yKey])>=item.yMin && Number(movie?.dna?.[item.yKey])<=item.yMax);
+  const atlasCandidates = item => FILMS.filter(movie=>knownAxis(movie?.dna?.[item.xKey])&&knownAxis(movie?.dna?.[item.yKey])&&movie.dna[item.xKey]>=item.xMin && movie.dna[item.xKey]<=item.xMax && movie.dna[item.yKey]>=item.yMin && movie.dna[item.yKey]<=item.yMax);
   function traceCards(item){
     if(!item) return [];
     if(item.kind==='scan'){
@@ -861,6 +918,11 @@
         {code:'TRACE 03 // DECODE',title:'VECTOR RECIPE',body:`Load any seed. Set ${label(item.high)} to at least ${item.highMin}, set ${label(item.low)} to ${item.lowMax} or lower, then move either target slider once to transmit the vector.`,route:'LIVE VECTOR'}
       ];
     }
+    if(item.kind==='bloodline')return [
+      {code:'TRACE 01 // LOCATE',title:'BLOODLINE LAB',body:'Find the named source in the search field. On desktop, press TRACE BLOODLINE. Mobile traces when the source is selected.',route:'SOURCE SEARCH'},
+      {code:'TRACE 02 // NARROW',title:item.target.title,body:`Select the ${item.target.year} film, then inspect one of the relatives returned by the model.`,route:'RELATED SPECIMENS'},
+      {code:'TRACE 03 // DECODE',title:'FOLLOW ONE CONNECTION',body:'Click any outer node on the desktop map, or any related film in the mobile list. Clicking the source does not complete this case.',route:'INSPECT A RELATIVE'}
+    ];
     const parents=item.parents||[];
     return [
       {code:'TRACE 01 // LOCATE',title:'CROSSBREED REACTOR',body:'Identify both parent films from the case capsules, load them into Parent A and Parent B, then use GENETIC DOMINANCE.',route:'PARENT A + PARENT B'},
@@ -882,11 +944,13 @@
     const kind=item?.kind;
     if(!kind) return {module:null,targets:[]};
     if(mobile){
+      if(kind==='bloodline') return {module:'#mBottomNav [data-target="bloodline"]',targets:['#mBloodlineSearch','#mBloodlineList']};
       if(kind==='scan') return {module:'#mTabScanner',targets:['#mScannerSearch']};
       if(kind==='atlas') return {module:'#mBottomNav [data-target="atlas"]',targets:['#mAtlasX','#mAtlasY','#mAtlasSvg']};
       if(kind==='mutation') return {module:'#mBottomNav [data-target="mutation"]',targets:[`#mMutationControls [data-dim="${item.high}"]`,`#mMutationControls [data-dim="${item.low}"]`]};
       return {module:'#mBottomNav [data-target="crossbreed"]',targets:['#mParentA','#mParentB','#mBlend']};
     }
+    if(kind==='bloodline') return {module:'#moduleNav [data-view="bloodline"]',targets:['#bloodlineSearch','#traceBloodlineBtn','#bloodlineSvg']};
     if(kind==='scan') return {module:'#moduleNav [data-view="scanner"]',targets:['#scannerSearch']};
     if(kind==='atlas') return {module:'#moduleNav [data-view="atlas"]',targets:['#axisX','#axisY','#atlasSvg']};
     if(kind==='mutation') return {module:'#moduleNav [data-view="mutation"]',targets:[`#mutationControls [data-dim="${item.high}"]`,`#mutationControls [data-dim="${item.low}"]`]};
@@ -948,12 +1012,16 @@
     const obtained = obtainedAt(pull);
     return `<article class="creature-card rarity-${card.rarity.toLowerCase()}" aria-label="${esc(card.name)} rarity ${card.rarity}">
       <div class="creature-card-top"><span>CG / CREATURE FILE</span><b>${card.rarity}</b></div>
-      <div class="creature-art"><img src="${assetRoot + card.id}.webp" alt="${esc(card.kind)} inspired by ${esc(card.source)}" loading="${preview?'eager':'lazy'}"></div>
+      <div class="creature-art"><img src="${cardArt(card)}" alt="${esc(card.kind)} inspired by ${esc(card.source)}" loading="${preview?'eager':'lazy'}"></div>
       <div class="creature-card-info"><small>${esc(card.kind)} // ${esc(card.source)}</small>
         <strong>${esc(card.name)}</strong><p>${esc(card.description)}</p>
         <span>#${CREATURES.indexOf(card)+1} / ${CREATURES.length} &nbsp;·&nbsp; CREATURE OBTAINED // ${esc(obtained)}${duplicate?' &nbsp;·&nbsp; DUPLICATE':''}</span>
       </div>
     </article>`;
+  }
+  function chooseCard(pull){
+    return (testMode && pull.testCardId ? cardById(pull.testCardId) : null) ||
+      (testMode && pull.testRarity ? CREATURES.find(c=>c.rarity===pull.testRarity) : null) || rollCard(pull.pack==='gold'?GOLD_ODDS:ODDS);
   }
   function obtainedAt(pull) {
     if (!pull.claimedAt) return pull.date;
@@ -982,14 +1050,25 @@
       <h2 id="anomalyHeading">ANOMALY HUNT <span>${count}/6</span></h2>
       ${testMode ? `<section class="creature-test-panel" aria-label="Gacha test controls">
         <strong>TEST MODE // NO REAL REWARDS</strong>
-        <p>Preview the exact pack animation and sounds. Pick a rarity to force its reveal, or choose RANDOM for a normal roll. Test cards stay in this tab only and never enter your real collection.</p>
+        <p>Preview the exact pack animation and sounds. Force a rarity, pick a new species, or roll normally. Test cards stay in this tab only and never enter your real collection.</p>
         <div class="creature-test-buttons">
           ${['RANDOM','C','B','A','S','SR'].map(tier => `<button type="button" data-anomaly-test="${tier}">${tier === 'RANDOM'?'RANDOM DRAW':'TEST '+tier}</button>`).join('')}
+        </div>
+        <div class="creature-test-subhead">NEW SPECIMENS // 013–019</div>
+        <div class="creature-test-buttons creature-test-new">
+          <button type="button" data-anomaly-test-card="RANDOM_NEW">RANDOM NEW / 7</button>
+          ${NEW_CREATURE_IDS.map(id=>{const card=cardById(id);return `<button type="button" data-anomaly-test-card="${id}">${esc(card.name)} / ${card.rarity}</button>`}).join('')}
         </div>
         <button type="button" class="creature-test-reset" data-anomaly-test-reset>RESET TEST CARDS</button>
         <a href="${esc(window.location?.pathname || '/')}">EXIT TEST MODE ↗</a>
       </section>` : ''}
-      <p class="anomaly-intro">Every two solved cases earn one creature draw. Finish all six for three draws today. Stuck? Open a case and REQUEST TRACE — assistance points you to the right module without reducing rewards.</p>
+      <p class="anomaly-intro">Three missing film identities. Three lab protocols. Every two solved cases earn one creature draw. All six unlock today's check-in. REQUEST TRACE offers help without reducing rewards.</p>
+      ${state.dailyFileUpdated?'<p class="anomaly-note">The daily file has changed to the new three-riddle format. Your earned cards and packs are retained; today’s new cases start fresh.</p>':''}
+      <section class="anomaly-checkin" aria-label="Daily research check-in">
+        <div><span>CONTINUITY LOG / ${liveStreak()} CONSECUTIVE DAYS</span><strong>${state.streak.lastDate===date?'TODAY’S FILE SEALED':count===6?'DAILY FILE COMPLETE':'COMPLETE ALL SIX TO CHECK IN'}</strong>
+        <p>Seal a completed file each day. Seven consecutive days earn one GOLD pack, B or better. Missing a day restarts the streak; collected cards stay yours.</p></div>
+        <button type="button" data-anomaly-checkin ${count!==6 || state.streak.lastDate===date?'disabled':''}>${state.streak.lastDate===date?'SEALED ✓':'SEAL TODAY’S FILE ↗'}</button>
+      </section>
       <div class="anomaly-case-grid">
         ${cases.map((item,index) => `<button type="button" class="anomaly-case ${state.solved[item.id]?'is-solved':''} ${selected===item.id?'is-selected':''}"
           data-anomaly-case="${item.id}" aria-pressed="${selected===item.id}">
@@ -1011,11 +1090,12 @@
             ${!state.solved[current.id] && traceLevel(current)>=3 ? '<small class="anomaly-trace-max">MAX TRACE REACHED // REWARD REMAINS UNCHANGED</small>' : ''}
           </div>
           ${state.solved[current.id]?`<p>Case solved // integrity ${caseIntegrity(current)}%. Every two completed cases unlock one creature draw.</p>`:''}</div>` : ''}
-        ${tickets.length ? `<div class="creature-pack"><div class="creature-pack-face"><small>CINEGENOME / SEALED SPECIMEN</small><b>?</b><span>CREATURE // C TO SR</span></div>
-          <button type="button" class="anomaly-export" data-anomaly-draw="${esc(tickets[0].id)}">OPEN CREATURE PACK · ${tickets.length} READY ↗</button></div>`
+        ${tickets.length ? `<div class="creature-pack ${tickets[0].pack==='gold'?'is-gold':''}"><div class="creature-pack-face"><small>CINEGENOME / ${tickets[0].pack==='gold'?'GOLD CONTINUITY PACK':'SEALED SPECIMEN'}</small><b>${tickets[0].pack==='gold'?'VII':'?'}</b><span>CREATURE // ${tickets[0].pack==='gold'?'B TO SR':'C TO SR'}</span></div>
+          <button type="button" class="anomaly-export" data-anomaly-draw="${esc(tickets[0].id)}">OPEN ${tickets[0].pack==='gold'?'GOLD':'CREATURE'} PACK · ${tickets.length} READY ↗</button></div>`
         : '<p class="anomaly-note">No unopened packs. Solve another case or return tomorrow.</p>'}
         <details class="creature-odds"><summary>DRAW ODDS & RULES</summary>
           <p>Each draw: C 60% · B 30% · A 8% · S 1.8% · SR 0.2%. Every draw is independent for this browser, so different players may get different cards. Duplicates can appear; there is no paid draw.</p>
+          <p>GOLD pack: B 87% · A 10% · S 2.7% · SR 0.3%. One pack every seven consecutive check-ins after completing all six cases. Duplicates remain possible. Streaks and resets use this device's local calendar and are stored in this browser.</p>
         </details>
       </section>
       <section class="anomaly-collection">
@@ -1023,7 +1103,7 @@
         <p>${cards.length} cards · ${tickets.length} unopened packs · saved in this browser.</p>
         <div class="creature-gallery">${CREATURES.slice().sort((a,b)=>RARITY_ORDER.indexOf(a.rarity)-RARITY_ORDER.indexOf(b.rarity)||a.name.localeCompare(b.name)).map(card => `
           <button type="button" class="creature-slot rarity-${card.rarity.toLowerCase()}" data-anomaly-creature="${card.id}" ${counts[card.id]?'':'disabled'}>
-            ${counts[card.id]?`<img src="${assetRoot+card.id}.webp" loading="lazy" alt="">`:'<span class="creature-unknown">?</span>'}
+            ${counts[card.id]?`<img src="${cardArt(card)}" loading="lazy" alt="">`:'<span class="creature-unknown">?</span>'}
             <span><b>${counts[card.id]?card.name:'UNDISCOVERED'}</b><small>${card.rarity} · ${counts[card.id]?'×'+counts[card.id]:'LOCKED'}</small>
             ${counts[card.id]?`<small>OBTAINED // ${esc(obtainedAt(cards.find(p=>p.cardId===card.id)))}</small>`:''}</span>
           </button>`).join('')}</div>
@@ -1037,7 +1117,7 @@
     const pull = state.pulls.find(p => p.id === id && !p.cardId);
     if (!pull) return;
     soundContext(); // The opening click unlocks audio on mobile browsers.
-    const card = (testMode && pull.testRarity ? CREATURES.find(c => c.rarity === pull.testRarity) : null) || rollCard();
+    const card = chooseCard(pull);
     // Commit first: a refresh during the reveal cannot lose the result or reroll.
     pull.cardId = card.id; pull.claimedAt = new Date().toISOString();
     save();
@@ -1104,10 +1184,27 @@
 
   document.querySelectorAll('[data-anomaly-open]').forEach(button => button.addEventListener('click', () => {
     resetIfNewDay(); render(); if (!dialog?.open) dialog?.showModal();
+    const section=button.dataset.anomalySection;
+    if(section==='collection') setTimeout(()=>body?.querySelector('.anomaly-collection')?.scrollIntoView?.({block:'start',behavior:'smooth'}),40);
+    else if(section==='cases') setTimeout(()=>body?.querySelector('.anomaly-case-grid')?.scrollIntoView?.({block:'start',behavior:'smooth'}),40);
   }));
   document.getElementById('anomalyClose')?.addEventListener('click', () => dialog?.close());
   dialog?.addEventListener('close', () => activeReveal?.finish());
   body?.addEventListener('click', event => {
+    if(event.target.closest('[data-anomaly-checkin]')){
+      const outcome=checkIn();
+      announce(({gold:'SEVEN FILES SEALED // GOLD PACK ISSUED',sealed:'DAILY FILE SEALED // RETURN TOMORROW',claimed:'TODAY’S FILE IS ALREADY SEALED',incomplete:'SOLVE ALL SIX CASES FIRST',clock_mismatch:'LOCAL DATE PRECEDES LAST CHECK-IN',storage_unavailable:'STORAGE UNAVAILABLE // CHECK-IN WAS NOT SAVED'})[outcome]);
+      return;
+    }
+    const newCardButton=event.target.closest('[data-anomaly-test-card]');
+    if(testMode && newCardButton){
+      const requested=newCardButton.dataset.anomalyTestCard;
+      const cardId=requested==='RANDOM_NEW'?NEW_CREATURE_IDS[Math.floor(Math.random()*NEW_CREATURE_IDS.length)]:requested;
+      if(!NEW_CREATURE_IDS.includes(cardId))return;
+      const id=date+':QA:'+Date.now()+':'+Math.random().toString(36).slice(2);
+      state.pulls.push({id,date,caseId:'QA',cardId:null,testCardId:cardId});
+      save();draw(id);return;
+    }
     const testButton = event.target.closest('[data-anomaly-test]');
     if (testMode && testButton) {
       const rarity = testButton.dataset.anomalyTest;
@@ -1157,37 +1254,73 @@
   if (testMode && dialog && !dialog.open) dialog.showModal();
 
   window.CINEGENOME_ANOMALY = {
+    awardSector09Daily() {
+      resetIfNewDay();
+      if (testMode) return 'test_mode';
+      const id=`${date}:SECTOR09`;
+      if (state.pulls.some(p=>p.id===id)) return 'claimed';
+      const previous=state;
+      state={...state,pulls:[...state.pulls,{id,date,caseId:'SECTOR09',cardId:null}]};
+      try {
+        const serialized=JSON.stringify(state);
+        localStorage.setItem(KEY,serialized);
+        if(localStorage.getItem(KEY)!==serialized)throw new Error('storage_unavailable');
+      } catch {state=previous;return 'storage_unavailable';}
+      selected=null;render();return 'granted';
+    },
+    redeemSpecimenCode(code) {
+      resetIfNewDay();
+      if (testMode) return 'test_mode';
+      if (code !== 'CGTRIPLICATE') return 'invalid';
+      if (state.redeemedCodes.includes(code) || state.pulls.some(p=>p.caseId==='CODE:'+code)) return 'claimed';
+      const previous=state;
+      state={...state,redeemedCodes:[...state.redeemedCodes,code],pulls:[...state.pulls,
+        ...[1,2,3].map(n=>({id:`${date}:CODE:${code}:${n}`,date,caseId:'CODE:'+code,cardId:null}))]};
+      try {
+        const serialized=JSON.stringify(state);
+        localStorage.setItem(KEY,serialized);
+        if (localStorage.getItem(KEY)!==serialized) throw new Error('storage_unavailable');
+      } catch { state=previous; return 'storage_unavailable'; }
+      selected=null;render();return 'granted';
+    },
     scan(movie) {
       resetIfNewDay();
-      const item=cases.find(x=>x.kind==='scan' && !state.solved[x.id] && movie?.title===x.target.title && Number(movie.year)===Number(x.target.year));
+      const item=cases.find(x=>x.kind==='scan' && !state.solved[x.id] && sameFilm(movie,x.target));
       return item ? collect(item,movie.title) : false;
     },
     atlas(movie,xKey,yKey) {
       resetIfNewDay();
       const item=cases.find(x=>x.kind==='atlas' && !state.solved[x.id]
         && xKey===x.xKey && yKey===x.yKey
+        && knownAxis(movie?.dna?.[x.xKey]) && knownAxis(movie?.dna?.[x.yKey])
         && Number(movie?.dna?.[x.xKey])>=x.xMin && Number(movie?.dna?.[x.xKey])<=x.xMax
         && Number(movie?.dna?.[x.yKey])>=x.yMin && Number(movie?.dna?.[x.yKey])<=x.yMax);
       return item ? collect(item,`${movie.title} / X ${label(item.xKey)} ${movie.dna[item.xKey]} / Y ${label(item.yKey)} ${movie.dna[item.yKey]}`) : false;
     },
     mutation(dna) {
       resetIfNewDay();
-      const item=cases.find(x=>x.kind==='mutation' && !state.solved[x.id] && Number(dna?.[x.high])>=Number(x.highMin??80) && Number(dna?.[x.low])<=Number(x.lowMax??30));
+      const item=cases.find(x=>x.kind==='mutation' && !state.solved[x.id] && knownAxis(dna?.[x.high]) && knownAxis(dna?.[x.low]) && dna[x.high]>=x.highMin && dna[x.low]<=x.lowMax);
       return item ? collect(item,`${label(item.high)} ${dna[item.high]} / ${label(item.low)} ${dna[item.low]}`) : false;
     },
     crossbreed(a,b,ratio) {
       resetIfNewDay();
       const item=cases.find(x=>x.kind==='crossbreed' && !state.solved[x.id]);
       if (!item || !a || !b || !Number.isFinite(Number(ratio)) || Number(ratio)<Number(item.ratioMin??40) || Number(ratio)>Number(item.ratioMax??60)) return false;
-      const pair=[a.title,b.title].sort().join('|');
-      if (pair!==item.parents.map(x=>x.title).sort().join('|')) return false;
+      if (!((sameFilm(a,item.parents[0]) && sameFilm(b,item.parents[1])) || (sameFilm(a,item.parents[1]) && sameFilm(b,item.parents[0])))) return false;
       return collect(item,`${a.title} × ${b.title} / ${ratio}%`);
     },
+    bloodline(source,relative) {
+      resetIfNewDay();
+      if(!relative || sameFilm(source,relative))return false;
+      const item=cases.find(x=>x.kind==='bloodline'&&!state.solved[x.id]&&sameFilm(source,x.target));
+      return item?collect(item):false;
+    },
+    checkIn,
     status() {
       resetIfNewDay();
       return { date, solved:cases.filter(x=>state.solved[x.id]).map(x=>x.id),
         collection:owned().length,
-        pending:pending().length, pulls:state.pulls.map(p=>({...p})),
+        pending:pending().length, pulls:state.pulls.map(p=>({...p})),streak:{...state.streak,activeCount:liveStreak()},
         caseBank:{...CASE_BANK_COUNTS,total:Object.values(CASE_BANK_COUNTS).reduce((a,b)=>a+b,0)}, cases:cases.map(x=>({
           id:x.id,kind:x.kind,hint:x.hint,target:x.target?.title,year:x.target?.year,
           xKey:x.xKey,yKey:x.yKey,xMin:x.xMin,xMax:x.xMax,yMin:x.yMin,yMax:x.yMax,

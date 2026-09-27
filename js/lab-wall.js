@@ -23,12 +23,36 @@
     window.setTimeout(() => document.body.classList.add('is-ready'), 150);
   }
 
+  function bindReturnToLab(){
+    document.querySelectorAll('a[href^="index.html"]').forEach(link=>{
+      link.addEventListener('click',event=>{
+        if(event.defaultPrevented||(event.button&&event.button!==0)||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+        event.preventDefault();
+        try{
+          sessionStorage.setItem('cg_return_to_lab','lab-wall');
+          sessionStorage.setItem('cinegenome_boot_seen','1');
+        }catch{}
+        document.body.classList.add('wall-returning-to-lab');
+        const delay=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?0:360;
+        window.setTimeout(()=>window.location.assign(link.href),delay);
+      });
+    });
+  }
+  bindReturnToLab();
+
   function hash32(text){let h=2166136261>>>0;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
   function rotation(id){return (((hash32(`${seed}|${id}`)%61)-30)/10).toFixed(1)}
   function cardScale(id){return (0.97+(hash32(`${seed}|scale|${id}`)%7)*.01).toFixed(2)}
   function tapeX(id){return `${38+(hash32(`${seed}|tape|${id}`)%25)}%`}
   function tapeRot(id){return `${((hash32(`${seed}|tape-rot|${id}`)%61)-30)/10}deg`}
   function letterboxdUrl(name){return `https://letterboxd.com/${encodeURIComponent(name)}/`}
+  function identity(note){
+    const type=note.identityType||(note.letterboxd?'letterboxd':'anonymous');
+    const value=String(note.identityValue??note.letterboxd??'');
+    return type==='letterboxd'&&/^[A-Za-z0-9_-]{1,30}$/.test(value)
+      ? {text:`@${value}`,url:letterboxdUrl(value)}
+      : {text:type==='name'&&value?value:'ANONYMOUS',url:null};
+  }
   function formatTime(ms){const d=new Date(Number(ms)||Date.now());const p=n=>String(n).padStart(2,'0');return `${p(d.getDate())}.${p(d.getMonth()+1)}.${String(d.getFullYear()).slice(-2)} / ${p(d.getHours())}:${p(d.getMinutes())}`}
   function shuffled(list=notes){return list.slice().sort((a,b)=>hash32(`${seed}|${a.id}`)-hash32(`${seed}|${b.id}`))}
 
@@ -48,7 +72,7 @@
     if(!dialog||!note)return;
     document.getElementById('wallNoteMeta').textContent=`LAB NOTE // ${String(note.id).replace(/^N-/,'#').slice(0,12)}`;
     document.getElementById('wallNoteMessage').textContent=note.message;
-    const author=document.getElementById('wallNoteAuthor');author.textContent=`/${note.letterboxd} ↗`;author.href=letterboxdUrl(note.letterboxd);
+    const author=document.getElementById('wallNoteAuthor');const who=identity(note);author.textContent=who.text+(who.url?' ↗':'');if(who.url)author.href=who.url;else author.removeAttribute('href');
     document.getElementById('wallNoteTime').textContent=`TRANSMITTED // ${formatTime(note.createdAt)}`;
     clearTimeout(noteCloseTimer);
     if(!dialog.open)dialog.showModal();
@@ -76,10 +100,10 @@
     card.style.setProperty('--tape-x',tapeX(note.id));
     card.style.setProperty('--tape-r',tapeRot(note.id));
     card.style.setProperty('--wall-delay',`${Math.min(index,18)*60}ms`);
-    card.setAttribute('aria-label',`Open note from ${note.letterboxd}`);
+    card.setAttribute('aria-label',`Open note from ${identity(note).text}`);
     const meta=document.createElement('span');meta.className='wall-card-meta';meta.textContent=`LAB NOTE // ${String(note.id).replace(/^N-/,'#').slice(0,8)}`;
     const body=document.createElement('p');body.textContent=note.message;
-    const by=document.createElement('span');by.className='wall-card-author';by.textContent=`/${note.letterboxd}`;
+    const by=document.createElement('span');by.className='wall-card-author';by.textContent=identity(note).text;
     card.append(meta,body,by);
     card.addEventListener('click',()=>openDetail(note,card));
     return card;

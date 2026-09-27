@@ -77,6 +77,26 @@ function normalizeAnswers(value) {
   return answers;
 }
 
+// Older/partial records may carry an axis vector instead of the full answers.
+// Only expose recognized, finite 0–100 measurements; absent axes stay absent.
+const AXIS_KEYS = ['surrealism','solitude','romance','nostalgia','intensity','pace','visual','complexity','darkness','humor','dreamLogic','action','horror','warmth','intimacy'];
+const AXIS_LABELS = {surrealism:'realitybend',visual:'visualstyle'};
+function normalizeVector(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const vector = {};
+  for (const axis of AXIS_KEYS) {
+    const key = Object.keys(value).find(k => {
+      const normalized=k.toLowerCase().replace(/[^a-z0-9]/g, '');
+      return normalized===axis.toLowerCase() || normalized===AXIS_LABELS[axis];
+    });
+    const raw = key === undefined ? null : value[key];
+    if (raw === null || raw === '' || !['string','number'].includes(typeof raw)) continue;
+    const n = Number(raw);
+    if (Number.isFinite(n) && n >= 0 && n <= 100) vector[axis] = n;
+  }
+  return Object.keys(vector).length ? vector : null;
+}
+
 function randomToken(length = 8) {
   const bytes = randomBytes(length);
   let out = '';
@@ -129,8 +149,9 @@ module.exports = async function handler(req, res) {
       catch { throw new Error('invalid_genome_record'); }
 
       const answers = normalizeAnswers(record && record.answers);
-      if (!answers) throw new Error('invalid_genome_record');
-      return res.status(200).json({ key: formatKey(tokenPart), version: 1, answers });
+      const vector = answers ? null : normalizeVector(record && (record.vector || record.dna?.vector || record.profile));
+      if (!answers && !vector) throw new Error('invalid_genome_record');
+      return res.status(200).json({ key: formatKey(tokenPart), version: 1, ...(answers ? { answers } : { vector }) });
     }
 
     if (!validSameOriginPost(req)) return res.status(403).json({ error: 'invalid_origin' });

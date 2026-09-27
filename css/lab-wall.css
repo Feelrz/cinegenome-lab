@@ -161,3 +161,10 @@ body.wall-landing.is-ready .wall-card{animation-duration:1.02s;animation-timing-
 .wall-note-dialog.is-note-open::backdrop{opacity:1;backdrop-filter:blur(2.5px)}
 .wall-note-dialog.is-note-closing::backdrop{opacity:0;backdrop-filter:blur(0)}
 @media(prefers-reduced-motion:reduce){.wall-note-dialog{opacity:1!important;transform:none!important;transition:none!important}}
+
+
+/* ===== CINEGENOME V5.0 BETA84 / return to main lab without replaying boot ===== */
+body.lab-wall-page .wall-shell{transition:opacity .34s ease,transform .42s cubic-bezier(.3,0,.2,1),filter .34s ease}
+body.lab-wall-page.wall-returning-to-lab .wall-shell{opacity:0;transform:translateY(-4px) scale(.996);filter:blur(1px);pointer-events:none}
+body.lab-wall-page.wall-returning-to-lab:before{opacity:.35;transition:opacity .34s ease}
+@media(prefers-reduced-motion:reduce){body.lab-wall-page .wall-shell,body.lab-wall-page.wall-returning-to-lab:before{transition:none!important;transform:none!important;filter:none!important}}

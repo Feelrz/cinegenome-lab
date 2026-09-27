@@ -1,0 +1,15 @@
+.sector09-dialog{width:min(760px,calc(100vw - 18px));max-width:760px;max-height:96dvh;padding:0;border:1px solid #829b72;background:#0a110a;color:#e8efdf;overflow:auto;box-shadow:12px 14px 0 #000b}
+.sector09-dialog::backdrop{background:#010401e9}
+.sector09-shell>header{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#b8ff35;color:#10170e;font:700 11px 'Courier Prime',monospace;letter-spacing:.08em}
+.sector09-shell>header button{width:34px;height:34px;border:1px solid #1b2c16;background:#10170e;color:#e8efdf;font:24px/1 sans-serif;cursor:pointer}
+.sector09-body{display:grid;gap:11px;padding:clamp(10px,3vw,18px);font:11px/1.5 'Courier Prime',monospace}
+.sector09-body p{margin:0;color:#cbeca7;font-weight:700;letter-spacing:.06em}
+.sector09-body canvas{display:block;width:100%;height:auto;aspect-ratio:8/5;background:#121c13;image-rendering:pixelated;border:2px solid #7d996b}
+.sector09-hud{min-height:23px;color:#ffdbad;font-weight:700;letter-spacing:.035em}
+.sector09-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sector09-controls{display:flex;gap:4px}
+.sector09-actions button{min-width:52px;min-height:45px;border:1px solid #7d996b;padding:8px;background:#152215;color:#ecf9df;font:700 12px 'Courier Prime',monospace;touch-action:none;cursor:pointer}
+.sector09-actions button:hover,.sector09-actions button:focus-visible{outline:2px solid #b8ff35;outline-offset:2px}
+.sector09-actions [data-sector-fire]{background:#a8f42d;border-color:#a8f42d;color:#11160c;min-width:99px}
+.sector09-body small{color:#aabb9e;font:10px/1.45 'Courier Prime',monospace}
+@media(max-width:500px){.sector09-dialog{width:calc(100vw - 12px)}.sector09-actions{justify-content:space-between}.sector09-actions button{min-width:44px;min-height:52px}.sector09-actions [data-sector-retry]{min-width:65px}}

@@ -49,3 +49,15 @@
 @media(max-width:1120px){.y-card{grid-template-columns:86px minmax(0,1fr);min-height:204px}.y-card-poster{min-height:202px}.y-card-content>strong{font-size:16px}}
 @media(max-width:760px){.y-eyebrow{width:100%;gap:5px 7px;font-size:7px;letter-spacing:.09em}.y-card{grid-template-columns:82px minmax(0,1fr);min-height:190px}.y-card-poster{min-height:188px}.y-card-content>strong{font-size:15px;margin-top:18px}.y-dossier-poster{max-height:520px}}
 @media(max-width:430px){.y-card{grid-template-columns:105px minmax(0,1fr);min-height:218px}.y-card-poster{min-height:216px}.y-card-content>strong{font-size:17px}.y-eyebrow span:nth-of-type(2){white-space:normal}}
+
+/* Beta83 sound is controlled inside the draw unit. */
+.y-spin-machine>footer{grid-template-columns:minmax(74px,.4fr) 1fr 1fr}
+#ySpinSound{font-size:10px;letter-spacing:.04em}
+@media(max-width:430px){.y-spin-machine>footer{grid-template-columns:1fr 1fr}.y-spin-machine>footer #ySpinSound{grid-column:1/-1;min-height:36px}}
+
+
+/* ===== CINEGENOME V5.0 BETA84 / quiet return to main lab ===== */
+body .y-page,body .y-lock{transition:opacity .32s ease,transform .4s cubic-bezier(.3,0,.2,1),filter .32s ease}
+body.y-returning-to-lab .y-page,body.y-returning-to-lab .y-lock{opacity:0;transform:translateY(-5px) scale(.997);filter:blur(1.2px);pointer-events:none}
+body.y-returning-to-lab .y-noise{opacity:0;transition:opacity .32s ease}
+@media(prefers-reduced-motion:reduce){body .y-page,body .y-lock,body.y-returning-to-lab .y-noise{transition:none!important;transform:none!important;filter:none!important}}

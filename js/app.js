@@ -2,11 +2,23 @@
   'use strict';
 
   const MOVIES = Array.isArray(window.CINEGENOME_MOVIES) ? window.CINEGENOME_MOVIES : [];
+  const DIMS = Array.isArray(window.CINEGENOME_DIMENSIONS) ? window.CINEGENOME_DIMENSIONS : [];
+  const DIM_KEYS = DIMS.map(d => d.key);
+  const hasCompleteDNA = dna => !!dna && DIM_KEYS.every(key => typeof dna[key] === 'number' && Number.isFinite(dna[key]) && dna[key]>=0 && dna[key]<=100);
+  const dnaSourceRank = source => source==='editorial-researched-v1' ? 5 : source==='curated-starter-v1' ? 4 : source==='legacy-curated-profile-v2' ? 4 : source==='tmdb-genome-v4' ? 3 : source==='editorial-archetype-v1' ? 2 : source==='tmdb-genome-v3' ? 1 : 0;
+  const retainCurrentDNA = (current,cached) => {
+    const before=dnaSourceRank(current.dnaSource),after=dnaSourceRank(cached.dnaSource);
+    return before>after || (before===after && before>=2 &&
+      Number(current.dnaEvidence?.coverage||0)>=Number(cached.dnaEvidence?.coverage||0));
+  };
+  const dnaReviewable = movie => hasCompleteDNA(movie?.dna) &&
+    (movie.dnaSource==='curated-starter-v1' || movie.dnaSource==='editorial-researched-v1' || movie.dnaSource==='tmdb-genome-v4') &&
+    DIM_KEYS.every(key=>Array.isArray(movie.dnaEvidence?.axes?.[key]) && movie.dnaEvidence.axes[key].length>0);
   const ENRICHED_TOP500 = Array.isArray(window.CINEGENOME_ENRICHED_TOP500) ? window.CINEGENOME_ENRICHED_TOP500 : [];
   const movieKey = (m) => `${String(m?.title||'').trim().toLowerCase()}|${Number(m?.year)||0}`;
   const mountedKeys = new Set(MOVIES.map(movieKey));
   ENRICHED_TOP500.forEach((m, i) => {
-    if (!m || !m.dna) return;
+    if (!m || !hasCompleteDNA(m.dna)) return;
     const key = movieKey(m);
     const existing = MOVIES.find(x => movieKey(x) === key || (m.tmdbId && x.tmdbId && Number(x.tmdbId) === Number(m.tmdbId)));
     if (existing) {
@@ -19,12 +31,38 @@
     mountedKeys.add(key);
   });
   (window.CINEGENOME_WATCH_ONCE_EXTRA||[]).forEach(m=>{
-    if(!m?.dna || mountedKeys.has(movieKey(m)))return;
+    if(!hasCompleteDNA(m?.dna) || mountedKeys.has(movieKey(m)))return;
     MOVIES.push({...m});mountedKeys.add(movieKey(m));
   });
-  const DIMS = Array.isArray(window.CINEGENOME_DIMENSIONS) ? window.CINEGENOME_DIMENSIONS : [];
+  function recordHomeAction(kind, films){
+    const ids=films.map(film=>film?.id);
+    if(ids.every(id=>Number.isSafeInteger(id)&&id>0))
+      window.dispatchEvent(new CustomEvent('cinegenome:home-trace',{detail:{kind,ids}}));
+  }
   const VERSION = window.CINEGENOME_DATA_VERSION || 'unknown';
-  const DIM_KEYS = DIMS.map(d => d.key);
+  const dnaProvenance = movie => movie?.dnaSource==='editorial-researched-v1'
+    ? 'SOURCE-REVIEWED EDITORIAL DNA // 12/12 AXES // INTERPRETATION'
+    : movie?.dnaSource==='curated-starter-v1'
+    ? 'EDITORIAL DNA // SOURCE NOTES PENDING'
+    : movie?.dnaSource==='legacy-curated-profile-v2'
+      ? 'LEGACY CURATED DNA // PARTIAL PROVENANCE // EXTERNAL REVIEW PENDING'
+      : movie?.dnaSource==='editorial-archetype-v1'
+      ? `EDITORIAL ARCHETYPE DNA // ${movie.cinematicSignals?.map(x=>String(x).toUpperCase()).join(' + ')||'DERIVED SIGNAL'} // SOURCE REVIEW PENDING`
+      : movie?.dnaSource==='tmdb-genome-v4'
+      ? `METADATA MODEL V4 // EVIDENCE ${movie.dnaEvidence?.coverage??'UNKNOWN'}/12 AXES // NEUTRAL PRIOR ON UNOBSERVED AXES`
+      : movie?.dnaSource==='tmdb-genome-v3'
+        ? 'LEGACY METADATA MODEL V3 // RECHECK PENDING'
+        : 'PROVISIONAL DNA // AXIS EVIDENCE NOT VERIFIED';
+  const dnaTrace = movie => {
+    if(movie?.dnaSource==='editorial-archetype-v1'){ const a=movie.cinematicSignals||movie.dnaEvidence?.archetypes||[]; return a.length?`<div class="micro">ARCHETYPE TRACE // ${a.map(x=>esc(String(x).toUpperCase())).join(' + ')}</div>`:''; }
+    if(movie?.dnaSource==='legacy-curated-profile-v2') return '<div class="micro">PROVENANCE TRACE // LEGACY CURATED PROFILE · AXIS SOURCES PENDING</div>';
+    if(!['tmdb-genome-v4','editorial-researched-v1'].includes(movie?.dnaSource)) return '';
+    const axes=movie.dnaEvidence?.axes||{};
+    const strongest=DIMS.filter(d=>axes[d.key]?.length)
+      .sort((a,b)=>Math.abs(movie.dna[b.key]-50)-Math.abs(movie.dna[a.key]-50)||DIM_KEYS.indexOf(a.key)-DIM_KEYS.indexOf(b.key))
+      .slice(0,3).map(d=>`${d.label.toUpperCase()} ← ${axes[d.key].slice(0,2).map(s=>s.split(':')[0].toUpperCase()).join(' + ')}`);
+    return strongest.length?`<div class="micro">EVIDENCE TRACE // ${strongest.map(esc).join(' · ')}</div>`:'';
+  };
   const STORAGE_KEY = 'cinegenome_lab_v1';
   const RX_KEY = 'cinegenome_daily_rx_v2';
   const TMDB_CACHE_KEY = 'cinegenome_tmdb_movie_cache_v1';
@@ -40,6 +78,13 @@
   let state = loadState();
   let currentScannerId = MOVIES[0]?.id || null;
   let scannerTMDBRequestToken = 0;
+  let scannerStatsCache = null;
+  let scannerCompareThirdEnabled = false;
+  let scannerSequenceTimers = [];
+  let scannerSequenceLastKey = '';
+  let scannerSequenceLastAt = 0;
+  let moduleEntryTimers = [];
+  let moduleEntryToken = 0;
   let mutationDNA = cloneDNA(MOVIES[0]?.dna || {});
   let mutationSeedNonce = 0;
   let mutationPass = 0;
@@ -72,9 +117,9 @@
     scanner:{
       code:'MODULE // 01',
       title:'SPECIMEN SCANNER',
-      description:'Reads one film as a 12-trait cinematic genome. CineGenome combines its local DNA model with resolved TMDB metadata such as poster, director, genres, runtime and synopsis.',
-      simple:'Choose one film, inspect its cinematic DNA, then compare it with nearby specimens that share similar traits.',
-      steps:['Search for or select a film specimen.','Inspect its DNA profile, poster, metadata and director fingerprint.','Open the dossier for the full synopsis and extended pathology report.']
+      description:'Reads one film as a 12-trait cinematic genome, compares every axis with the archive median, detects anomalous traits, assigns model phenotypes and supports pair or triple cross-scans.',
+      simple:'Choose one film, inspect what makes its genome unusual, then overlay it against up to two other specimens.',
+      steps:['Search for or select a film specimen.','Read its genome silhouette, archive deviation, anomaly percentile and phenotype labels.','Use Compare Specimens for a pair/triple overlay, then open the dossier for the full pathology report.']
     },
     crossbreed:{
       code:'MODULE // 02',
@@ -306,7 +351,10 @@
 
   function cloneDNA(dna) {
     const out = {};
-    DIM_KEYS.forEach(k => out[k] = clamp(dna?.[k]));
+    DIM_KEYS.forEach(k => {
+      const value=dna?.[k];
+      out[k]=typeof value==='number'&&Number.isFinite(value)&&value>=0&&value<=100?value:null;
+    });
     return out;
   }
 
@@ -339,7 +387,7 @@
   function movieById(id) { return MOVIES.find(m => m.id === Number(id)); }
 
   function scoreSimilarity(a, b, weights = {}) {
-    if (!a || !b || !DIM_KEYS.length) return 0;
+    if (!hasCompleteDNA(a) || !hasCompleteDNA(b) || !DIM_KEYS.length) return null;
     let total = 0, weightTotal = 0;
     DIM_KEYS.forEach(key => {
       const w = Number(weights[key] ?? 1);
@@ -353,8 +401,9 @@
 
   function nearest(dna, excludeIds = [], limit = 6) {
     return MOVIES
-      .filter(m => !excludeIds.includes(m.id))
+      .filter(m => !excludeIds.includes(m.id) && hasCompleteDNA(m.dna))
       .map(movie => ({ movie, score: scoreSimilarity(dna, movie.dna) }))
+      .filter(entry => entry.score !== null)
       .sort((a, b) => b.score - a.score || a.movie.title.localeCompare(b.movie.title))
       .slice(0, limit);
   }
@@ -452,6 +501,7 @@
     const source=movieById(sourceId)||MOVIES[0];
     const svg=$('#bloodlineSvg'); if(!source||!svg)return;
     const relatives=nearest(source.dna,[source.id],8).map(x=>({...x,rel:bloodlineRelation(source,x.movie,x.score)}));
+    $('#bloodlineComparison').hidden=true;
     const cx=500,cy=310,rx=350,ry=225;
     let links='', nodes='';
     relatives.forEach((r,i)=>{
@@ -466,8 +516,11 @@
     $$('.bloodline-node',svg).forEach(n=>{
       const activate=()=>{
         const m=movieById(Number(n.dataset.id)); if(!m)return;
+        window.CINEGENOME_ANOMALY?.bloodline(source,m);
+        const comparison=$('#bloodlineComparison');comparison.hidden=false;
+        window.CINEGENOME_INSTRUMENTS.differential(comparison,source.dna,m.dna,{title:'CLOSEST SHARED SIGNALS',leftLabel:'SOURCE',rightLabel:'RELATIVE',similar:true});
         $('#bloodlineDetail').innerHTML=`<strong>${esc(m.title)} (${m.year||'—'})</strong> — ${esc(m.director||'Unknown')} · <button class="table-action" id="bloodlineScanBtn" type="button">SCAN SPECIMEN</button>`;
-        $('#bloodlineScanBtn')?.addEventListener('click',()=>{renderScanner(m.id);switchView('scanner');});
+        $('#bloodlineScanBtn')?.addEventListener('click',()=>{renderScanner(m.id);recordHomeAction('scan',[m]);switchView('scanner');});
       };
       n.addEventListener('click',activate);
       n.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate();}});
@@ -512,7 +565,7 @@
     if(deadMetadataCache.has(key)) return deadMetadataCache.get(key);
     if(!TMDB?.canQuery()) return null;
     try{
-      const data=await promiseTimeout(TMDB.resolveTitle(specimen.title,null),9000,'DEAD_TMDB_TIMEOUT');
+      const data=await promiseTimeout(TMDB.resolveTitle(specimen.title,null,{strict:true}),9000,'DEAD_TMDB_TIMEOUT');
       const movie=data?tmdbToMovie(data):null;
       deadMetadataCache.set(key,movie);
       return movie;
@@ -621,12 +674,12 @@
         <h3 class="dead-detail-title">${esc(movie.title)}</h3>
         <div class="dead-detail-meta">${movie.year||'—'} / ${esc(movie.director||'Unknown')} ${movie.runtime?`/ ${movie.runtime} MIN`:''}<br>${esc((movie.genres||[]).join(' / ')||'UNCLASSIFIED')}</div>
         <div class="dead-detail-copy">${esc(movie.overview||'Synopsis signal unavailable.')}</div>
-        <div class="section-kicker spacing-top">ISOLATED GENOME // ENGINE V3</div>
-        <div class="dna-grid dead-detail-dna" id="deadDnaGrid"></div>
+        <div class="section-kicker spacing-top">ISOLATED GENOME // ${hasCompleteDNA(movie.dna)?esc(dnaProvenance(movie)):'UNAVAILABLE // INSUFFICIENT DNA EVIDENCE'}</div>
+        ${hasCompleteDNA(movie.dna)?`<div class="dna-grid dead-detail-dna" id="deadDnaGrid"></div>${dnaTrace(movie)}`:''}
         <p class="micro spacing-top">This resolved specimen remains off-catalog: opening it here does not add it to the normal 500-film pool.</p>
       </div>
     </div>`;
-    renderDNAGrid($('#deadDnaGrid'),movie.dna);
+    if(hasCompleteDNA(movie.dna))renderDNAGrid($('#deadDnaGrid'),movie.dna);
   }
 
   function clearDeadAudioTimer(){
@@ -1133,7 +1186,7 @@
   }
 
   async function hydrateMovieMetadata(movie){
-    if(!movie || !TMDB?.canQuery() || !isMetadataPending(movie)) return movie;
+    if(!movie || !TMDB?.canQuery() || (!isMetadataPending(movie) && movie.dnaSource!=='tmdb-genome-v3')) return movie;
     const key=String(movie.id);
     if(metadataHydrationInFlight.has(key)) return metadataHydrationInFlight.get(key);
 
@@ -1196,7 +1249,7 @@
       if(requestToken!==scannerTMDBRequestToken || currentScannerId!==expectedId) return;
       if(!enriched){ renderScannerPoster(movie,'error'); return; }
       // Repaint all scanner readouts because TMDB enrichment can improve director,
-      // genres, runtime and Genome V3 DNA in addition to adding the poster.
+      // genres, runtime and evidence-based model DNA in addition to adding the poster.
       renderScanner(enriched.id,{skipTMDB:true,silent:true});
       log(`SCANNER TMDB SIGNAL LOCKED: ${enriched.title.toUpperCase()}`);
     }catch(err){
@@ -1206,6 +1259,322 @@
       if(status && String(err?.message||'').includes('TIMEOUT')) status.textContent='TMDB SIGNAL TIMEOUT // RETRY ON NEXT SCAN';
       log(`SCANNER TMDB LINK ERROR: ${err.message||'UNKNOWN'}`);
     }
+  }
+
+
+  function scannerStats(){
+    if(scannerStatsCache) return scannerStatsCache;
+    const out={};
+    const archive=scannerBaselineReady()
+      ? MOVIES.filter(dnaReviewable)
+      : MOVIES;
+    DIMS.forEach(d=>{
+      const values=archive.map(m=>m?.dna?.[d.key]).filter(v=>typeof v==='number' && Number.isFinite(v) && v>=0 && v<=100).sort((a,b)=>a-b);
+      const n=Math.max(1,values.length);
+      const q=p=>values[Math.min(values.length-1,Math.max(0,Math.round((values.length-1)*p)))]||0;
+      const mean=values.reduce((a,b)=>a+b,0)/n;
+      const variance=values.reduce((sum,v)=>sum+Math.pow(v-mean,2),0)/n;
+      out[d.key]={
+        values,
+        mean,
+        sd:Math.sqrt(variance)||1,
+        median:q(.5),
+        q1:q(.25),
+        q3:q(.75)
+      };
+    });
+    scannerStatsCache=out;
+    return out;
+  }
+
+  // The historical archive contains mostly unevidenced vectors. Do not present
+  // its median or percentile as a calibrated population statistic.
+  function scannerBaselineReady(){
+    const verified=MOVIES.filter(dnaReviewable).length;
+    return verified>=100 && verified>=Math.ceil(MOVIES.length*.7);
+  }
+
+  function signedDelta(value, median){
+    const delta=Math.round(clamp(value)-Number(median||0));
+    return `${delta>0?'+':''}${delta}`;
+  }
+
+  function scannerAnomalyProfile(dna){
+    const stats=scannerStats();
+    const rows=DIMS.map(d=>{
+      const value=clamp(dna?.[d.key]);
+      const st=stats[d.key]||{mean:50,sd:1,median:50,values:[]};
+      const deviation=value-st.median;
+      const z=Math.abs(value-st.mean)/Math.max(1,st.sd);
+      const absoluteDeviation=Math.abs(deviation);
+      const archiveDeviations=(st.values||[]).map(v=>Math.abs(v-st.median)).sort((a,b)=>a-b);
+      const below=archiveDeviations.filter(v=>v<=absoluteDeviation).length;
+      const anomalyPercentile=Math.round((below/Math.max(1,archiveDeviations.length))*1000)/10;
+      return {...d,value,median:st.median,deviation,z,anomalyPercentile};
+    }).sort((a,b)=>b.z-a.z || Math.abs(b.deviation)-Math.abs(a.deviation));
+    const strongest=rows[0];
+    const pair=rows.slice(0,2);
+    const conditions=pair.map(r=>({key:r.key,direction:r.deviation>=0?'HIGH':'LOW',threshold:r.deviation>=0?Math.max(r.median+8,r.value-7):Math.min(r.median-8,r.value+7)}));
+    const verified=MOVIES.filter(dnaReviewable);
+    const matchCount=verified.filter(m=>conditions.every(c=>c.direction==='HIGH'?m.dna[c.key]>=c.threshold:m.dna[c.key]<=c.threshold)).length;
+    const prevalence=Math.round((matchCount/Math.max(1,verified.length))*1000)/10;
+    return {strongest,pair,prevalence,matchCount,rows};
+  }
+
+  function scannerPhenotypes(dna){
+    const labels=[];
+    const push=(label,detail)=>{if(labels.length<4&&!labels.some(x=>x.label===label))labels.push({label,detail});};
+    const v=k=>typeof dna?.[k]==='number'&&Number.isFinite(dna[k])&&dna[k]>=0&&dna[k]<=100?dna[k]:undefined;
+    if(v('pacing')<=38 && (v('darkness')>=58||v('intensity')>=60)) push('SLOW-BURN PRESSURE','LOW TEMPO / SUSTAINED LOAD');
+    if(v('dreamLogic')>=72||v('surrealism')>=74) push('DREAM LOGIC','REALITY MEMBRANE UNSTABLE');
+    if(v('visualExtremity')>=76) push('SENSORY MAXIMALISM','HIGH VISUAL EXPRESSION');
+    if(v('loneliness')>=72 && v('humor')<=48) push('ISOLATION FIELD','SOCIAL SIGNAL SUPPRESSED');
+    if(v('narrativeComplexity')>=72) push('FORMAL DENSITY','HIGH STRUCTURAL LOAD');
+    if(v('romance')>=66 && v('darkness')>=64) push('DOOMED INTIMACY','ROMANCE / DARKNESS COUPLED');
+    if(v('humor')>=68 && v('chaos')>=64) push('ANARCHIC COMEDY','HUMOR / CHAOS COUPLED');
+    if(v('nostalgia')>=76) push('MEMORY-DRIVEN','NOSTALGIA DOMINANT');
+    if(v('intensity')>=78 && v('pacing')>=66) push('KINETIC PRESSURE','HIGH SPEED / HIGH LOAD');
+    if(v('darkness')>=78 && v('humor')<=35) push('AUSTERE DREAD','DARKNESS DOMINANT');
+    if(labels.length<2){
+      DIMS.map(d=>({...d,value:v(d.key)})).filter(t=>t.value!==undefined)
+        .sort((a,b)=>b.value-a.value).slice(0,4)
+        .forEach(t=>push(`${t.label.toUpperCase()} DOMINANT`,`${t.value} / 100 EXPRESSION`));
+    }
+    return labels.slice(0,4);
+  }
+
+  function renderScannerDNAGrid(el,dna,movie){
+    if(!el)return;
+    const stats=scannerStats();
+    const calibrated=scannerBaselineReady() && dnaReviewable(movie);
+    const self=scannerLocalAnomalyProfile(dna);
+    el.innerHTML=DIMS.map(d=>{
+      const raw=dna?.[d.key];
+      const known=typeof raw==='number'&&Number.isFinite(raw)&&raw>=0&&raw<=100;
+      const v=known?raw:null;
+      const med=calibrated?stats[d.key]?.median:self?.median;
+      const canCompare=known&&Number.isFinite(med);
+      const delta=canCompare?Math.round(v-med):null;
+      const cls=v>=88?'hot':v>=72?'acid':'';
+      return `<div class="dna-row scanner-dna-row ${cls}">
+        <span class="scanner-axis-label">${esc(d.label.toUpperCase())}</span>
+        <div class="dna-track scanner-dna-track ${known?'':'is-unknown'}" title="${canCompare?`${calibrated?'Evidenced archive':'Subject'} median ${med}`:'Axis or reference unknown'}">
+          ${known?`<div class="dna-fill" style="width:${v}%"></div>`:''}
+          ${canCompare?`<i class="scanner-median-marker" style="left:${med}%" aria-hidden="true"></i>`:''}
+        </div>
+        <span class="dna-value scanner-dna-value"><b>${known?Math.round(v):'UNKNOWN'}</b><small class="${delta>0?'is-up':delta<0?'is-down':''}">${canCompare?`Δ ${delta>0?'+':''}${delta}`:'Δ —'}</small></span>
+      </div>`;
+    }).join('');
+    const axisGuide=$('#scannerAxisGuide'),medianGuide=$('#scannerMedianGuide');
+    if(axisGuide)axisGuide.textContent=calibrated?'AXIS DEVIATION // EVIDENCED ARCHIVE':'AXIS DEVIATION // WITHIN FILM';
+    if(medianGuide)medianGuide.textContent=calibrated?'VERTICAL LINE = ARCHIVE MEDIAN':'VERTICAL LINE = SUBJECT MEDIAN';
+  }
+
+  function drawScannerSilhouette(svg,dna,movie){
+    if(!svg||!dna)return;
+    const self=scannerLocalAnomalyProfile(dna);
+    if(!self||self.coverage!==DIMS.length){
+      svg.innerHTML=`<rect width="260" height="150" fill="#101510"/><text x="130" y="74" text-anchor="middle" fill="#c5d1b8">SILHOUETTE UNKNOWN</text><text x="130" y="91" text-anchor="middle" fill="#a0a996">${self?.coverage??0}/${DIMS.length} KNOWN AXES</text>`;
+      return;
+    }
+    const stats=scannerStats();
+    const cx=130,cy=75,r=54;
+    const ring=(ratio)=>DIMS.map((d,i)=>{
+      const a=-Math.PI/2+(i/DIMS.length)*Math.PI*2;
+      return `${(cx+Math.cos(a)*r*ratio).toFixed(1)},${(cy+Math.sin(a)*r*ratio).toFixed(1)}`;
+    }).join(' ');
+    const poly=(source)=>DIMS.map((d,i)=>{
+      const a=-Math.PI/2+(i/DIMS.length)*Math.PI*2;
+      const val=clamp(typeof source==='function'?source(d):source?.[d.key]);
+      const rr=16+(val/100)*(r-16);
+      return `${(cx+Math.cos(a)*rr).toFixed(1)},${(cy+Math.sin(a)*rr).toFixed(1)}`;
+    }).join(' ');
+    const subject=poly(dna);
+    const calibrated=scannerBaselineReady()&&dnaReviewable(movie);
+    const median=poly(d=>calibrated?stats[d.key]?.median:self.median);
+    const spokes=DIMS.map((d,i)=>{
+      const a=-Math.PI/2+(i/DIMS.length)*Math.PI*2;
+      const x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r;
+      return `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"/>`;
+    }).join('');
+    svg.innerHTML=`<rect width="260" height="150" fill="#101510"/>
+      <g class="scanner-silhouette-grid"><polygon points="${ring(1)}"/><polygon points="${ring(.68)}"/><polygon points="${ring(.36)}"/>${spokes}</g>
+      <polygon class="scanner-silhouette-median" points="${median}"/>
+      <polygon class="scanner-silhouette-subject" points="${subject}"/>
+      <text x="10" y="16">SUBJECT</text><text x="250" y="16" text-anchor="end">${calibrated?'EVIDENCED MEDIAN':'SUBJECT MEDIAN'}</text>`;
+  }
+
+  function renderScannerPhenotypes(dna){
+    const host=$('#scannerPhenotypes'); if(!host)return;
+    host.innerHTML=scannerPhenotypes(dna).map((p,i)=>`<div class="scanner-phenotype"><span>${String(i+1).padStart(2,'0')}</span><strong>${esc(p.label)}</strong><small>${esc(p.detail)}</small></div>`).join('');
+  }
+
+  function scannerLocalAnomalyProfile(dna){
+    const known=DIMS.map((d,index)=>({...d,index,value:dna?.[d.key]}))
+      .filter(r=>typeof r.value==='number'&&Number.isFinite(r.value)&&r.value>=0&&r.value<=100);
+    if(known.length<4)return null;
+    const sorted=known.map(r=>r.value).sort((a,b)=>a-b);
+    const mid=Math.floor(sorted.length/2);
+    const median=sorted.length%2?sorted[mid]:(sorted[mid-1]+sorted[mid])/2;
+    const rows=known.map(r=>({...r,deviation:r.value-median,strength:Math.abs(r.value-median)}))
+      .sort((a,b)=>b.strength-a.strength||a.index-b.index);
+    return {strongest:rows[0],pair:rows.slice(0,2),median,coverage:known.length,rows};
+  }
+
+  function renderScannerAnomaly(dna,movie){
+    const delta=$('#scannerAnomalyDelta'),axis=$('#scannerAnomalyAxis'),meta=$('#scannerAnomalyMeta'),pair=$('#scannerRarePair'),mode=$('#scannerAnomalyMode');
+    const calibrated=scannerBaselineReady() && dnaReviewable(movie);
+    if(!calibrated){
+      const profile=scannerLocalAnomalyProfile(dna);
+      const top=profile?.strongest;
+      const source=movie?.dnaSource==='editorial-researched-v1'?'SOURCE REVIEWED':
+        movie?.dnaSource==='legacy-curated-profile-v2'?'LEGACY / PARTIAL TRACE':
+        movie?.dnaSource==='editorial-archetype-v1'?'EDITORIAL ARCHETYPE':
+        movie?.dnaSource==='curated-starter-v1'?'CURATED / UNTRACED':
+        movie?.dnaSource==='tmdb-genome-v4'?'METADATA DERIVED':'PROVISIONAL';
+      if(mode)mode.textContent='INTRA-SPECIMEN';
+      if(delta)delta.textContent=top?`Δ ${signedDelta(top.value,profile.median)}`:'UNKNOWN';
+      if(axis)axis.textContent=top?`${top.label.toUpperCase()} // ${Math.round(top.value)}`:'INSUFFICIENT DNA';
+      if(meta)meta.textContent=top?`${top.strength===0?'NO AXIS DEVIATES // ':''}SUBJECT MEDIAN ${profile.median} / 100 // ${profile.coverage}/${DIMS.length} KNOWN AXES // ${source}`:'AT LEAST FOUR KNOWN AXES REQUIRED // UNKNOWN ≠ ZERO';
+      if(pair){
+        const names=profile?.pair.map(r=>`${r.deviation>0?'HIGH':r.deviation<0?'LOW':'AT MEDIAN'} ${r.label.toUpperCase()} ${Math.round(r.value)}`).join(' + ');
+        pair.textContent=top?top.strength===0?'NO DOMINANT CONTRAST // FLAT SPECIMEN':`DOMINANT CONTRAST // ${names} // SAME FILM`:'TRAIT PAIR UNKNOWN';
+      }
+      return;
+    }
+    const profile=scannerAnomalyProfile(dna);
+    const top=profile.strongest;
+    if(!top)return;
+    if(mode)mode.textContent='ARCHIVE DEVIATION';
+    if(delta)delta.textContent=`Δ ${signedDelta(top.value,top.median)}`;
+    if(axis)axis.textContent=`${top.label.toUpperCase()} // ${Math.round(top.value)}`;
+    if(meta)meta.textContent=`ANOMALY PCTL ${profile.strongest.anomalyPercentile.toFixed(1)} // ARCHIVE MEDIAN ${Math.round(top.median)} // ${top.deviation>=0?'OVER-EXPRESSED':'SUPPRESSED'}`;
+    if(pair){
+      const names=profile.pair.map(r=>`${r.deviation>=0?'HIGH':'LOW'} ${r.label.toUpperCase()}`).join(' + ');
+      pair.textContent=`${profile.prevalence<=12?'RARE':'DISTINCTIVE'} TRAIT PAIR // ${names} // ${profile.prevalence.toFixed(1)}% OF EVIDENCED ARCHIVE`;
+    }
+  }
+
+  function runScannerSequence(movie){
+    const overlay=$('#scannerScanSequence'),step=$('#scannerScanStep'),bar=$('#scannerScanProgress'),code=$('#scannerScanCode');
+    if(!overlay||!step||!bar||!code||!movie)return;
+    const panel=overlay.closest('.scanner-panel');
+    const pathology=$('.pathology-panel');
+    const now=Date.now();
+    const key=String(movie.id);
+    if(scannerSequenceLastKey===key && now-scannerSequenceLastAt<450)return;
+    scannerSequenceLastKey=key;scannerSequenceLastAt=now;
+    scannerSequenceTimers.forEach(clearTimeout);scannerSequenceTimers=[];
+    const stages=[
+      [0,'POSTER INGEST','OPTICAL CHANNEL ACQUIRED',8],
+      [280,'METADATA EXTRACTION',`${movie.year||'—'} // ${String(movie.director||'UNKNOWN').toUpperCase()}`,27],
+      [560,'GENOME MAPPING','12 AXES / VECTOR NORMALIZED',49],
+      [840,'AXIS CALIBRATION',scannerBaselineReady()&&dnaReviewable(movie)?'ARCHIVE MEDIAN OVERLAY':'SUBJECT MEDIAN REFERENCE',68],
+      [1120,'ANOMALY DETECTION',scannerBaselineReady()&&dnaReviewable(movie)?'PERCENTILE MODEL / TRAIT PAIRS':'DOMINANT AXIS / OWN MEDIAN',86],
+      [1400,'SPECIMEN LOCKED',`SUBJECT #${String(movie.id).padStart(4,'0')} // READOUT READY`,100]
+    ];
+    overlay.hidden=false;
+    overlay.classList.remove('is-leaving');
+    panel?.classList.add('is-scanning');
+    pathology?.classList.add('is-scanning');
+    pathology?.setAttribute('aria-busy','true');
+    requestAnimationFrame(()=>overlay.classList.add('is-active'));
+    bar.style.width='0%';
+    stages.forEach(([delay,label,detail,pct])=>{
+      scannerSequenceTimers.push(setTimeout(()=>{
+        step.textContent=label;code.textContent=detail;bar.style.width=`${pct}%`;
+      },delay));
+    });
+    scannerSequenceTimers.push(setTimeout(()=>{
+      overlay.classList.add('is-leaving');
+      scannerSequenceTimers.push(setTimeout(()=>{
+        overlay.classList.remove('is-active','is-leaving');overlay.hidden=true;
+        panel?.classList.remove('is-scanning');
+        pathology?.classList.remove('is-scanning');
+        pathology?.removeAttribute('aria-busy');
+      },260));
+    },1660));
+  }
+
+  function scannerComparisonMovies(){
+    const primary=movieById(currentScannerId)||MOVIES[0];
+    const b=movieById($('#compareB')?.value);
+    const c=scannerCompareThirdEnabled?movieById($('#compareC')?.value):null;
+    const list=[primary,b,c].filter(Boolean);
+    const unique=[];const ids=new Set();
+    list.forEach(m=>{if(!ids.has(m.id)){ids.add(m.id);unique.push(m);}});
+    return unique;
+  }
+
+  function drawScannerComparison(svg,movies){
+    if(!svg||!movies.length)return;
+    const w=900,h=210,top=34,bottom=168,left=42,right=20;
+    const plotW=w-left-right;
+    const x=i=>left+(i/(DIMS.length-1))*plotW;
+    const y=v=>bottom-(clamp(v)/100)*(bottom-top);
+    let grid='';
+    [25,50,75].forEach(v=>{grid+=`<line x1="${left}" y1="${y(v)}" x2="${w-right}" y2="${y(v)}" class="scanner-compare-grid"/><text x="8" y="${y(v)+3}" class="scanner-compare-grid-label">${v}</text>`;});
+    const axis=DIMS.map((d,i)=>`<text x="${x(i).toFixed(1)}" y="190" text-anchor="middle" class="scanner-compare-axis">${esc(d.label.slice(0,3).toUpperCase())}</text>`).join('');
+    const classes=['is-a','is-b','is-c'];
+    const paths=movies.map((m,idx)=>{
+      const d=DIMS.map((dim,i)=>`${i?'L':'M'}${x(i).toFixed(1)},${y(m.dna?.[dim.key]).toFixed(1)}`).join(' ');
+      const dots=DIMS.map((dim,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(m.dna?.[dim.key]).toFixed(1)}" r="2.5"/>`).join('');
+      return `<g class="scanner-compare-path ${classes[idx]}"><path d="${d}"/>${dots}</g>`;
+    }).join('');
+    const legend=movies.map((m,idx)=>`<g class="scanner-compare-legend ${classes[idx]}" transform="translate(${left+idx*260},16)"><line x1="0" y1="0" x2="24" y2="0"/><text x="31" y="3">${String.fromCharCode(65+idx)} // ${esc(m.title.slice(0,26).toUpperCase())}</text></g>`).join('');
+    svg.innerHTML=`<rect width="900" height="210" fill="#101510"/>${grid}${paths}${axis}${legend}`;
+  }
+
+
+  function ensureScannerCompareSelections(primary){
+    if(!primary)return;
+    const bHidden=$('#compareB'),cHidden=$('#compareC');
+    const fallback=(exclude)=>MOVIES.find(m=>!exclude.includes(m.id))||MOVIES[0];
+    let b=movieById(bHidden?.value);
+    if(!b||b.id===primary.id){
+      b=fallback([primary.id]);
+      if(b)setMovieSearchSelection('compareBSearch','compareB',b);
+    }
+    let c=movieById(cHidden?.value);
+    if(!c||c.id===primary.id||c.id===b?.id){
+      c=fallback([primary.id,b?.id]);
+      if(c)setMovieSearchSelection('compareCSearch','compareC',c);
+    }
+  }
+
+  function renderScannerComparison(){
+    const primary=movieById(currentScannerId)||MOVIES[0];
+    const primaryTitle=$('#comparePrimaryTitle'); if(primaryTitle&&primary)primaryTitle.textContent=`${primary.title} (${primary.year||'—'})`;
+    const movies=scannerComparisonMovies();
+    const svg=$('#scannerCompareScope'),host=$('#scannerCompareMetrics');
+    if(!svg||!host||!movies.length)return;
+    drawScannerComparison(svg,movies);
+    if(movies.length<2){host.textContent='SELECT A SECOND SPECIMEN TO BEGIN CROSS-SCAN.';return;}
+    const pairs=[];
+    for(let i=0;i<movies.length;i++)for(let j=i+1;j<movies.length;j++)pairs.push({a:movies[i],b:movies[j],score:scoreSimilarity(movies[i].dna,movies[j].dna)});
+    const coherence=Math.round(pairs.reduce((s,p)=>s+p.score,0)/Math.max(1,pairs.length));
+    const stats=scannerStats();
+    const shared=DIMS.map(d=>{
+      const vals=movies.map(m=>clamp(m.dna?.[d.key]));
+      const med=stats[d.key]?.median??50;
+      const range=Math.max(...vals)-Math.min(...vals);
+      const calibrated=scannerBaselineReady();
+      const high=calibrated&&vals.every(v=>v>=med+6),low=calibrated&&vals.every(v=>v<=med-6);
+      return {d,vals,range,shared:range<=22&&(calibrated?(high||low):true),direction:calibrated?(high?'HIGH':'LOW'):'CLOSE',avg:Math.round(vals.reduce((a,b)=>a+b,0)/vals.length)};
+    });
+    const sharedTraits=shared.filter(x=>x.shared).sort((a,b)=>a.range-b.range).slice(0,4);
+    const deviations=shared.slice().sort((a,b)=>b.range-a.range).slice(0,4);
+    host.innerHTML=`<div class="scanner-compare-summary"><strong>${coherence}%</strong><span>MODEL COHERENCE // ${movies.every(m=>['curated-starter-v1','editorial-researched-v1','legacy-curated-profile-v2','editorial-archetype-v1','tmdb-genome-v4'].includes(m.dnaSource))?'INTERPRETIVE':'PROVISIONAL'}</span></div>
+      <div class="scanner-compare-pair-scores">${pairs.map(p=>`<span>${esc(p.a.title)} ↔ ${esc(p.b.title)} <b>${p.score}%</b></span>`).join('')}</div>
+      <div class="scanner-compare-columns">
+        <div><span>SHARED TRAITS</span>${sharedTraits.length?sharedTraits.map(x=>`<b>${x.direction} ${esc(x.d.label.toUpperCase())} // ${x.avg}</b>`).join(''):'<b>NO TIGHT SHARED TRAIT CLUSTER</b>'}</div>
+        <div><span>MAJOR DEVIATION</span>${deviations.map(x=>`<b>${esc(x.d.label.toUpperCase())} // RANGE ${Math.round(x.range)}</b>`).join('')}</div>
+      </div>
+      <div class="scanner-compare-jump">${movies.slice(1).map(m=>`<button type="button" data-compare-scan="${m.id}">SCAN ${esc(m.title.toUpperCase())}</button>`).join('')}</div>`;
+    $$('[data-compare-scan]',host).forEach(btn=>btn.addEventListener('click',()=>{
+      const film=movieById(btn.dataset.compareScan);
+      if(film){renderScanner(film.id);recordHomeAction('scan',[film])}
+    }));
   }
 
   function renderScanner(id = currentScannerId, options = {}) {
@@ -1227,10 +1596,13 @@
       ['DREAM CONTAMINATION', movie.dna.dreamLogic]
     ].map(([k,v]) => `<div class="diagnostic"><strong>${k}</strong><span>${v}%</span></div>`).join('');
     $('#scannerReport').textContent = pathologyReport(movie);
-    renderDNAGrid($('#scannerDNA'), movie.dna);
-    $('#scannerDNASource').textContent=movie.dnaSource==='tmdb-genome-v3'
-      ? `DNA MODEL // TMDB METADATA // CONFIDENCE ${Math.round(Number(movie.dnaConfidence||0)*100)}%`
-      : `PRELIMINARY DNA // TMDB METADATA PENDING // CONFIDENCE ${Math.round(Number(movie.dnaConfidence||.38)*100)}%`;
+    renderScannerDNAGrid($('#scannerDNA'), movie.dna, movie);
+    drawScannerSilhouette($('#scannerSilhouette'), movie.dna, movie);
+    renderScannerPhenotypes(movie.dna);
+    renderScannerAnomaly(movie.dna,movie);
+    ensureScannerCompareSelections(movie);
+    renderScannerComparison();
+    $('#scannerDNASource').textContent=dnaProvenance(movie);
     drawScope($('#scannerScope'), movie.dna, movie.id, `${movie.title.toUpperCase()} / GENOME READOUT`);
     renderRanks($('#similarList'), nearest(movie.dna, [movie.id], 5));
     renderDirectorFingerprint($('#directorFingerprint'), movie);
@@ -1239,19 +1611,26 @@
     const isFav = state.favorites.includes(movie.id);
     $('#favoriteBtn').setAttribute('aria-pressed', isFav ? 'true' : 'false');
     $('#favoriteBtn').textContent = isFav ? '★ SAVED' : '☆ SAVE';
-    window.CINEGENOME_ANOMALY?.scan(movie);
-    if(!options.silent) log(`SCANNED SPECIMEN: ${movie.title.toUpperCase()}`);
+    if(!options.silent)window.CINEGENOME_ANOMALY?.scan(movie);
+    if(!options.silent) {
+      runScannerSequence(movie);
+      log(`SCANNED SPECIMEN: ${movie.title.toUpperCase()}`);
+    }
     if(!options.skipTMDB) {
       // Delay one frame so the local scanner UI paints immediately before network work starts.
       requestAnimationFrame(()=>hydrateScannerFromTMDB(movie));
     }
   }
 
-  function handleScannerSearch(query) {
+  function handleScannerSearch(query, scan=false) {
     const q = query.trim().toLowerCase();
     if (!q) return;
     const found = MOVIES.find(m => [m.title,m.director,m.country,...m.genres,...m.tags].join(' ').toLowerCase().includes(q));
-    if (found) renderScanner(found.id);
+    if (found) {
+      $('#scannerSelect').value=String(found.id);
+      if(scan)renderScanner(found.id);
+      return found;
+    }
   }
 
   function renderCrossbreed(options={}) {
@@ -1268,6 +1647,7 @@
     $('#parentALabel').textContent = a.title.slice(0,18).toUpperCase();
     $('#parentBLabel').textContent = b.title.slice(0,18).toUpperCase();
     renderDNAGrid($('#hybridDNA'), hybrid);
+    window.CINEGENOME_INSTRUMENTS.differential($('#hybridDifferential'),a.dna,b.dna,{title:'PARENT DIFFERENTIAL / LARGEST DISTANCES',middle:hybrid});
     drawScope($('#hybridScope'), hybrid, a.id+b.id+ratioA, 'SYNTHETIC HYBRID GENOME');
     $('#hybridStatus').textContent = 'ALIVE';
     $('#hybridMatchScore').textContent = best ? `${best.score}%` : '—%';
@@ -1298,6 +1678,7 @@
   function purgeCrossbreed() {
     $('#hybridScope').innerHTML = '';
     $('#hybridDNA').innerHTML = '';
+    $('#hybridDifferential').innerHTML = '';
     $('#hybridStatus').textContent = 'IDLE';
     $('#hybridMatchScore').textContent = '—%';
     $('#hybridMatchTitle').textContent = 'Chamber purged';
@@ -1330,7 +1711,7 @@
     if (!movie) return;
     if(!preservePass) mutationPass=0;
     updateMutationSeedReadout(movie);
-    // A selected seed is automatically upgraded to Genome Engine V3 when TMDB
+    // A selected seed is upgraded to the evidence-based film model when TMDB
     // metadata is available. The local provisional DNA remains the offline fallback.
     if (TMDB?.canQuery() && (Number(movie.dnaConfidence||0) < .7 || !movie.overview || !(movie.genres||[]).length)) {
       try {
@@ -1347,6 +1728,8 @@
 
 
   function renderMutation(options={}) {
+    const source=movieById($('#mutationSeed').value);
+    window.CINEGENOME_INSTRUMENTS.differential($('#mutationDifferential'),source?.dna,mutationDNA,{title:'DEVIATION FROM SEED / LARGEST CHANGES',leftLabel:'SEED',rightLabel:'LIVE'});
     const match = nearest(mutationDNA, [], 1)[0];
     if (!match) return;
     $('#mutationScore').textContent = `${match.score}%`;
@@ -1435,13 +1818,14 @@
     const genre = $('#atlasGenre').value;
     const requested = clamp(Number($('#atlasLimit')?.value || 80),20,500);
     if($('#atlasLimitValue')) $('#atlasLimitValue').textContent = String(requested);
-    const source = MOVIES.filter(m => !genre || m.genres.includes(genre));
+    const query=($('#atlasFind')?.value||'').trim().toLowerCase();
+    const source = MOVIES.filter(m => (!genre || m.genres.includes(genre)) &&
+      (!query || `${m.title} ${m.year||''} ${m.director||''}`.toLowerCase().includes(query)) &&
+      window.CINEGENOME_INSTRUMENTS.known(m.dna?.[xKey]) && window.CINEGENOME_INSTRUMENTS.known(m.dna?.[yKey]));
     const ordered = source.slice().sort((a,b)=>hash32(`${atlasShuffleSeed}|${a.title}|${a.year}`)-hash32(`${atlasShuffleSeed}|${b.title}|${b.year}`));
     const rows = ordered.slice(0,Math.min(requested,ordered.length));
     $('#atlasCount').textContent = `${rows.length} / ${source.length} SPECIMENS`;
-    if(rows.length>40 && $('#atlasDetail') && !$('#atlasDetail').querySelector('strong')){
-      $('#atlasDetail').textContent='Dense constellation mode — labels are hidden. Click any node to reveal its film title.';
-    }
+    $('#atlasDetail').textContent=!rows.length?'NO MATCHING KNOWN COORDINATES. Clear the search or change the filters.':rows.length>40?'Dense constellation mode — labels are hidden. Click any node to reveal its film title.':'Select a node to inspect its coordinates in this field.';
     const w=1000,h=620,pad={l:64,r:30,t:28,b:58};
     const sx = v => pad.l + (clamp(v)/100)*(w-pad.l-pad.r);
     const sy = v => h-pad.b - (clamp(v)/100)*(h-pad.t-pad.b);
@@ -1576,17 +1960,18 @@
         <button class="table-action atlas-detail-scan" type="button" id="atlasScanBtn">SCAN SPECIMEN →</button>
       </div>`;
     window.CINEGENOME_ANOMALY?.atlas(m,xKey,yKey);
-    $('#atlasScanBtn').addEventListener('click', () => { renderScanner(m.id); switchView('scanner'); });
+    $('#atlasScanBtn').addEventListener('click', () => { renderScanner(m.id); recordHomeAction('scan',[m]); switchView('scanner'); });
   }
 
   function allGenres(){ return [...new Set(MOVIES.flatMap(m=>m.genres))].sort(); }
 
   function renderArchive() {
     const host = $('#archiveCards');
-    const favoriteCards = state.favorites.map(id => movieById(id)).filter(Boolean).map(m => ({ type:'FAVORITE', title:m.title, detail:`${m.director} / ${m.year}`, id:`fav-${m.id}` }));
-    const records = [...favoriteCards, ...state.archive];
-    if(!records.length){ host.innerHTML='<div class="empty-state">NO SAVED SPECIMENS OR EXPERIMENTS.<br>THE ARCHIVE IS CLEAN.</div>'; return; }
-    host.innerHTML = records.map(r => `<article class="archive-card"><div class="archive-card-head"><h3>${esc(r.title)}</h3><span class="archive-type">${esc(r.type)}</span></div><p>${esc(r.detail || '')}${r.at ? `<br>${esc(new Date(r.at).toLocaleString())}` : ''}</p></article>`).join('');
+    window.CINEGENOME_ARCHIVE.render(host,{
+      favorites:[...new Set(state.favorites.map(Number))].map(id=>movieById(id)).filter(Boolean),
+      experiments:state.archive,
+      onScan:movie=>{switchView('scanner');renderScanner(movie.id);recordHomeAction('scan',[movie]);}
+    });
   }
 
   function renderLogs() {
@@ -2109,7 +2494,7 @@
     return window.CINEGENOME_DNA_MODEL.profile(data);
   }
 
-  function generateDNAFromTMDB(data) { return generateDNAProfileFromTMDB(data).dna; }
+  function generateDNAFromTMDB(data) { return generateDNAProfileFromTMDB(data)?.dna||null; }
 
   function tmdbToMovie(data) {
     const director=(data.credits?.crew||[]).find(x=>x.job==='Director')?.name || 'Unknown';
@@ -2121,7 +2506,8 @@
       year:Number(String(data.release_date||'').slice(0,4))||0, director,
       country:(data.production_countries||[]).map(x=>x.name).join(' / ')||'Unknown', genres:genres.length?genres:['Unclassified'], tags,
       overview:data.overview||'', posterPath:data.poster_path||'', backdropPath:data.backdrop_path||'', runtime:data.runtime||null,
-      dna:profile.dna, dnaSource:profile.source, dnaConfidence:profile.confidence, dnaModelVersion:'3.0'
+      dna:profile?.dna||null,dnaSource:profile?.source||'unavailable',dnaConfidence:profile?.confidence??null,
+      dnaModelVersion:profile?.modelVersion||null,dnaEvidence:profile?.dnaEvidence||null,metadataSource:'tmdb'
     };
   }
 
@@ -2143,9 +2529,14 @@
         if(!cached) return;
         const existing=MOVIES.find(x => (cached.tmdbId && x.tmdbId && Number(x.tmdbId)===Number(cached.tmdbId)) || movieKey(x)===movieKey(cached));
         if(existing){
+          if(existing.tmdbId && cached.tmdbId && Number(existing.tmdbId)!==Number(cached.tmdbId))return;
           const keepId=existing.id, keepCurated=existing.inCurated500;
-          Object.assign(existing,cached,{id:keepId,inCurated500:keepCurated||cached.inCurated500});
-        } else if(cached.tmdbId && cached.dna) MOVIES.push(cached);
+          if(hasCompleteDNA(cached.dna)){
+            const preserved=retainCurrentDNA(existing,cached)?{dna:existing.dna,dnaSource:existing.dnaSource,
+              dnaConfidence:existing.dnaConfidence,dnaModelVersion:existing.dnaModelVersion,dnaEvidence:existing.dnaEvidence}:null;
+            Object.assign(existing,cached,{id:keepId,inCurated500:keepCurated||cached.inCurated500},preserved);
+          }
+        } else if(cached.tmdbId && hasCompleteDNA(cached.dna)) MOVIES.push(cached);
       });
     }catch{}
   }
@@ -2162,14 +2553,17 @@
     const data=await TMDB.resolveTitle(title,year);
     if(!data) throw new Error('TMDB_NO_MATCH');
     const existing=MOVIES.find(m=>m.tmdbId===Number(data.id)); if(existing)return existing;
-    const movie=tmdbToMovie(data); MOVIES.push(movie); saveTMDBMovie(movie); ensureMovieInSelects(movie); return movie;
+    const movie=tmdbToMovie(data);
+    if(!hasCompleteDNA(movie.dna))throw new Error('TMDB_DNA_EVIDENCE_INSUFFICIENT');
+    MOVIES.push(movie); saveTMDBMovie(movie); ensureMovieInSelects(movie); return movie;
   }
 
   async function enrichLocalMovie(movie){
     if(!movie || !TMDB?.canQuery()) return movie;
-    const data=await TMDB.resolveTitle(movie.title,movie.year||undefined,{strict:!!movie.inWatchOnce}); if(!data)return movie;
+    const data=await TMDB.resolveTitle(movie.title,movie.year||undefined,{strict:true}); if(!data)return movie;
     const matchYear=Number(String(data.release_date||'').slice(0,4));
     if(movie.inWatchOnce && matchYear && Math.abs(matchYear-Number(movie.year))>2)return movie;
+    if(!movie.inWatchOnce && matchYear && movie.year && Math.abs(matchYear-Number(movie.year))>1)return movie;
     movie.tmdbId=Number(data.id);
     movie.overview=data.overview||movie.overview||'';
     movie.posterPath=data.poster_path||movie.posterPath||'';
@@ -2180,10 +2574,14 @@
     movie.genres=(data.genres||[]).map(x=>x.name).filter(Boolean);
     movie.tags=(data.keywords?.keywords||data.keywords?.results||[]).map(x=>x.name).filter(Boolean).slice(0,14);
     const profile=generateDNAProfileFromTMDB(data);
-    movie.dna=profile.dna;
-    movie.dnaSource=profile.source;
-    movie.dnaConfidence=profile.confidence;
-    movie.dnaModelVersion='3.0';
+    if(profile){
+      if(!['curated-starter-v1','editorial-researched-v1','legacy-curated-profile-v2'].includes(movie.dnaSource)){
+        movie.dna=profile.dna;movie.dnaSource=profile.source;
+        movie.dnaConfidence=profile.confidence;movie.dnaModelVersion=profile.modelVersion;
+        movie.dnaEvidence=profile.dnaEvidence;
+      }
+      scannerStatsCache=null;
+    }
     saveTMDBMovie({...movie});
     return movie;
   }
@@ -2195,7 +2593,7 @@
     const fp=directorFingerprint(movie);
     const conditions=watchConditions(movie);
     const relatives=nearest(movie.dna,[movie.id],3).map(x=>({movie:x.movie,score:x.score,rel:bloodlineRelation(movie,x.movie,x.score)}));
-    $('#movieDossier').innerHTML=`<div class="dossier-grid"><div class="dossier-poster">${poster?`<img src="${esc(poster)}" alt="Poster for ${esc(movie.title)}">`:`<div class="poster-placeholder">POSTER SIGNAL UNAVAILABLE<br>${TMDB?.canQuery()?'NO IMAGE FOUND':'CONNECT TMDB'}</div>`}</div><div class="dossier-content"><div class="dossier-meta">${esc(movie.director||'Unknown')} / ${movie.year||'—'}${movie.runtime?` / ${movie.runtime} MIN`:''}</div><h2>${esc(movie.title)}</h2><div class="dossier-tags">${tags.map(t=>`<span class="tag">${esc(String(t).toUpperCase())}</span>`).join('')}</div><p class="dossier-overview">${esc(movie.overview||message||'Synopsis unavailable in the local archive. Connect TMDB to retrieve the film dossier.')}</p><div class="section-kicker">CINEGENOME DNA // ${movie.dnaSource==='tmdb-genome-v3'?'METADATA MODEL':'PRELIMINARY · TMDB PENDING'}</div><div class="dna-grid dossier-dna" id="dossierDNA"></div><div class="dossier-cinephile-grid"><section class="dossier-module"><div class="section-kicker">DIRECTOR FINGERPRINT</div><div id="dossierFingerprint"></div></section><section class="dossier-module"><div class="section-kicker">WATCH CONDITIONS</div><div class="dossier-watch">${conditions.map(x=>`<span class="watch-chip ${x.tone||''}">${esc(x.label)}</span>`).join('')}</div></section><section class="dossier-module"><div class="section-kicker">MODEL BLOODLINE</div>${relatives.map(r=>`<div class="diagnostic"><strong>${esc(r.rel.label)}</strong><span>${esc(r.movie.title)} / ${r.score}%</span></div>`).join('')}</section><section class="dossier-module"><div class="section-kicker">AFTERTASTE PREDICTION</div><p class="dossier-overview">${esc(dominantTraits(movie.dna,3).map(x=>x.label.toLowerCase()).join(' / '))}. Allow the film to settle before replacing it with another signal.</p></section></div></div></div>`;
+    $('#movieDossier').innerHTML=`<div class="dossier-grid"><div class="dossier-poster">${poster?`<img src="${esc(poster)}" alt="Poster for ${esc(movie.title)}">`:`<div class="poster-placeholder">POSTER SIGNAL UNAVAILABLE<br>${TMDB?.canQuery()?'NO IMAGE FOUND':'CONNECT TMDB'}</div>`}</div><div class="dossier-content"><div class="dossier-meta">${esc(movie.director||'Unknown')} / ${movie.year||'—'}${movie.runtime?` / ${movie.runtime} MIN`:''}</div><h2>${esc(movie.title)}</h2><div class="dossier-tags">${tags.map(t=>`<span class="tag">${esc(String(t).toUpperCase())}</span>`).join('')}</div><p class="dossier-overview">${esc(movie.overview||message||'Synopsis unavailable in the local archive. Connect TMDB to retrieve the film dossier.')}</p><div class="section-kicker">CINEGENOME DNA // ${esc(dnaProvenance(movie))}</div>${dnaTrace(movie)}<div class="dna-grid dossier-dna" id="dossierDNA"></div><div class="dossier-cinephile-grid"><section class="dossier-module"><div class="section-kicker">DIRECTOR FINGERPRINT</div><div id="dossierFingerprint"></div></section><section class="dossier-module"><div class="section-kicker">WATCH CONDITIONS</div><div class="dossier-watch">${conditions.map(x=>`<span class="watch-chip ${x.tone||''}">${esc(x.label)}</span>`).join('')}</div></section><section class="dossier-module"><div class="section-kicker">MODEL BLOODLINE</div>${relatives.map(r=>`<div class="diagnostic"><strong>${esc(r.rel.label)}</strong><span>${esc(r.movie.title)} / ${r.score}%</span></div>`).join('')}</section><section class="dossier-module"><div class="section-kicker">AFTERTASTE PREDICTION</div><p class="dossier-overview">${esc(dominantTraits(movie.dna,3).map(x=>x.label.toLowerCase()).join(' / '))}. Allow the film to settle before replacing it with another signal.</p></section></div></div></div>`;
     renderDNAGrid($('#dossierDNA'),movie.dna);
     renderDirectorFingerprint($('#dossierFingerprint'),movie);
   }
@@ -2321,29 +2719,191 @@
       if(copy) copy.textContent='TRACING SUBJECT CINEMA SIGNATURE…';
       if(meter) meter.style.width='44%';
       cells[1]?.classList.add('is-on');
-    },560);
+    },500);
     setTimeout(()=>{
       if(copy) copy.textContent='MAPPING RIDGES TO 15 TASTE AXES…';
       if(meter) meter.style.width='76%';
-    },1120);
+    },1000);
     setTimeout(()=>{
       gate.classList.add('phase-lock');
       if(title) title.textContent='PRINT LOCKED';
       if(copy) copy.textContent='FILMPRINT CHAMBER UNSEALED.';
       if(meter) meter.style.width='100%';
       cells[2]?.classList.add('is-on');
-    },1700);
-    setTimeout(()=>gate.classList.add('is-release'),2200);
-    setTimeout(end,2680);
+    },1500);
+    setTimeout(()=>gate.classList.add('is-release'),1960);
+    setTimeout(end,2360);
+  }
+
+  const MODULE_ENTRY_CONFIG = {
+    crossbreed:{
+      index:'02',kicker:'RECOMBINATION PROTOCOL // BIOCHAMBER',
+      stages:[
+        [0,'PARENTS LOCKED','SPECIMEN A + B / INPUT VECTORS HELD',10],
+        [520,'GENOME SPLICE','12 AXES / DOMINANCE WEIGHTS ALIGNING',38],
+        [1040,'TRAIT MERGE','INHERITED + HYBRID SIGNALS RESOLVING',70],
+        [1560,'HYBRID READY','RESULTANT ORGANISM CHANNEL OPEN',100]
+      ],duration:1970
+    },
+    mutation:{
+      index:'03',kicker:'CONTROLLED DEVIATION // CHAMBER',
+      stages:[
+        [0,'SEED LOCKED','ORIGINAL CINEMATIC VECTOR HELD INTACT',10],
+        [530,'CHAMBER UNSTABLE','TRAIT LIMITERS RELEASED',36],
+        [1060,'TRAIT REWRITE','LIVE MUTATION VECTOR RECALCULATING',70],
+        [1590,'MUTATION READY','DEVIATION SPACE OPEN / SEED PRESERVED',100]
+      ],duration:2000
+    },
+    atlas:{
+      index:'04',kicker:'COORDINATE FIELD // ARCHIVE MAP',
+      stages:[
+        [0,'ARCHIVE INDEX','EVIDENCED SPECIMENS ENTERING FIELD',11],
+        [510,'AXIS PROJECTION','X / Y CINEMATIC COORDINATES ALIGNING',40],
+        [1020,'NODE RESOLUTION','NEIGHBOR SIGNALS + OUTLIERS LOCATING',72],
+        [1530,'ATLAS ONLINE','COORDINATE FIELD READY',100]
+      ],duration:1940
+    },
+    bloodline:{
+      index:'05',kicker:'KINSHIP ASSAY // LINEAGE MODEL',
+      stages:[
+        [0,'SOURCE LOCKED','CINEMATIC SIGNALS ISOLATED',11],
+        [520,'KINSHIP PASS','DNA PROXIMITY + YEAR DISTANCE COMPARING',40],
+        [1040,'LINEAGE TRACE','STRONG + WEAK RELATIVES DRAWING',72],
+        [1560,'BLOODLINE READY','MODEL KINSHIP MAP RESOLVED',100]
+      ],duration:1970
+    },
+    archive:{
+      index:'06',kicker:'RETENTION VAULT // LOCAL RECORDS',
+      stages:[
+        [0,'VAULT HANDSHAKE','LOCAL BROWSER RECORDS MOUNTING',12],
+        [515,'RECORD CHECK','SAVED SPECIMENS + EXPERIMENTS VERIFYING',41],
+        [1030,'DOSSIER RESTORE','RETAINED LAB HISTORY RECONSTRUCTING',74],
+        [1545,'ARCHIVE OPEN','LOCAL RECORD CHANNEL READY',100]
+      ],duration:1960
+    }
+  };
+
+  function moduleEntryHost(view){
+    const target=document.querySelector(`[data-view-panel="${view}"]`);
+    if(!target)return null;
+    return target.querySelector(':scope > .two-col > .lab-panel:first-child > .panel-body')
+      || target.querySelector(':scope > .lab-panel > .panel-body')
+      || target.querySelector('.lab-panel .panel-body');
+  }
+
+  function clearModuleEntryHosts(){
+    $$('.module-entry-host').forEach(host=>host.classList.remove('module-entry-host','is-entry-active'));
+    $$('.module-entry-side-pending').forEach(panel=>panel.classList.remove('module-entry-side-pending'));
+  }
+
+  function stopModuleEntrySequence(){
+    moduleEntryToken++;
+    moduleEntryTimers.forEach(clearTimeout);moduleEntryTimers=[];
+    const gate=$('#moduleEntrySequence');
+    if(!gate)return;
+    gate.classList.remove('is-active','is-leaving','is-stage-changing');
+    gate.hidden=true;gate.setAttribute('aria-hidden','true');
+    gate.dataset.stage='0';
+    clearModuleEntryHosts();
+    $$('.view[aria-busy="true"]').forEach(v=>v.removeAttribute('aria-busy'));
+  }
+
+  function setModuleEntryStage(gate,title,detail,progress,stage,index){
+    const [,label,copy,pct]=stage;
+    gate.dataset.stage=String(index);
+    gate.classList.remove('is-stage-changing');
+    void gate.offsetWidth;
+    title.textContent=label;
+    detail.textContent=copy;
+    progress.style.width=`${pct}%`;
+    gate.classList.add('is-stage-changing');
+  }
+
+  function playModuleEntrySequence(view){
+    const cfg=MODULE_ENTRY_CONFIG[view],gate=$('#moduleEntrySequence');
+    if(!cfg||!gate)return;
+    if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){
+      stopModuleEntrySequence();
+      return;
+    }
+    const title=$('#moduleEntryTitle'),detail=$('#moduleEntryDetail'),progress=$('#moduleEntryProgress'),kicker=$('#moduleEntryKicker'),index=$('#moduleEntryIndex');
+    if(!title||!detail||!progress||!kicker||!index)return;
+    const target=document.querySelector(`[data-view-panel="${view}"]`);
+    const host=moduleEntryHost(view);
+    if(!target||!host)return;
+    moduleEntryToken++;
+    const token=moduleEntryToken;
+    moduleEntryTimers.forEach(clearTimeout);moduleEntryTimers=[];
+    clearModuleEntryHosts();
+    $$('.view[aria-busy="true"]').forEach(v=>v.removeAttribute('aria-busy'));
+    host.classList.add('module-entry-host','is-entry-active');
+    const primaryPanel=host.closest('.lab-panel');
+    const panelRow=primaryPanel?.parentElement;
+    if(panelRow?.classList.contains('two-col')){
+      [...panelRow.children].forEach(panel=>{
+        if(panel!==primaryPanel && panel.classList?.contains('lab-panel')) panel.classList.add('module-entry-side-pending');
+      });
+    }
+    host.appendChild(gate);
+    target.setAttribute('aria-busy','true');
+    gate.dataset.module=view;
+    gate.dataset.stage='0';
+    gate.hidden=false;gate.setAttribute('aria-hidden','false');
+    gate.classList.remove('is-active','is-leaving','is-stage-changing');
+    kicker.textContent=cfg.kicker;index.textContent=cfg.index;
+    title.textContent=cfg.stages[0][1];detail.textContent=cfg.stages[0][2];progress.style.width='0%';
+    // Restart from a calm, deterministic state even if the operator changes rooms rapidly.
+    void gate.offsetWidth;
+    requestAnimationFrame(()=>{if(token===moduleEntryToken)gate.classList.add('is-active')});
+    cfg.stages.forEach((stage,stageIndex)=>{
+      const delay=stage[0];
+      moduleEntryTimers.push(setTimeout(()=>{
+        if(token!==moduleEntryToken)return;
+        setModuleEntryStage(gate,title,detail,progress,stage,stageIndex);
+      },delay));
+    });
+    moduleEntryTimers.push(setTimeout(()=>{
+      if(token!==moduleEntryToken)return;
+      gate.classList.add('is-leaving');
+      host.classList.remove('is-entry-active');
+      moduleEntryTimers.push(setTimeout(()=>{
+        if(token!==moduleEntryToken)return;
+        gate.classList.remove('is-active','is-leaving','is-stage-changing');gate.hidden=true;gate.setAttribute('aria-hidden','true');
+        host.classList.remove('module-entry-host');
+        $$('.module-entry-side-pending').forEach(panel=>panel.classList.remove('module-entry-side-pending'));
+        target.removeAttribute('aria-busy');
+      },320));
+    },cfg.duration));
+  }
+
+  const MODULE_AUTOFOCUS_VIEWS = new Set(['scanner','crossbreed','mutation','atlas','bloodline','archive']);
+
+  function focusModuleViewport(view) {
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const behavior = reduced ? 'auto' : 'smooth';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      if(MODULE_AUTOFOCUS_VIEWS.has(view)){
+        const target=document.querySelector(`[data-view-panel="${view}"]`);
+        if(target){
+          const top=Math.max(0,window.scrollY+target.getBoundingClientRect().top-6);
+          window.scrollTo({top,behavior});
+          return;
+        }
+      }
+      window.scrollTo({top:0,behavior});
+    }));
   }
 
   function switchView(view) {
+    const previousView=document.querySelector('.view.is-active')?.dataset.viewPanel||'';
     const wasFilmprint=document.body.classList.contains('filmprint-mode');
     const filmprintMode=view==='dna';
+    const homeMode=view==='home';
     // Cover the paper interface first, then swap the underlying theme. This prevents
     // a single white/black repaint before the fingerprint terminal becomes visible.
     if(filmprintMode && !wasFilmprint) playFilmprintEntryScan();
     document.body.classList.toggle('filmprint-mode',filmprintMode);
+    document.body.classList.toggle('home-mode',homeMode);
     $$('.module-btn').forEach(b => b.classList.toggle('is-active', b.dataset.view === view));
     $$('.view').forEach(v => v.classList.toggle('is-active', v.dataset.viewPanel === view));
     if(view==='scanner') renderScanner(currentScannerId);
@@ -2352,8 +2912,12 @@
     if(view==='atlas') drawAtlas();
     if(view==='bloodline') traceBloodline(Number($('#bloodlineSelect')?.value || currentScannerId));
     if(view==='archive') renderArchive();
+    if(view!==previousView){
+      if(MODULE_ENTRY_CONFIG[view]) playModuleEntrySequence(view);
+      else stopModuleEntrySequence();
+    }
     log(`MODULE OPENED: ${view.toUpperCase()}`);
-    window.scrollTo({ top:0, behavior:'smooth' });
+    focusModuleViewport(view);
   }
 
   function init() {
@@ -2394,6 +2958,14 @@
       inputId:'bloodlineSearch', hiddenId:'bloodlineSelect', resultsId:'bloodlineSuggestions',
       initialMovie:MOVIES[0], onSelect:(movie)=>traceBloodline(movie.id)
     });
+    setupMovieSearch({
+      inputId:'compareBSearch', hiddenId:'compareB', resultsId:'compareBSuggestions',
+      initialMovie:MOVIES[1]||MOVIES[0], onSelect:()=>renderScannerComparison()
+    });
+    setupMovieSearch({
+      inputId:'compareCSearch', hiddenId:'compareC', resultsId:'compareCSuggestions',
+      initialMovie:MOVIES[2]||MOVIES[1]||MOVIES[0], onSelect:()=>renderScannerComparison()
+    });
     updateMutationSeedReadout(movieById($('#mutationSeed').value) || MOVIES[0]);
 
     setupAtlasControls();
@@ -2401,14 +2973,15 @@
     buildMutationControls();
     // First paint is strictly local. Network enrichment begins only after the UI is visible.
     renderMutation({skipHydrate:true});
-    renderScanner(MOVIES[0].id,{skipTMDB:true});
+    renderScanner(MOVIES[0].id,{skipTMDB:true,silent:true});
     renderCrossbreed({skipHydrate:true});
     renderArchive();
     initPrescription();
     setupTMDBSettings();
 
-    // Hydrate only the visible scanner after startup. Other modules hydrate when opened.
+    // Homepage is now the default entry. Scanner hydrates only after it is actually opened.
     setTimeout(()=>{
+      if(!$('#view-scanner')?.classList.contains('is-active')) return;
       const movie=movieById(currentScannerId);
       if(movie) hydrateScannerFromTMDB(movie);
     },2100);
@@ -2443,6 +3016,11 @@
         switchView(btn.dataset.view);
       });
     });
+    $$('[data-home-view]').forEach(btn=>{
+      btn.addEventListener('pointerdown',()=>playLabMenuSfx(btn.dataset.homeView==='dna'));
+      btn.addEventListener('click',()=>switchView(btn.dataset.homeView));
+    });
+    $$('[data-home-code]').forEach(btn=>btn.addEventListener('click',()=>$('#specimenCodeBtn')?.click()));
     syncLabSfxButton();
     $('#globalSfxToggle')?.addEventListener('click',()=>{
       labSfxEnabled=!labSfxEnabled;
@@ -2456,9 +3034,25 @@
       action:playLabActionSfx,
       enabled:()=>labSfxEnabled
     };
-    $('#scannerSelect').addEventListener('change', e => renderScanner(Number(e.currentTarget.value)));
+    $('#scannerSelect').addEventListener('change', e => {
+      const film=movieById(e.currentTarget.value);
+      if(film){renderScanner(film.id);recordHomeAction('scan',[film])}
+    });
+    $('#compareThirdToggle')?.addEventListener('click',e=>{
+      scannerCompareThirdEnabled=!scannerCompareThirdEnabled;
+      const slot=$('#compareCSlot');
+      if(slot)slot.hidden=!scannerCompareThirdEnabled;
+      e.currentTarget.setAttribute('aria-pressed',String(scannerCompareThirdEnabled));
+      e.currentTarget.textContent=scannerCompareThirdEnabled?'− REMOVE THIRD':'+ THIRD SPECIMEN';
+      ensureScannerCompareSelections(movieById(currentScannerId));
+      renderScannerComparison();
+      log(`SCANNER ${scannerCompareThirdEnabled?'TRIPLE':'PAIR'} CROSS-SCAN MODE`);
+    });
     $('#scannerSearch').addEventListener('input', e => handleScannerSearch(e.currentTarget.value));
-    $('#scannerSearch').addEventListener('keydown', e => { if(e.key==='Enter') handleScannerSearch(e.currentTarget.value); });
+    $('#scannerSearch').addEventListener('keydown', e => { if(e.key==='Enter'){
+      e.preventDefault();const film=handleScannerSearch(e.currentTarget.value,true);
+      if(film)recordHomeAction('scan',[film]);
+    } });
     $('#openDossierBtn').addEventListener('click', () => openMovieDossier(movieById(currentScannerId)));
     $('#rxFab').addEventListener('click',()=>togglePrescriptionPanel());
     $('#rxHeaderNote')?.addEventListener('click',()=>togglePrescriptionPanel(true));
@@ -2484,7 +3078,11 @@
     $('#favoriteBtn').addEventListener('click', () => {
       const id=currentScannerId; if(!id)return;
       if(state.favorites.includes(id)) state.favorites=state.favorites.filter(x=>x!==id); else state.favorites.push(id);
-      persistState(); renderScanner(id); renderArchive();
+      persistState();
+      const saved=state.favorites.includes(id);
+      $('#favoriteBtn').setAttribute('aria-pressed',String(saved));
+      $('#favoriteBtn').textContent=saved?'★ SAVED':'☆ SAVE';
+      renderArchive();
       log(state.favorites.includes(id)?'SPECIMEN SAVED TO ARCHIVE':'SPECIMEN REMOVED FROM ARCHIVE');
     });
 
@@ -2496,7 +3094,8 @@
     $('#breedBtn').addEventListener('click', () => {
       const result=renderCrossbreed(); if(!result)return;
       window.CINEGENOME_ANOMALY?.crossbreed(result.a,result.b,result.ratioA);
-      archiveExperiment('CROSSBREED', `${result.a.title} × ${result.b.title}`, `Dominance ${result.ratioA}/${100-result.ratioA}. Nearest viable specimen: ${result.best?.movie.title || 'none'} (${result.best?.score || 0}%).`, result.hybrid);
+      archiveExperiment('CROSSBREED', `${result.a.title} × ${result.b.title}`, `Dominance ${result.ratioA}/${100-result.ratioA}. Nearest viable specimen: ${result.best?.movie.title || 'none'} (${Number.isFinite(result.best?.score)?result.best.score+'%':'UNKNOWN'}).`, result.hybrid);
+      recordHomeAction('crossbreed',[result.a,result.b]);
       log(`CROSSBREED COMPLETED: ${result.a.title.toUpperCase()} × ${result.b.title.toUpperCase()}`);
     });
     $('#swapParentsBtn').addEventListener('click', () => {
@@ -2513,15 +3112,18 @@
     $('#randomMutationBtn').addEventListener('click', randomMutation);
     $('#saveMutationBtn').addEventListener('click', () => {
       const match=nearest(mutationDNA,[],1)[0];
-      archiveExperiment('MUTATION', `Mutation → ${match?.movie.title || 'Unknown'}`, `Synthetic profile matched ${match?.score || 0}% with the nearest living specimen.`, mutationDNA);
+      archiveExperiment('MUTATION', `Mutation → ${match?.movie.title || 'Unknown'}`, `Synthetic profile matched ${Number.isFinite(match?.score)?match.score+'%':'UNKNOWN'} with the nearest living specimen.`, mutationDNA);
+      const seed=movieById($('#mutationSeed').value);
+      if(seed)recordHomeAction('mutation',[seed]);
       log('MUTATION VECTOR SAVED TO ARCHIVE');
     });
 
     ['#axisX','#axisY'].forEach(s => $(s).addEventListener('change', drawAtlas));
+    $('#atlasFind').addEventListener('input',drawAtlas);
     $('#atlasGenre').addEventListener('change', () => { atlasShuffleSeed = Math.floor(Math.random() * 1000000000); drawAtlas(); });
     $('#atlasLimit').addEventListener('input', drawAtlas);
     $('#randomAtlasBtn').addEventListener('click', randomizeAtlasNodes);
-    $('#resetAtlasBtn').addEventListener('click', () => { $('#axisX').value='surrealism';$('#axisY').value='loneliness';$('#atlasGenre').value='';$('#atlasLimit').value='80';atlasShuffleSeed = Math.floor(Math.random() * 1000000000);drawAtlas(); });
+    $('#resetAtlasBtn').addEventListener('click', () => { $('#axisX').value='surrealism';$('#axisY').value='loneliness';$('#atlasGenre').value='';$('#atlasFind').value='';$('#atlasLimit').value='80';atlasShuffleSeed = Math.floor(Math.random() * 1000000000);drawAtlas(); });
 
     $('#traceBloodlineBtn').addEventListener('click',()=>traceBloodline(Number($('#bloodlineSelect').value)));
     $('#bloodlineRandomBtn').addEventListener('click',()=>{
@@ -2532,6 +3134,7 @@
 
     const brand=$('.brand-mark');
     if(brand) brand.addEventListener('click',()=>{
+      switchView('home');
       secretTapCount++;
       brand.classList.remove('secret-armed');
       void brand.offsetWidth;
@@ -2577,6 +3180,20 @@
       setTimeout(()=>$('#specimenCodeInput')?.focus(),40);
     });
     $('#specimenCodeClose')?.addEventListener('click',()=>$('#specimenCodeDialog')?.close());
+    $('#specimenCodeInput')?.addEventListener('keydown',e=>{
+      if(e.key!==' ' || e.isComposing)return;
+      e.preventDefault();
+      const input=e.currentTarget;
+      input.setRangeText('-',input.selectionStart,input.selectionEnd,'end');
+    });
+    $('#specimenCodeInput')?.addEventListener('input',e=>{
+      const input=e.currentTarget;
+      if(!/\s/.test(input.value))return;
+      const cursor=input.selectionStart;
+      const before=input.value.slice(0,cursor).replace(/\s/g,'-');
+      input.value=input.value.replace(/\s/g,'-');
+      input.setSelectionRange(before.length,before.length);
+    });
     document.addEventListener('cinegenome:quarantine-film',async e=>{
       const specimen=deadChannelPool().find(x=>x.rank===Number(e.detail?.rank));
       if(!specimen)return;
@@ -2586,6 +3203,7 @@
     $('#specimenCodeForm')?.addEventListener('submit',e=>{
       e.preventDefault();
       const raw=String($('#specimenCodeInput').value||'').trim().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+      if(window.CINEGENOME_SPECIMEN_CODES?.run(raw,{close:()=>$('#specimenCodeDialog')?.close(),status:message=>{$('#specimenCodeReadout').textContent=message}}))return;
       if(raw==='CG000'){
         $('#specimenCodeReadout').textContent='ACCESS GRANTED // QUARANTINE FILE CG-000';
         $('#specimenCodeDialog')?.close();
@@ -2627,8 +3245,9 @@
 
     $('#clearArchiveBtn').addEventListener('click', () => { state={favorites:[],archive:[]};persistState();renderArchive();renderScanner(currentScannerId);log('EXPERIMENT ARCHIVE ERASED'); });
 
+    switchView('home');
     log(`SEALED SPECIMEN POOL MOUNTED: ${MOVIES.length} GENOMES / ${DIMS.length} DNA DIMENSIONS`);
-    log('GENOME ENGINE V3 ONLINE // TMDB METADATA + GENRE + KEYWORDS + OVERVIEW + INTERACTION RULES');
+    log('GENOME ENGINE V4 ONLINE // GENRE + KEYWORD + SYNOPSIS EVIDENCE; PRIOR AXES DISCLOSED');
     log('DIRECTOR FINGERPRINT + MODEL BLOODLINE SYSTEMS ONLINE');
     log('SEARCHABLE SPECIMEN PICKERS ONLINE // CROSSBREED + MUTATION + BLOODLINE');
     log('DEAD CHANNEL Y2K MIRROR PRESENT // AUDIO PARASITE ARMED');

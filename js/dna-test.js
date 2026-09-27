@@ -698,7 +698,7 @@
   }
   async function resolveGenomeFriendKey(raw){
     const compact=String(raw||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
-    if(compact.startsWith('CG1')){
+    if(compact.startsWith('CG1') && compact.length===19){
       const answers=decodeGenomeKey(raw);
       return {answers,key:encodeGenomeKey(answers),source:'local'};
     }
@@ -711,22 +711,47 @@
       err.status=response.status; err.payload=data; throw err;
     }
     const answers=Array.isArray(data.answers) ? data.answers.map(Number) : [];
-    if(answers.length!==30 || answers.some(n=>!Number.isInteger(n)||n<1||n>5)) throw new Error('GENOME_RECORD_INVALID');
-    return {answers,key:normalizeCloudGenomeKey(data.key||key),source:'cloud'};
+    const complete=answers.length===30 && answers.every(n=>Number.isInteger(n)&&n>=1&&n<=5);
+    const profile=complete ? null : readGenomeProfile(data.vector);
+    if(!complete && !Object.keys(profile).length) throw new Error('GENOME_RECORD_INVALID');
+    return {answers:complete?answers:null,profile,key:normalizeCloudGenomeKey(data.key||key),source:'cloud'};
+  }
+  function readGenomeProfile(raw){
+    if(!raw || typeof raw!=='object' || Array.isArray(raw)) return {};
+    const result={};
+    for(const [axis,label] of AXES){
+      const normalized=key=>String(key).toLowerCase().replace(/[^a-z0-9]/g,'');
+      const hit=Object.keys(raw).find(key=>normalized(key)===normalized(axis)||normalized(key)===normalized(label));
+      const value=hit==null?null:raw[hit];
+      if(value!==null && value!=='' && (typeof value==='number'||typeof value==='string')){
+        const number=Number(value);
+        if(Number.isFinite(number) && number>=0 && number<=100) result[axis]=number;
+      }
+    }
+    return result;
   }
   function compareHumanDna(a,b){
-    const axes=AXES.map(([axis,label])=>{
-      const av=Number(a.vector[axis]), bv=Number(b.vector[axis]);
-      const diff=Math.abs(av-bv);
-      const weight=Math.max(.12,((a.weights[axis]||.08)+(b.weights[axis]||.08))/2);
-      return {axis,label,a:av,b:bv,diff,weight};
+    const axes=AXES.flatMap(([axis,label],order)=>{
+      const av=a.vector?.[axis], bv=b.vector?.[axis];
+      if(!Number.isFinite(av)||!Number.isFinite(bv)||av<0||av>100||bv<0||bv>100) return [];
+      return [{axis,label,a:av,b:bv,diff:Math.abs(av-bv),order}];
     });
-    const weightSum=axes.reduce((s,x)=>s+x.weight,0)||1;
-    const rms=Math.sqrt(axes.reduce((s,x)=>s+x.weight*Math.pow(x.diff/100,2),0)/weightSum);
+    if(!axes.length) return {similarity:null,shared:[],split:[],axes:[],coverage:0};
+    const rms=Math.sqrt(axes.reduce((sum,x)=>sum+(x.diff/100)**2,0)/axes.length);
     const similarity=clamp(100*(1-rms),0,100);
-    const shared=[...axes].sort((x,y)=>(x.diff-y.diff)||((y.weight-x.weight))).slice(0,3);
-    const split=[...axes].sort((x,y)=>(y.diff-x.diff)||((y.weight-x.weight))).slice(0,2);
-    return {similarity,shared,split};
+    const shared=[...axes].sort((x,y)=>x.diff-y.diff||x.order-y.order).slice(0,3);
+    const sharedAxes=new Set(shared.map(x=>x.axis));
+    const split=[...axes].filter(x=>!sharedAxes.has(x.axis)).sort((x,y)=>y.diff-x.diff||x.order-y.order).slice(0,3);
+    return {similarity,shared,split,axes,coverage:axes.length};
+  }
+  function crosscheckReading(cross){
+    // Fracture is the dominant difference between the two human profiles.
+    // Connection Route below is calculated separately for each person's own film.
+    if(cross.coverage<10) return {fracture:null,reason:`ONLY ${cross.coverage}/15 AXES // FRACTURE UNKNOWN.`};
+    const ranked=[...cross.axes].sort((x,y)=>y.diff-x.diff||x.order-y.order);
+    const fracture=ranked[0];
+    const median=ranked[Math.floor(ranked.length/2)].diff;
+    return {fracture:fracture?.diff>=25 && fracture.diff-median>=10?fracture:null,reason:null};
   }
   function nearestSpecimenForUser(user){
     return CANDIDATES.map(c=>({c,score:scoreCandidate(user,c)})).sort((a,b)=>b.score-a.score || a.c.rank-b.c.rank)[0];
@@ -1631,23 +1656,32 @@
         try{
           const resolved=await resolveGenomeFriendKey(raw);
           const friendAnswers=resolved.answers;
-          const friendUser=buildUserVector(friendAnswers);
+          const friendUser=friendAnswers?buildUserVector(friendAnswers):{vector:resolved.profile};
           const cross=compareHumanDna(user,friendUser);
-          const friendNearest=nearestSpecimenForUser(friendUser);
-          const friendConnection=buildConnectionRoute(friendUser,friendNearest.c,friendNearest.c.profile);
-          const friendSignature=dnaSignature(friendAnswers);
+          const friendNearest=friendAnswers?nearestSpecimenForUser(friendUser):null;
+          const friendConnection=friendNearest?buildConnectionRoute(friendUser,friendNearest.c,friendNearest.c.profile):null;
+          const friendSignature=friendAnswers?dnaSignature(friendAnswers):'UNKNOWN';
+          const signalRow=x=>`<div class="dna-compare-row"><b>${escapeHtml(x.label)}</b><small>YOU ${x.a.toFixed(1)} / FRIEND ${x.b.toFixed(1)}</small><em>Δ${x.diff.toFixed(1)}</em></div>`;
+          const reading=crosscheckReading(cross);
+          const fractureLine=reading.fracture
+            ? `YOU ${reading.fracture.a.toFixed(1)} / FRIEND ${reading.fracture.b.toFixed(1)} / Δ${reading.fracture.diff.toFixed(1)}. ${reading.fracture.a>reading.fracture.b?'YOU':'FRIEND'} HIGHER.`
+            : reading.reason||'NO SINGLE AXIS STANDS OUT AS A FRACTURE.';
           compareInput.value=resolved.key;
           compareOutput.innerHTML=`
-            <div class="dna-compare-score"><strong>${cross.similarity.toFixed(1)}%</strong><span>DNA SYNC</span><small>YOUR ${signature} ↔ FRIEND ${friendSignature}</small></div>
-            <div class="dna-compare-specimen"><span>FRIEND'S CLOSEST SPECIMEN</span><b>${escapeHtml(friendNearest.c.title)}</b><small>${escapeHtml(friendConnection.code)} // ${resolved.source==='cloud'?'SHARE STORE':'LOCAL KEY'} // RESOLVED</small></div>
+            <div class="dna-compare-score"><span>DNA SYNC</span><strong>${cross.similarity==null?'UNKNOWN':`${cross.similarity.toFixed(1)}%`}</strong><small>DATA COVERAGE ${cross.coverage}/15 AXES${cross.coverage<15?' // PARTIAL':''}</small></div>
+            <div class="dna-compare-specimen"><div><span>YOUR SPECIMEN</span><b>${escapeHtml(best.c.title)}</b><small>${signature}</small></div><i>VS</i><div><span>FRIEND SPECIMEN</span><b>${friendNearest?escapeHtml(friendNearest.c.title):'UNKNOWN'}</b><small>${friendSignature}</small></div></div>
             <div class="dna-compare-signals">
-              <div><span>SHARED SIGNALS</span>${cross.shared.map(x=>`<b>${escapeHtml(x.label)} <em>Δ${x.diff.toFixed(1)}</em></b>`).join('')}</div>
-              <div><span>SPLIT SIGNALS</span>${cross.split.map(x=>`<b>${escapeHtml(x.label)} <em>Δ${x.diff.toFixed(1)}</em></b>`).join('')}</div>
+              <div><span>SHARED SIGNALS</span>${cross.shared.length?cross.shared.map(signalRow).join(''):'<small>UNKNOWN // NO COMPARABLE AXES</small>'}</div>
+              <div><span>SPLIT SIGNALS</span>${cross.split.length?cross.split.map(signalRow).join(''):'<small>UNKNOWN // TOO FEW AXES</small>'}</div>
+            </div><div class="dna-compare-reading" aria-label="Your route, friend route and DNA difference">
+              <div><span>CONNECTION ROUTE // EACH TO OWN SPECIMEN</span><div class="dna-compare-route-lines"><small>YOU <b>${escapeHtml(connection.code)}</b></small><small>FRIEND <b>${friendConnection?escapeHtml(friendConnection.code):'UNKNOWN // PARTIAL DNA'}</b></small></div></div>
+              <div><span>FRACTURE // YOU VS FRIEND</span><b>${reading.fracture?escapeHtml(reading.fracture.label):'NONE DETECTED'}</b><small>${fractureLine}</small></div>
             </div>`;
         }catch(err){
           const missing=err?.status===404;
-          const noStore=err?.status===503;
-          compareOutput.innerHTML=`<div class="dna-compare-error">${missing?'SHARE KEY NOT FOUND OR EXPIRED.':noStore?'SHARE STORE OFFLINE — TRY AGAIN LATER.':'GENOME KEY REJECTED // CHECK THE CODE AND TRY AGAIN.'}</div>`;
+          const noStore=err?.status===503||err?.status===502||err instanceof TypeError;
+          const corrupt=err?.message==='GENOME_RECORD_INVALID';
+          compareOutput.innerHTML=`<div class="dna-compare-error">${missing?'SHARE KEY NOT FOUND OR EXPIRED.':noStore?'SHARE STORE OFFLINE — TRY AGAIN LATER.':corrupt?'GENOME DATA UNAVAILABLE // NO VALID AXES.':'GENOME KEY REJECTED // CHECK THE CODE AND TRY AGAIN.'}</div>`;
         }finally{if(runButton){runButton.disabled=false;runButton.textContent=old;}}
       };
       root.querySelector('[data-genome-compare-run]')?.addEventListener('click',runGenomeCompare);

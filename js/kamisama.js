@@ -10,7 +10,7 @@
   function rot(id){let h=0;for(const c of String(id))h=(h*31+c.charCodeAt(0))|0;return ((Math.abs(h)%25)-12)/10}
   function fmt(ms){const d=new Date(Number(ms)||Date.now());return d.toLocaleString(undefined,{year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit'})}
   function render(){
-    const q=escReg(search.value);const visible=notes.filter(n=>!q||escReg(`${n.id} ${n.message} ${n.letterboxd}`).includes(q));
+    const q=escReg(search.value);const visible=notes.filter(n=>!q||escReg(`${n.id} ${n.message} ${n.identityValue||n.letterboxd||'ANONYMOUS'}`).includes(q));
     list.innerHTML='';
     if(!visible.length){list.innerHTML='<div class="notes-admin-empty">NO NOTES MATCH THIS FILTER.</div>';return}
     for(const n of visible){
@@ -18,7 +18,11 @@
       const meta=document.createElement('div');meta.className='admin-note-meta';meta.textContent=`${n.id} // ${fmt(n.createdAt)}`;
       const msg=document.createElement('div');msg.className='admin-note-message';msg.textContent=n.message;
       const foot=document.createElement('div');foot.className='admin-note-footer';
-      const author=document.createElement('a');author.href=`https://letterboxd.com/${encodeURIComponent(n.letterboxd)}/`;author.target='_blank';author.rel='noopener noreferrer';author.textContent=`/${n.letterboxd} ↗`;
+      const type=n.identityType||(n.letterboxd?'letterboxd':'anonymous');
+      const value=String(n.identityValue??n.letterboxd??'');
+      const author=document.createElement('a');
+      if(type==='letterboxd'&&/^[A-Za-z0-9_-]{1,30}$/.test(value)){author.href=`https://letterboxd.com/${encodeURIComponent(value)}/`;author.target='_blank';author.rel='noopener noreferrer';author.textContent=`@${value} ↗`}
+      else author.textContent=type==='name'&&value?value:'ANONYMOUS';
       const actions=document.createElement('div');actions.className='admin-note-actions';
       const del=document.createElement('button');del.type='button';del.className='admin-note-delete';del.textContent='DELETE';
       del.addEventListener('click',async()=>{

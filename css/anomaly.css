@@ -314,6 +314,7 @@
   margin:8px 0 12px;font:11px/1.55 "Courier Prime","Courier New",monospace;
 }
 .creature-test-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.creature-test-subhead{margin:16px 0 8px;padding-top:11px;border-top:1px solid #ae824a;color:#ffcf6c;font:700 10px/1.4 "Courier Prime",monospace;letter-spacing:.09em}
 .creature-test-buttons button,.creature-test-reset,.creature-test-panel a{
   min-height:44px;padding:8px 5px;border:1px solid #ffcf6c;
   background:#14190f;color:#ffdfa0;cursor:pointer;text-align:center;

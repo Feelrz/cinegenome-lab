@@ -125,7 +125,13 @@ body.filmprint-mode .public-lab-note.is-scatter:hover,body.filmprint-mode .publi
 }
 .lab-note-field textarea{min-height:174px;resize:vertical}
 .lab-note-field input{min-height:48px}
+.lab-note-identity-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.lab-note-identity-head button{border:1px solid #756f50;background:transparent;color:#29281c;padding:6px 8px;font:800 8px var(--mono,monospace);cursor:pointer;letter-spacing:.04em}
+.lab-note-identity-head button:hover,.lab-note-identity-head button:focus-visible{border-color:#222c16;background:#222c16;color:#b8ff35}
+.lab-note-detail-footer a:not([href]){cursor:default;text-decoration:none}
 .lab-note-field textarea::placeholder,.lab-note-field input::placeholder{color:#8f8869}
+.lab-note-field input[data-identity-mode="name"]::placeholder{font-size:clamp(10px,3vw,12px)}
+@media(max-width:380px){.lab-note-field input[data-identity-mode="name"]{padding-left:24px}}
 .lab-note-field textarea:focus,.lab-note-field input:focus{border-color:#807543;box-shadow:0 0 0 2px rgba(136,125,77,.18)}
 .lab-note-help{margin:-1px 0 15px;color:#6d664d;font-size:8px;line-height:1.55}
 .lab-note-submit{

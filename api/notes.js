@@ -93,6 +93,24 @@ function normalizeLetterboxd(value) {
   return raw;
 }
 
+function normalizeName(value) {
+  if (typeof value !== 'string') return null;
+  const name = value.normalize('NFKC').replace(/[\u0000-\u001F\u007F]/g, '').replace(/\s+/g, ' ').trim();
+  if (name.length > 40 || /(?:https?:\/\/|www\.)/i.test(name) || /[<>]/.test(name)) return null;
+  return name;
+}
+
+function publicNote(note) {
+  if (!note || typeof note.id !== 'string' || typeof note.message !== 'string') return null;
+  const type = note.identityType || (note.letterboxd ? 'letterboxd' : null);
+  if (!['letterboxd','name','anonymous'].includes(type)) return null;
+  const value = type === 'letterboxd' ? normalizeLetterboxd(note.identityValue || note.letterboxd)
+    : type === 'name' ? normalizeName(note.identityValue) : null;
+  if (type !== 'anonymous' && !value) return null;
+  return { id:note.id, message:note.message, createdAt:note.createdAt,
+    identityType:type, identityValue:value };
+}
+
 function requesterFingerprint(req) {
   const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
   const ip = forwarded || String(req.socket && req.socket.remoteAddress || 'unknown');
@@ -144,7 +162,7 @@ module.exports = async function handler(req, res) {
       const raw = await redis(url, token, ['ZREVRANGE', WALL_KEY, '0', String(limit - 1)]);
       const notes = (Array.isArray(raw) ? raw : []).map(item => {
         try { return JSON.parse(item); } catch { return null; }
-      }).filter(Boolean).filter(note => note && note.id && note.message && note.letterboxd);
+      }).map(publicNote).filter(Boolean);
       const total = Number(await redis(url, token, ['ZCARD', WALL_KEY]) || notes.length);
       return res.status(200).json({ notes, total, live: true, admin: adminRequested });
     }
@@ -165,9 +183,13 @@ module.exports = async function handler(req, res) {
     if (!validSameOriginWrite(req)) return res.status(403).json({ error: 'invalid_origin' });
     const body = readBody(req) || {};
     const message = sanitizeMessage(body.message);
-    const letterboxd = normalizeLetterboxd(body.letterboxd);
+    const identityType = body.identityType || (body.letterboxd ? 'letterboxd' : null);
+    const identityValue = identityType === 'letterboxd' ? normalizeLetterboxd(body.identityValue ?? body.letterboxd)
+      : identityType === 'name' ? normalizeName(body.identityValue) : null;
     if (!message) return res.status(400).json({ error: 'invalid_message', maxLength: 180 });
-    if (!letterboxd) return res.status(400).json({ error: 'invalid_letterboxd' });
+    if (!['letterboxd','name','anonymous'].includes(identityType) || (identityType === 'letterboxd' && !identityValue) || (identityType === 'name' && identityValue === null))
+      return res.status(400).json({ error: identityType === 'letterboxd' ? 'invalid_letterboxd' : 'invalid_identity' });
+    const finalType = identityType === 'name' && !identityValue ? 'anonymous' : identityType;
 
     const fingerprint = requesterFingerprint(req);
     const rate = await redis(url, token, ['SET', `${RATE_PREFIX}${fingerprint}`, '1', 'EX', String(RATE_SECONDS), 'NX']);
@@ -179,7 +201,8 @@ module.exports = async function handler(req, res) {
     const note = {
       id: noteId(),
       message,
-      letterboxd,
+      identityType:finalType,
+      identityValue:finalType === 'anonymous' ? null : identityValue,
       createdAt: Date.now(),
     };
     const record = JSON.stringify(note);
@@ -190,7 +213,7 @@ module.exports = async function handler(req, res) {
       await redis(url, token, ['ZREMRANGEBYRANK', WALL_KEY, '0', String(count - MAX_NOTES - 1)]);
     }
 
-    return res.status(201).json({ note, total: Math.min(Math.max(count, 1), MAX_NOTES), live: true });
+    return res.status(201).json({ note:publicNote(note), total: Math.min(Math.max(count, 1), MAX_NOTES), live: true });
   } catch (error) {
     const detail = error && error.name === 'AbortError'
       ? 'upstash_timeout'

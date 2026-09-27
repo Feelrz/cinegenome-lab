@@ -5,19 +5,30 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#0b0f0a">
   <meta name="description" content="CINEGENOME LAB Mobile — cinematic pathology interface.">
+  <link rel="canonical" href="https://cinegenome.xyz/mobile/">
   <title>CINEGENOME LAB / MOBILE</title>
   <link rel="icon" href="../assets/cinegenome-logo.svg" type="image/svg+xml">
   <link rel="shortcut icon" href="../assets/cinegenome-logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="mobile.css">
   <link rel="stylesheet" href="v42-polish.css">
-  <link rel="stylesheet" href="../css/anomaly.css">
+  <link rel="stylesheet" href="../css/anomaly.css?v5-beta71">
+  <link rel="stylesheet" href="../css/sector09.css?v5-beta70">
+  <link rel="stylesheet" href="../css/signal-lab.css?v5-beta70">
   <link rel="stylesheet" href="../css/field-manual.css">
   <link rel="stylesheet" href="v49-mobile.css">
   <link rel="stylesheet" href="../css/quarantine.css">
   <link rel="stylesheet" href="../css/dna-test.css">
   <link rel="stylesheet" href="../css/yugen-archive.css">
+  <link rel="stylesheet" href="../css/home-beta78.css?v5-beta78">
+  <link rel="stylesheet" href="../css/home-beta79.css?v5-beta79">
+  <link rel="stylesheet" href="../css/home-beta81.css?v5-beta81">
+  <link rel="stylesheet" href="../css/home-beta82.css?v5-beta83">
+  <link rel="stylesheet" href="../css/home-beta83.css?v5-beta83">
+  <link rel="stylesheet" href="../css/home-final.css?v5-final">
+  <link rel="stylesheet" href="../css/lab-beta83.css?v5-beta83">
+  <meta name="cinegenome-build" content="V5.0 FINAL">
 </head>
-<body>
+<body class="mobile-home-mode">
   <div class="m-boot" id="mBoot">
     <div class="m-boot-inner">
       <div class="m-boot-identity">
@@ -54,12 +65,105 @@
   </section>
 
   <div class="m-primary-tabs" role="tablist" aria-label="Main laboratory views">
-    <button type="button" class="is-active" id="mTabScanner" data-primary-view="scanner" role="tab" aria-selected="true" aria-controls="mScanner">SPECIMEN SCANNER</button>
+    <button type="button" id="mTabScanner" data-primary-view="scanner" role="tab" aria-selected="false" aria-controls="mScanner">SPECIMEN SCANNER</button>
     <button type="button" id="mTabArchive" data-primary-view="archive" role="tab" aria-selected="false" aria-controls="mArchive">EXPERIMENT ARCHIVE</button>
   </div>
 
   <main class="m-main">
-    <section class="m-view is-active" data-view="scanner" id="mScanner" role="tabpanel" aria-labelledby="mTabScanner">
+    <section class="m-view is-active m-home-board" data-view="home" id="mHome" aria-labelledby="mHomeTitle">
+        <div class="cg79-board cg81-board cg82-board">
+  <div class="cg81-register" aria-hidden="true"><span>CG / 09 &nbsp; DEPARTMENT OF CINEMATIC PATHOLOGY</span><span>FIELD DESK &nbsp; / &nbsp; FILE 00</span></div>
+
+  <header class="cg81-intro">
+    <div class="cg81-intro-copy">
+      <span class="cg81-kicker">OPEN FILE / AN ORIENTATION TO THE LAB</span>
+      <h1 id="mHomeTitle">FOLLOW THE<br><em>EVIDENCE.</em></h1>
+      <p>There is no right order. Start with a film, examine your taste, or investigate a case. The strange parts are there for those who keep looking.</p>
+    </div>
+    <button class="cg81-manual" type="button" data-field-manual-open data-field-manual-section="faq" aria-haspopup="dialog" aria-controls="fieldManualDialog">
+      <span>UNFILED / 001 &nbsp; ?</span><strong>NEW HERE?<br>THIS IS THE FAQ.</strong><small>A short guide to the rooms, codes and things that need explaining.</small><b>READ THE FIELD MANUAL &nearr;</b>
+    </button>
+  </header>
+
+  <section class="cg81-entry" aria-labelledby="cg81EntryTitle">
+    <div class="cg81-section-cap"><h2 id="cg81EntryTitle">THREE WAYS INTO THE LAB</h2><span>SUBJECT &rarr; METHOD &rarr; TRACE</span></div>
+    <div class="cg81-entry-grid">
+      <button class="cg81-primary" type="button" data-mobile-home-filmprint>
+        <span class="cg81-identifier">01 / SUBJECT: YOU</span>
+        <strong><span class="cg81-main-title">FILMPRINT</span><span class="cg81-primary-arrow" aria-hidden="true">&nearr;</span></strong>
+        <span class="cg81-description">Answer the 30 prompts. Isolate your cinematic taste, meet its closest film specimen, and crosscheck DNA with a friend.</span>
+        <span class="cg81-process">QUESTIONNAIRE <i>&rarr;</i> TASTE STRAND <i>&rarr;</i> GENOME KEY</span>
+        <span class="cg81-enter">EXAMINE YOUR TASTE <b aria-hidden="true">&rarr;</b></span>
+      </button>
+      <div class="cg81-alternates">
+        <button class="cg81-alternate" type="button" data-mobile-home-view="scanner"><span>02 / SUBJECT: A FILM</span><strong>SPECIMEN SCANNER <i aria-hidden="true">&nearr;</i></strong><small>Inspect a film's interpreted DNA, source status, and Genomic Anomaly.</small><b>EXAMINE A FILM &rarr;</b></button>
+        <button class="cg81-alternate cg81-cases" type="button" data-anomaly-open data-anomaly-section="cases"><span>03 / SUBJECT: THE LAB</span><strong>DAILY CASES <i aria-hidden="true">&nearr;</i></strong><small>Six cases hidden across the modules. Every two solved cases unlock a Creature draw.</small><b>INVESTIGATE <em data-anomaly-progress>0/6</em> &rarr;</b></button>
+      </div>
+    </div>
+    
+  </section>
+
+<div class="cg79-first-row cg82-operator-wrap cg90-welcome-wrap"><article class="cg79-note cg79-manifesto cg90-welcome-letter">
+              <span class="cg79-tag">INTERNAL / HEAD RESEARCHER // TO: WHOEVER GOT IN</span>
+              <div class="cg90-letter-grid">
+                <div class="cg90-letter-heading">
+                  <small>ORIENTATION MEMO / FILE 00</small>
+                  <h2>WELCOME TO<br><em>THE LAB.</em></h2>
+                  <span class="cg90-exit-stamp">EXIT STATUS / UNRESOLVED</span>
+                  <button class="cg91-sealed-note" type="button" data-cg91-memo-open aria-haspopup="dialog" aria-controls="cg91ResearchMemo">
+                    <span>SEALED ADDENDUM / 00-B</span>
+                    <strong>READ IF YOU PLAN<br>TO TOUCH EVERYTHING.</strong>
+                    <small>UNSEAL FIELD NOTE ↗</small>
+                  </button>
+                </div>
+                <div class="cg90-letter-copy">
+                  <p>If this note reached you, the lab accepted your credentials. That says more about the lab than it does about you.</p>
+                  <p>I built CineGenome to dissect films. Somewhere between the archive and the anomaly logs, the instruments began returning rooms I never indexed. I still have not found a reliable way out.</p>
+                  <p>So do not wait for permission. Scan something you love. Crossbreed films that should never coexist. Mutate the evidence. Open the wrong drawer. Press the button you were told not to press. Leave a trace for whoever arrives next.</p>
+                  <p class="cg90-last-line">Have fun. Document anything that answers back. <strong>If you find the exit, leave it open.</strong></p>
+                </div>
+              </div>
+              <div class="cg90-researcher-signoff">
+                <span class="cg90-signature">F.</span>
+                <span><b>CHIEF RESEARCHER</b><small>STATUS / UNCONFIRMED</small></span>
+                <a href="https://letterboxd.com/feelrz/" target="_blank" rel="noopener noreferrer">EXTERNAL FIELD LOG ↗</a>
+              </div>
+            </article></div>
+<aside class="cg79-marginalia" aria-label="Laboratory method">
+            <span>ON THE GLASS / METHOD SCRIBBLE</span>
+            <p>ARCHIVE RECORD <i>→</i> SOURCE CUES <i>→</i> INTERPRETED DNA <i>→</i> LAB EXPERIMENT</p>
+            <small>Keep evidence and inference separate. Unknown values stay unknown.</small>
+          </aside>
+<section class="cg79-index" aria-label="Laboratory rooms">
+            <div class="cg79-section-heading cg81-dir-heading cg83-visible-heading"><span>01 / VISIBLE ROOMS</span><h2>FOLLOW THE EVIDENCE.</h2><p>Each pinned note opens a real part of the lab.</p></div>
+            <div class="cg79-modules">
+              <button class="cg79-note cg79-module cg79-scanner" type="button" data-mobile-home-view="scanner"><span class="cg79-tag">01 / EXAMINE</span><strong>SPECIMEN<br>SCANNER</strong><span class="cg79-copy">Search a film. Read its cinematic DNA, nearest specimens and Genomic Anomaly; compare what you find.</span><b class="cg79-link">OPEN DOSSIER ↗</b></button>
+              <button class="cg79-note cg79-module cg79-filmprint" type="button" data-mobile-home-filmprint><span class="cg79-tag">β / YOUR SIGNAL</span><strong>FILMPRINT</strong><span class="cg79-copy">Answer 30 prompts. Build a taste strand and find your closest film specimen.</span><b class="cg79-link">RUN SELF ASSAY ↗</b></button>
+              <button class="cg79-note cg79-module cg79-cross" type="button" data-mobile-home-view="crossbreed"><span class="cg79-tag">02 / COMBINE</span><strong>CROSSBREED<br>REACTOR</strong><span class="cg79-copy">Give two films a shared genome. See what their traits make together.</span><b class="cg79-link">ENTER REACTOR ↗</b></button>
+              <button class="cg79-note cg79-module cg79-mutation" type="button" data-mobile-home-view="mutation"><span class="cg79-tag">03 / ALTER</span><strong>MUTATION<br>CHAMBER</strong><span class="cg79-copy">Change a film's DNA axes. Find existing films that resemble your mutation.</span><b class="cg79-link">OPEN CHAMBER ↗</b></button>
+              <button class="cg79-note cg79-module cg79-atlas" type="button" data-mobile-home-view="atlas"><span class="cg79-tag">04 / LOCATE</span><strong>GENOME<br>ATLAS</strong><span class="cg79-copy">Plot films on two DNA axes. Inspect the clusters and the outliers.</span><b class="cg79-link">OPEN MAP ↗</b></button>
+              <button class="cg79-note cg79-module cg79-blood" type="button" data-mobile-home-view="bloodline"><span class="cg79-tag">05 / TRACE</span><strong>BLOODLINE<br>LAB</strong><span class="cg79-copy">Trace model-inferred relatives across the archive. Proximity is not proof of influence.</span><b class="cg79-link">TRACE A FILM ↗</b></button>
+              <button class="cg79-note cg79-module cg79-archive" type="button" data-mobile-home-view="archive"><span class="cg79-tag">06 / RETAIN</span><strong>EXPERIMENT<br>ARCHIVE</strong><span class="cg79-copy">Return to the specimens and experiments you saved in this browser.</span><b class="cg79-link">REOPEN RECORDS ↗</b></button>
+              <a class="cg79-note cg79-module cg79-wall" href="../lab-wall.html"><span class="cg79-tag">OPEN CHANNEL / PUBLIC</span><strong>LAB WALL</strong><span class="cg79-copy">Read notes from other visitors. Leave a transmission of your own, with a name or anonymously.</span><b class="cg79-link">READ TRANSMISSIONS ↗</b></a>
+            </div>
+          </section>
+<section class="cg79-side-channels" aria-label="Daily cases and hidden channels">
+            <div class="cg79-section-heading"><span>02 / SIDE CHANNELS</span><h2>THE INDEX ENDS HERE.<br>THE LAB DOESN'T.</h2><p>Some doors are found by doing, not browsing.</p></div>
+            <div class="cg79-extras">
+              <article class="cg79-note cg79-quest"><span class="cg79-tag">DAILY CASE FILE / LOCAL ROTATION</span><h3>QUEST BOARD.</h3><p>Six new cases. Use the lab to find the answers; each pair solved unlocks one creature draw.</p><button type="button" data-anomaly-open data-anomaly-section="cases">OPEN DAILY CASES <b data-anomaly-progress>0/6</b> ↗</button></article>
+              <article class="cg79-note cg79-creature"><span class="cg79-tag">COLLECTION / CAPTURE LOG</span><h3>CREATURE INDEX.</h3><p>Your collected specimens live here. The collection stays in this browser.</p><button type="button" data-anomaly-open data-anomaly-section="collection">INSPECT COLLECTION ↗</button></article>
+              <button class="cg79-note cg79-codes" type="button" data-mobile-home-code><span class="cg79-tag">SCRATCHED ON THE BACK / ACCESS</span><strong>SPECIMEN<br>CODE</strong><span class="cg79-code-lines">CG-HELLGATE://09<br>CG-PHANTOM://REEL</span><span class="cg79-copy">Two working frequencies. The specimen terminal knows where to send them.</span><b class="cg79-link">OPEN TERMINAL ↗</b></button>
+            </div>
+            <button class="cg83-yugen-mark" type="button" data-home-yugen aria-label="Enter Yūgen Japanese cinema archive"><span class="cg83-yugen-glyph" data-glyph="幽玄" aria-hidden="true">幽玄</span><small aria-hidden="true">JP-09 ↗</small></button>
+          </section>
+<section class="cg82-afterimage" aria-label="Recent specimen activity in this browser" aria-live="polite" hidden>
+   <div class="cg82-afterimage-head"><span>AFTERIMAGE / THIS BROWSER</span><h2>RESIDUAL TRACE.</h2><p>Recent operations recorded in this browser. No inferred signal.</p></div>
+   <div data-home-memory></div>
+ </section>
+<footer class="cg79-footer"><div><span>PROVENANCE / KEEP WITH THE EVIDENCE</span><p>Letterboxd informs the archive list. Cinematic DNA is CineGenome's interpretation, with different levels of evidence. UNKNOWN does not mean zero.</p></div><div><span>OPERATOR REMINDER</span><p>Lost your place? Click the CineGenome logo once to return to this board. Other traces require looking closer.</p></div></footer>
+</div>
+    </section>
+    <section class="m-view" data-view="scanner" id="mScanner" role="tabpanel" aria-labelledby="mTabScanner">
       <div class="m-section-head">
         <div><span>MODULE 01</span><h1>Specimen Scanner</h1></div>
         <button class="m-info" type="button" data-info="scanner">ⓘ</button>
@@ -102,16 +206,17 @@
       <div class="m-section-head"><div><span>MODULE 06</span><h1>Experiment Archive</h1></div></div>
       <div class="m-card">
         <div class="m-card-head"><span>SAVED SPECIMENS & EXPERIMENTS</span></div>
-        <div class="m-list" id="mArchiveList"></div>
+        <div class="cg83-archive" id="mArchiveList"></div>
         <button class="m-btn full" id="mClearArchive" type="button">ERASE LOCAL ARCHIVE</button>
       </div>
     </section>
 
-    <section class="m-view" data-view="crossbreed" id="mCrossbreed">
+    <section class="m-view cg83-lab" data-view="crossbreed" id="mCrossbreed">
       <div class="m-section-head">
         <div><span>MODULE 02</span><h1>Crossbreed Reactor</h1></div>
         <button class="m-info" type="button" data-info="crossbreed">ⓘ</button>
       </div>
+      <div class="cg83-protocol"><div><span>02 / RECOMBINATION</span><h2>Two parents. One synthetic strand.</h2><p>Blend cinematic traits, inspect the parent differences, then examine the closest existing films.</p></div><ol><li>01 SELECT PARENTS</li><li>02 SET DOMINANCE</li><li>03 INITIATE + INSPECT</li></ol></div>
       <div class="m-card">
         <label class="m-field"><span>Parent A</span><input id="mParentA" type="search" placeholder="Search specimen A"></label>
         <div class="m-suggestions" id="mParentASuggestions" hidden></div>
@@ -128,17 +233,19 @@
         <div class="m-card-head"><span>SYNTHETIC HYBRID</span><span id="mHybridScore">—</span></div>
         <h2 class="m-result-title" id="mHybridTitle">Select two parents.</h2>
         <p class="m-muted" id="mHybridMeta">Waiting for reactor input.</p>
+        <div class="cg83-instrument" id="mHybridDifferential"></div>
         <div class="m-dna" id="mHybridDNA"></div>
         <button class="m-btn full m-save-result" id="mSaveCrossbreed" type="button">SAVE HYBRID TO ARCHIVE</button>
       </div>
       <div class="anomaly-portal" data-anomaly-portal><span>PAIRING ERROR // DAILY CASES</span><button data-anomaly-open type="button">OPEN CASES <b data-anomaly-progress>0/6</b></button></div>
     </section>
 
-    <section class="m-view" data-view="mutation" id="mMutation">
+    <section class="m-view cg83-lab" data-view="mutation" id="mMutation">
       <div class="m-section-head">
         <div><span>MODULE 03</span><h1>Mutation Chamber</h1></div>
         <button class="m-info" type="button" data-info="mutation">ⓘ</button>
       </div>
+      <div class="cg83-protocol"><div><span>03 / CONTROLLED DEVIATION</span><h2>Rewrite the signal. Track the change.</h2><p>Start with a film, alter its traits and compare the new vector with the seed. Matches follow your live profile.</p></div><ol><li>01 LOAD SEED</li><li>02 ALTER TRAITS</li><li>03 RETAIN VECTOR</li></ol></div>
       <div class="m-card">
         <label class="m-field"><span>Seed organism</span><input id="mMutationSeed" type="search" placeholder="Search seed film"></label>
         <div class="m-suggestions" id="mMutationSuggestions" hidden></div>
@@ -147,6 +254,7 @@
       <div class="m-card">
         <div class="m-card-head"><span>TRAIT OVERRIDES</span><span id="mMutationCode">CGM-MOBILE</span></div>
         <div id="mMutationControls"></div>
+        <div class="cg83-instrument" id="mMutationDifferential"></div>
       </div>
       <div class="m-card">
         <div class="m-card-head"><span>LIVE VECTOR MATCH</span><span id="mMutationScore">—</span></div>
@@ -157,12 +265,14 @@
       <div class="anomaly-portal" data-anomaly-portal><span>VECTOR TRACE // DAILY CASES</span><button data-anomaly-open type="button">OPEN CASES <b data-anomaly-progress>0/6</b></button></div>
     </section>
 
-    <section class="m-view" data-view="atlas" id="mAtlas">
+    <section class="m-view cg83-lab" data-view="atlas" id="mAtlas">
       <div class="m-section-head">
         <div><span>MODULE 04</span><h1>Genome Atlas</h1></div>
         <button class="m-info" type="button" data-info="atlas">ⓘ</button>
       </div>
+      <div class="cg83-protocol"><div><span>04 / COORDINATE FIELD</span><h2>Every position has a reason.</h2><p>Choose two DNA axes. Each node sits at its recorded values; search the field to isolate a title.</p></div><ol><li>01 SELECT AXES</li><li>02 LOCATE A NODE</li><li>03 INSPECT VALUES</li></ol></div>
       <div class="m-card">
+        <label class="m-field"><span>Isolate a title</span><input type="search" id="mAtlasFind" placeholder="Search this coordinate field"></label>
         <div class="m-two">
           <label class="m-field"><span>X axis</span><select id="mAtlasX"></select></label>
           <label class="m-field"><span>Y axis</span><select id="mAtlasY"></select></label>
@@ -184,13 +294,15 @@
       <div class="anomaly-portal" data-anomaly-portal><span>UNMAPPED COORDINATE // DAILY CASES</span><button data-anomaly-open type="button">OPEN CASES <b data-anomaly-progress>0/6</b></button></div>
     </section>
 
-    <section class="m-view" data-view="bloodline" id="mBloodline">
+    <section class="m-view cg83-lab" data-view="bloodline" id="mBloodline">
       <div class="m-section-head"><div><span>MODULE 05</span><h1>Bloodline Lab</h1></div></div>
+      <div class="cg83-protocol"><div><span>05 / MODEL KINSHIP</span><h2>Follow resemblance through time.</h2><p>Trace related profiles, inspect a relative and examine the signals they share. Model kinship does not establish artistic influence.</p></div><ol><li>01 TRACE SOURCE</li><li>02 INSPECT RELATIVE</li><li>03 COMPARE SIGNALS</li></ol></div>
       <div class="m-card">
         <div class="m-card-head"><span>TRACE CINEMATIC RELATIVES</span></div>
         <label class="m-field"><span>Source specimen</span><input id="mBloodlineSearch" type="search" placeholder="Search source"></label>
         <div class="m-suggestions" id="mBloodlineSuggestions" hidden></div>
         <div class="m-list" id="mBloodlineList"></div>
+        <div id="mBloodlineInspect" aria-live="polite"></div>
       </div>
       <div class="m-menu-grid m-side-signals">
         <button type="button" data-open-archive><b>Experiment Archive</b><small>Saved specimens</small></button>
@@ -224,7 +336,7 @@
   </footer>
 
   <nav class="m-bottom-nav" id="mBottomNav" aria-label="Laboratory modules">
-    <button class="is-active" data-target="scanner"><span>◉</span><small>SCAN</small></button>
+    <button data-target="scanner"><span>◉</span><small>SCAN</small></button>
     <button data-target="crossbreed"><span>⌘</span><small>MIX</small></button>
     <button data-target="mutation"><span>⌁</span><small>MUTATE</small></button>
     <button data-target="atlas"><span>✣</span><small>ATLAS</small></button>
@@ -357,6 +469,33 @@
   </dialog>
   <div class="m-toast" id="mToast" role="status" aria-live="polite" hidden></div>
 
+
+  <dialog class="cg91-research-dialog" id="cg91ResearchMemo" aria-labelledby="cg91ResearchMemoTitle">
+    <article class="cg91-research-paper" data-cg91-memo-paper>
+      <button class="cg91-research-close" type="button" data-cg91-memo-close aria-label="Close field note">×</button>
+      <div class="cg91-research-meta">
+        <span>INTERNAL ADDENDUM // FILE 00-B</span>
+        <b data-cg91-memo-status>OPERATOR NOTE / UNSEALED</b>
+      </div>
+      <header>
+        <small>HANDWRITTEN AFTER THE MAP WAS PRINTED</small>
+        <h2 id="cg91ResearchMemoTitle">DO NOT FOLLOW<br>THE LAB IN ORDER.</h2>
+        <p>The map is for orientation, not obedience.</p>
+      </header>
+      <div class="cg91-research-copy">
+        <p data-cg91-signal="ROOM ORDER / OPTIONAL">Start with a film you know too well. The Scanner will tell you what the archive thinks it sees. Crossbreed and Mutation are where you are allowed to disagree with it. Atlas shows where the evidence sits. Bloodline shows what sits close enough to make you suspicious.</p>
+        <p data-cg91-signal="DATA RULE / UNKNOWN ≠ ZERO">Do not force missing evidence into a number. <strong>UNKNOWN is not zero.</strong> PROVISIONAL is not truth. A clean readout can still be an interpretation. If an instrument sounds certain, read the label twice.</p>
+        <p data-cg91-signal="SIDE CHANNEL / UNINDEXED">The indexed rooms are only the rooms I was able to name. Other channels reveal themselves when you use the lab instead of treating it like a menu. Some are daily. Some remember this browser. Some involve other visitors. A few are undocumented on purpose.</p>
+        <p data-cg91-signal="METHOD / BAD IDEAS WELCOME">Save whatever is worth returning to. Leave notes when you find something strange. Compare signals. Break combinations. The lab is more useful when the operator has bad ideas and keeps records.</p>
+        <p data-cg91-signal="RETURN PATH / CONFIRMED">I have been trying to determine whether this place has an exit or only a return path. The CineGenome logo will always bring you back to the board. <strong>That is not the same thing.</strong></p>
+      </div>
+      <footer>
+        <span>IF SOMETHING ANSWERS BACK, WRITE IT DOWN.</span>
+        <div><b>— F.</b><small>CHIEF RESEARCHER // LAST LOCATION UNCONFIRMED</small></div>
+      </footer>
+    </article>
+  </dialog>
+
   <dialog class="anomaly-dialog" id="anomalyDialog" aria-labelledby="anomalyHeading">
     <header><span>CG-09 // RESTRICTED INCIDENT</span><button id="anomalyClose" type="button" aria-label="Close anomaly case">×</button></header>
     <div class="anomaly-body" id="anomalyCaseContent"></div>
@@ -365,20 +504,28 @@
 
   <script src="../data/movies.js"></script>
   <script src="../data/top500.js"></script>
-  <script src="../data/top500-enriched.js"></script>
+  <script src="../data/top500-enriched.js?v5-beta78"></script>
   <script src="../data/fans250.js"></script>
   <script src="../data/watch-once-extra.js"></script>
   <script src="../data/dead-channel-300.js"></script>
-  <script src="../js/dna-model.js"></script>
+  <script src="../js/dna-model.js?v5-beta72"></script>
   <script src="../data/tmdb-config.js"></script>
   <script src="../js/tmdb.js"></script>
   <script src="../js/yugen-archive.js"></script>
-  <script src="../js/anomaly.js"></script>
+  <script src="../data/quest-riddles-beta83.js?v5-beta83"></script>
+  <script src="../js/anomaly.js?v5-beta83"></script>
+  <script src="../js/sector09.js?v5-beta75"></script>
+  <script src="../js/signal-lab.js?v5-beta70"></script>
+  <script src="../js/specimen-codes.js?v5-beta70"></script>
   <script src="../js/picker-sfx.js"></script>
-  <script src="mobile.js"></script>
-  <script src="../js/quarantine.js"></script>
+  <script src="../js/archive-browser.js?v5-beta83"></script>
+  <script src="../js/lab-instruments.js?v5-beta83"></script>
+  <script src="mobile.js?v5-beta87"></script>
+  <script src="../js/quarantine.js?v5-beta75"></script>
   <script src="../js/dna-test.js"></script>
   <script src="../js/visitors.js"></script>
-  <script src="../js/field-manual.js"></script>
+  <script src="../js/field-manual.js?v5-beta90"></script>
+  <script src="../js/home-evidence.js?v5-beta83"></script>
+  <script src="../js/home-tactile-final.js?v5-final"></script>
 </body>
 </html>

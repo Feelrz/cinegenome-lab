@@ -7,6 +7,9 @@
   const form = $('#labNoteForm');
   const message = $('#labNoteMessage');
   const handle = $('#labNoteLetterboxd');
+  const identityModeButton = $('#labNoteIdentityMode');
+  const identityHelp = $('#labNoteIdentityHelp');
+  let identityMode = 'letterboxd';
   const counter = $('#labNoteCount');
   const status = $('#labNoteStatus');
   const feed = $('#labNoteFeed');
@@ -75,6 +78,24 @@
   }
   function ageTone(index) { return Math.max(.78, 1 - index * .018).toFixed(2); }
   function letterboxdUrl(name) { return `https://letterboxd.com/${encodeURIComponent(name)}/`; }
+  function identity(note) {
+    const type=note.identityType || (note.letterboxd?'letterboxd':'anonymous');
+    const value=String(note.identityValue ?? note.letterboxd ?? '');
+    return type==='letterboxd' && /^[A-Za-z0-9_-]{1,30}$/.test(value)
+      ? {text:`@${value}`,url:letterboxdUrl(value)}
+      : {text:type==='name' && value?value:'ANONYMOUS',url:null};
+  }
+  identityModeButton?.addEventListener('click',()=>{
+    identityMode=identityMode==='letterboxd'?'name':'letterboxd';
+    identityModeButton.setAttribute('aria-pressed',String(identityMode==='name'));
+    identityModeButton.setAttribute('aria-label',`Switch identity mode to ${identityMode==='name'?'Letterboxd':'name'}`);
+    identityModeButton.textContent=identityMode==='name'?'NAME ↔ LETTERBOXD':'LETTERBOXD ↔ NAME';
+    handle.value=''; handle.maxLength=identityMode==='name'?40:80;
+    handle.dataset.identityMode=identityMode;
+    handle.placeholder=identityMode==='name'?'Leave blank for anonymous':'@yourletterboxdid';
+    identityHelp.textContent=identityMode==='name'?'BLANK NAME = ANONYMOUS. LINKS INSIDE THE MESSAGE ARE BLOCKED.':'LETTERBOXD HANDLE OR PROFILE URL. SWITCH TO NAME TO POST WITHOUT LETTERBOXD.';
+    handle.focus();
+  });
   function formatTime(ms) {
     const d = new Date(Number(ms) || Date.now());
     const pad = n => String(n).padStart(2, '0');
@@ -149,8 +170,9 @@
     if (meta) meta.textContent = `LAB NOTE // ${id}`;
     if (body) body.textContent = note.message;
     if (author) {
-      author.textContent = `/${note.letterboxd} ↗`;
-      author.href = letterboxdUrl(note.letterboxd);
+      const who=identity(note);
+      author.textContent = who.text+(who.url?' ↗':'');
+      if(who.url) author.href=who.url; else author.removeAttribute('href');
     }
     if (time) time.textContent = `TRANSMITTED // ${formatTime(note.createdAt)}`;
     clearTimeout(noteDetailCloseTimer);
@@ -181,7 +203,7 @@
     card.style.setProperty('--note-scale', noteScale(note.id,index));
     card.style.setProperty('--tape-x', tapeOffset(note.id,index));
     card.style.setProperty('--tape-rot', tapeRotation(note.id,index));
-    card.setAttribute('aria-label', `Open lab note from ${note.letterboxd}`);
+    card.setAttribute('aria-label', `Open lab note from ${identity(note).text}`);
 
     const meta = document.createElement('span');
     meta.className = 'public-lab-note-meta';
@@ -190,7 +212,7 @@
     body.textContent = note.message;
     const byline = document.createElement('span');
     byline.className = 'public-lab-note-author';
-    byline.textContent = `/${note.letterboxd}`;
+    byline.textContent = identity(note).text;
     card.append(meta, body, byline);
     card.addEventListener('click', () => openNoteDetail(note, card));
     return card;
@@ -539,6 +561,9 @@
   }
   bindWallPortal(whiteboard);
   bindWallPortal(dialogWallShortcut);
+  // Keep the homepage FOLLOW THE EVIDENCE Lab Wall card on the same portal path
+  // as the header whiteboard instead of falling through to a hard page navigation.
+  bindWallPortal(document.querySelector('.cg79-wall[href="lab-wall.html"]'));
   $('#labNoteClose')?.addEventListener('click', closeDialog);
   $('#labNoteRefresh')?.addEventListener('click', () => fetchNotes({ full:false }));
   dialog.addEventListener('click', e => { if (e.target === dialog) closeDialog(); });
@@ -560,9 +585,9 @@
     e.preventDefault();
     const submit = $('#labNoteSubmit');
     if (!message || !handle || !submit) return;
-    const payload = { message: message.value.trim(), letterboxd: handle.value.trim() };
-    if (!payload.message || !payload.letterboxd) {
-      status.textContent = 'MESSAGE + LETTERBOXD ID REQUIRED.';
+    const payload = { message: message.value.trim(), identityType:identityMode, identityValue:handle.value.trim() };
+    if (!payload.message || (identityMode==='letterboxd' && !payload.identityValue)) {
+      status.textContent = identityMode==='letterboxd'?'MESSAGE + LETTERBOXD ID REQUIRED.':'MESSAGE REQUIRED.';
       return;
     }
 
@@ -570,7 +595,8 @@
     submit.textContent = 'TRANSMITTING…';
     status.textContent = 'UPLINKING NOTE TO PUBLIC WALL…';
     if (Array.isArray(window.CG_LAB_NOTES_DEMO)) {
-      const demoNote = { id:`N-DEMO-LOCAL-${Date.now()}`, message:payload.message, letterboxd:payload.letterboxd.replace(/^[@/]+/,'').replace(/^https?:\/\/(?:www\.)?letterboxd\.com\//i,'').replace(/\/.*$/,''), createdAt:Date.now() };
+      const demoValue=identityMode==='letterboxd'?payload.identityValue.replace(/^https?:\/\/(?:www\.)?letterboxd\.com\//i,'').replace(/^[@/]+/,'').replace(/\/.*$/,''):payload.identityValue;
+      const demoNote = { id:`N-DEMO-LOCAL-${Date.now()}`, message:payload.message, identityType:identityMode==='name'&&!demoValue?'anonymous':identityMode, identityValue:demoValue||null, createdAt:Date.now() };
       window.CG_LAB_NOTES_DEMO.unshift(demoNote);
       notes = window.CG_LAB_NOTES_DEMO.slice(); total = notes.length; newlyPinnedId = demoNote.id;
       message.value=''; handle.value=''; if(counter) counter.textContent='0/180';
@@ -587,6 +613,7 @@
       if (!response.ok) {
         if (response.status === 429) throw new Error('RATE');
         if (data.error === 'invalid_letterboxd') throw new Error('LETTERBOXD');
+        if (data.error === 'invalid_identity') throw new Error('IDENTITY');
         if (data.error === 'invalid_message') throw new Error('MESSAGE');
         throw new Error('OFFLINE');
       }
@@ -609,6 +636,8 @@
         ? 'TRANSMISSION THROTTLED // WAIT A MOMENT.'
         : code === 'LETTERBOXD'
           ? 'INVALID LETTERBOXD ID // USE /USERNAME ONLY.'
+          : code === 'IDENTITY'
+            ? 'INVALID NAME // USE UP TO 40 CHARACTERS, NO LINKS.'
           : code === 'MESSAGE'
             ? 'MESSAGE REJECTED // 1–180 CHARACTERS, NO LINKS.'
             : 'PUBLIC WALL OFFLINE // NOTE NOT SENT.';
