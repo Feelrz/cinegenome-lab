@@ -644,6 +644,10 @@ body.filmprint-mode .dna-test-console{
 .dna-export-format b{font:900 12px/1 Arial Black,Impact,sans-serif;color:#eef2ea}
 .dna-export-format small{font:700 8px/1.2 "Courier Prime","Courier New",monospace;color:#71806c;letter-spacing:.07em}
 .dna-export-format:disabled{opacity:.45;cursor:wait}
+.dna-export-utility{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:2px}
+.dna-export-utility .lab-btn{min-width:150px}
+.dna-export-utility .lab-btn:disabled{opacity:.38;cursor:not-allowed}
+.dna-export-utility small{font:700 7px/1.45 "Courier Prime","Courier New",monospace;color:#71806c;letter-spacing:.05em;text-align:right}
 
 @media(max-width:900px){
   body.filmprint-mode .dna-test-head{grid-template-columns:1fr;grid-template-areas:"title" "kicker" "copy";min-height:0;gap:8px;padding:24px 20px}
@@ -655,6 +659,8 @@ body.filmprint-mode .dna-test-console{
   .dna-result-actions{align-items:stretch;flex-direction:column}
   .dna-result-action-buttons{width:100%;margin-left:0;display:grid;grid-template-columns:1fr 1fr}
   .dna-export-formats{grid-template-columns:1fr}
+  .dna-export-utility{align-items:stretch;flex-direction:column}
+  .dna-export-utility small{text-align:left}
 }
 
 

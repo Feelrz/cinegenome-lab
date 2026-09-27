@@ -1304,6 +1304,48 @@
     return canvas;
   }
 
+  function forcePngDownload(blob,filename,canvas){
+    if(blob){
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;
+      a.download=filename;
+      a.rel='noopener';
+      a.target='_self';
+      a.style.position='fixed';
+      a.style.left='-9999px';
+      a.style.width='1px';
+      a.style.height='1px';
+      document.body.appendChild(a);
+      a.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));
+      a.remove();
+      window.setTimeout(()=>URL.revokeObjectURL(url),10000);
+      return true;
+    }
+    if(canvas){
+      const dataUrl=canvas.toDataURL('image/png');
+      const a=document.createElement('a');
+      a.href=dataUrl;
+      a.download=filename;
+      a.rel='noopener';
+      a.target='_self';
+      a.style.display='none';
+      document.body.appendChild(a);
+      a.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));
+      a.remove();
+      return true;
+    }
+    return false;
+  }
+
+  async function copyPngToClipboard(blob){
+    if(!blob || !navigator.clipboard || typeof ClipboardItem==='undefined') return false;
+    try{
+      await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
+      return true;
+    }catch{return false;}
+  }
+
   async function exportShareCard(formatKey,payload,options){
     const renderPayload={...payload};
     if(options?.poster) renderPayload.posterImage=await loadSharePoster(payload);
@@ -1314,23 +1356,8 @@
     });
     const safe=String(payload.title||'result').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,60) || 'result';
     const filename=`cinegenome-dna-${safe}-${formatKey}.png`;
-    if(blob && typeof File!=='undefined'){
-      const file=new File([blob],filename,{type:'image/png'});
-      try{
-        if(navigator.share && navigator.canShare?.({files:[file]})){
-          await navigator.share({files:[file],title:'CineGenome DNA',text:`${payload.title} // ${payload.score.toFixed(1)}% CineGenome match`});
-          return 'SHARED';
-        }
-      }catch(err){
-        if(err?.name==='AbortError') return 'CANCELLED';
-      }
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(()=>URL.revokeObjectURL(url),1500);
-      return 'DOWNLOADED';
-    }
-    const a=document.createElement('a'); a.href=canvas.toDataURL('image/png'); a.download=filename; document.body.appendChild(a); a.click(); a.remove();
-    return 'DOWNLOADED';
+    if(!forcePngDownload(blob,filename,canvas)) throw new Error('PNG_DOWNLOAD_FAILED');
+    return {outcome:'DOWNLOADED',blob,filename};
   }
 
   function loadState(){
@@ -1610,6 +1637,7 @@
                 <label><input type="checkbox" data-share-option="near" checked><span>NEAR MUTATIONS</span></label>
               </div>
               <div class="dna-export-formats">${Object.entries(SHARE_FORMATS).map(([key,spec])=>`<button class="dna-export-format" type="button" data-share-format="${key}"><b>${spec.label}</b><small>${spec.width} × ${spec.height} PNG</small></button>`).join('')}</div>
+              <div class="dna-export-utility"><button class="lab-btn" type="button" data-share-copy disabled>COPY LAST PNG</button><small>FORMAT BUTTONS DOWNLOAD DIRECTLY. COPY USES THE LAST RENDERED PNG.</small></div>
               <small class="dna-share-status" aria-live="polite">SELECT MODULES, THEN CHOOSE AN OUTPUT SIZE.</small>
             </div>
           </dialog>
@@ -1799,6 +1827,7 @@
         posterProxyUrl:'',posterDirectUrl:''
       };
       const posterPromise=hydratePoster(best.c.title, root.querySelector('.dna-result-poster'));
+      let lastShareExport=null;
       const getShareOptions=()=>Object.fromEntries([...root.querySelectorAll('[data-share-option]')].map(input=>[input.dataset.shareOption,input.checked]));
       root.querySelectorAll('[data-share-option]').forEach(input=>input.addEventListener('change',()=>{
         const status=root.querySelector('.dna-share-status');
@@ -1816,11 +1845,23 @@
             const poster=await posterPromise;
             if(poster){ sharePayload.posterProxyUrl=poster.posterProxyUrl||''; sharePayload.posterDirectUrl=poster.posterDirectUrl||''; }
           }
-          const outcome=await exportShareCard(format,sharePayload,options);
-          if(status) status.textContent=outcome==='SHARED' ? 'DNA CARD SENT TO SHARE SHEET.' : outcome==='CANCELLED' ? 'SHARE CANCELLED.' : (options.poster && !sharePayload.posterProxyUrl && !sharePayload.posterDirectUrl) ? 'POSTER UNAVAILABLE — CARD EXPORTED WITH LAB FALLBACK.' : 'DNA CARD EXPORTED AS PNG.';
+          const result=await exportShareCard(format,sharePayload,options);
+          lastShareExport=result;
+          const copyBtn=root.querySelector('[data-share-copy]');
+          if(copyBtn) copyBtn.disabled=!result?.blob;
+          if(status) status.textContent=(options.poster && !sharePayload.posterProxyUrl && !sharePayload.posterDirectUrl) ? `PNG DOWNLOADED // ${result.filename} // POSTER UNAVAILABLE — LAB FALLBACK USED.` : `PNG DOWNLOADED // ${result.filename} // CHECK YOUR DOWNLOADS.`;
         }catch{ if(status) status.textContent='EXPORT FAILED — TRY AGAIN.'; }
         btn.disabled=false; btn.innerHTML=oldHtml;
       }));
+      root.querySelector('[data-share-copy]')?.addEventListener('click',async e=>{
+        const btn=e.currentTarget;
+        const status=root.querySelector('.dna-share-status');
+        if(!lastShareExport?.blob){ if(status) status.textContent='RENDER A PNG FIRST.'; return; }
+        const old=btn.textContent; btn.disabled=true; btn.textContent='COPYING…';
+        const copied=await copyPngToClipboard(lastShareExport.blob);
+        if(status) status.textContent=copied ? `PNG COPIED // ${lastShareExport.filename} // PASTE INTO A COMPATIBLE APP.` : 'IMAGE CLIPBOARD BLOCKED BY BROWSER — USE THE DOWNLOADED PNG INSTEAD.';
+        btn.textContent=old; btn.disabled=false;
+      });
     };
 
     render();

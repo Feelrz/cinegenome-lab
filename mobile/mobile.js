@@ -71,6 +71,7 @@
   let rxRunToken=0;
   let deadMode='cult',deadRenderToken=0,deadPickerSelection=null,deadPickerTimer=null,deadDetailToken=0;
   let deadSoundEnabled=false,guestbookTimer=null,guestbookActive=false,toastTimer=null;
+  let deadHistoryArmed=false;
   let state=loadState();
   const metadataCache=new Map();
   const deadMetadataCache=new Map();
@@ -718,6 +719,7 @@
       const messages=['DIALING 56K NODE...','HANDSHAKE ACCEPTED // WRONG HOST','DOWNLOADING cursed_index.html','MIRROR FOUND // DO NOT REFRESH'];
       messages.forEach((msg,i)=>setTimeout(()=>{if(token===deadTransitionToken)readout.textContent=msg},i*245));
       await rxDelay(900);if(token!==deadTransitionToken)return;
+      if(!deadHistoryArmed){try{history.pushState({...history.state,cinegenomeOverlay:'weird-stuff'},'',location.href);deadHistoryArmed=true}catch{}}
       $('#mDeadDialog').showModal();renderDead();
       setTimeout(()=>{
         veil.classList.remove('is-on');document.body.classList.remove('m-dead-hijacking');
@@ -742,11 +744,20 @@
       deadSoundEnabled=false;$('#mDeadSound').textContent='♫ SOUND: OFF';
       $('#mDeadSound').setAttribute('aria-pressed','false');
     };
-    const closeDead=()=>{
+    const closeDead=(fromHistory=false)=>{
+      const viaHistory=fromHistory===true;
+      if(!viaHistory&&deadHistoryArmed&&history.state?.cinegenomeOverlay==='weird-stuff'){
+        try{history.back();return}catch{}
+      }
+      deadHistoryArmed=false;
       if($('#mDeadDetailDialog').open)$('#mDeadDetailDialog').close();
       if($('#mDeadDialog').open)$('#mDeadDialog').close();
     };
-    $('#mDeadBtn').onclick=openDead;$('#mDeadClose').onclick=closeDead;
+    window.addEventListener('popstate',()=>{
+      if($('#mDeadDialog').open&&deadHistoryArmed){closeDead(true);return}
+      deadHistoryArmed=history.state?.cinegenomeOverlay==='weird-stuff';
+    });
+    $('#mDeadBtn').onclick=openDead;$('#mDeadClose').onclick=()=>closeDead(false);
     $('#mDeadDialog').addEventListener('close',resetDead);
     $('#mDeadRandom').onclick=renderDead;
     $$('.m-dead-modes button').forEach(btn=>btn.onclick=()=>{

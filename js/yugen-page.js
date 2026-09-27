@@ -19,6 +19,12 @@
     }));
   }
   bindReturnToLab();
+  function restoreYugenPage(){
+    document.body.classList.remove('y-returning-to-lab');
+    document.querySelectorAll('.yugen-gate-transition').forEach(el=>el.remove());
+    const zoom=document.getElementById('yPosterZoom');if(zoom?.open)zoom.close();
+  }
+  window.addEventListener('pageshow',e=>{if(e.persisted||performance.getEntriesByType?.('navigation')?.[0]?.type==='back_forward')requestAnimationFrame(restoreYugenPage)});
   const ROUTE_KEY='cinegenome_yugen_route_v1';
   const hasAccess=()=>{try{return localStorage.getItem(KEY)==='1' && sessionStorage.getItem(ROUTE_KEY)==='1'}catch{return false}};
   if(!hasAccess()){$('#yugenPage').classList.add('is-hidden');$('#yugenBoot').hidden=true;$('#yugenLock').hidden=false;return}
@@ -79,6 +85,23 @@
   $('#yCountDNA').textContent=String(records.filter(x=>x.dna).length).padStart(3,'0');
 
   const search=$('#ySearch'),source=$('#ySource'),eraSelect=$('#yEra'),index=$('#yIndex'),dossier=$('#yDossier'),resultCount=$('#yResultCount'),searchMode=$('#ySearchMode'),suggestions=$('#ySearchSuggestions');
+  const posterZoom=$('#yPosterZoom'),posterZoomImage=$('#yPosterZoomImage'),posterZoomCaption=$('#yPosterZoomCaption');
+  function closePosterZoom(){
+    if(!posterZoom?.open)return;
+    posterZoom.classList.remove('is-open');
+    setTimeout(()=>{if(posterZoom.open)posterZoom.close();posterZoomImage?.removeAttribute('src')},220);
+  }
+  function openPosterZoom(shell){
+    const img=shell?.querySelector('img');if(!img||!posterZoom||!posterZoomImage)return;
+    posterZoomImage.src=img.currentSrc||img.src;posterZoomImage.alt=img.alt||'Expanded Yūgen film poster';
+    if(posterZoomCaption)posterZoomCaption.textContent=`YŪGEN // ${selected?.title||'POSTER SPECIMEN'} // CLICK OUTSIDE OR ESC TO CLOSE`;
+    if(!posterZoom.open)posterZoom.showModal();
+    requestAnimationFrame(()=>requestAnimationFrame(()=>posterZoom.classList.add('is-open')));
+  }
+  dossier?.addEventListener('click',e=>{const shell=e.target.closest('.y-dossier-poster');if(shell)openPosterZoom(shell)});
+  posterZoom?.querySelectorAll('[data-y-poster-close]').forEach(el=>el.addEventListener('click',closePosterZoom));
+  posterZoom?.addEventListener('cancel',e=>{e.preventDefault();closePosterZoom()});
+  posterZoom?.addEventListener('close',()=>posterZoom.classList.remove('is-open'));
   let visible=[...records],selected=records[0]||null,suggestIndex=-1,spinPick=null,spinning=false;
 
   function parseQuery(value){
@@ -150,7 +173,7 @@
     if(!selected){dossier.innerHTML='<div class="y-dossier-body">信号なし // NO SIGNAL</div>';return}
     const src=selected.sources.map(id=>`<span>${esc(sourceName(id))} // POS ${String(selected.sourcePositions[id]).padStart(2,'0')}</span>`).join('');
     const meta=selected.dna;
-    dossier.innerHTML=`<div class="y-dossier-head"><span>標本記録 // SPECIMEN RECORD</span><span>${String(selected.id).padStart(3,'0')} / ${String(records.length).padStart(3,'0')}</span></div><div class="y-dossier-body"><div class="y-dossier-poster" data-poster-id="${selected.id}">${posterMarkup(selected,'w500')}</div><div class="y-dossier-code">幽玄標本 // YG-${String(selected.id).padStart(3,'0')}</div><h2>${esc(selected.title)}</h2><div class="y-dossier-year">${selected.year?`YEAR // ${selected.year}`:'YEAR // 未登録 / UNMAPPED'}${director(selected)?` &nbsp;·&nbsp; DIRECTOR // ${esc(director(selected))}`:''}</div><div class="y-source-stamps">${src}</div>${meta?`<div class="y-dna-status"><span>CINEGENOME DNA LINK</span><b>接続済 // LINKED</b></div><div class="y-dna">${dnaBars(selected)}</div>`:`<div class="y-dna-status"><span>CINEGENOME DNA LINK</span><b>未登録 // UNMAPPED</b></div><div class="y-unmapped">SOURCE-ONLY SPECIMEN. THIS TITLE EXISTS IN THE YŪGEN ARCHIVAL FEED BUT DOES NOT CURRENTLY HAVE A MATCHING PROFILE IN THE CINEGENOME DNA POOL. NO SYNTHETIC DNA VALUES ARE GENERATED.</div>`}<div class="y-legend">JP-01 / JP-02 POSITIONS PRESERVE EACH FEED'S SOURCE ORDER. YŪGEN DOES NOT COMBINE THEM INTO A NEW RANKING.</div></div>`;
+    dossier.innerHTML=`<div class="y-dossier-head"><span>標本記録 // SPECIMEN RECORD</span><span>${String(selected.id).padStart(3,'0')} / ${String(records.length).padStart(3,'0')}</span></div><div class="y-dossier-body"><button class="y-dossier-poster" data-poster-id="${selected.id}" type="button" aria-label="Enlarge poster for ${esc(selected.title)}">${posterMarkup(selected,'w500')}</button><div class="y-dossier-code">幽玄標本 // YG-${String(selected.id).padStart(3,'0')}</div><h2>${esc(selected.title)}</h2><div class="y-dossier-year">${selected.year?`YEAR // ${selected.year}`:'YEAR // 未登録 / UNMAPPED'}${director(selected)?` &nbsp;·&nbsp; DIRECTOR // ${esc(director(selected))}`:''}</div><div class="y-source-stamps">${src}</div>${meta?`<div class="y-dna-status"><span>CINEGENOME DNA LINK</span><b>接続済 // LINKED</b></div><div class="y-dna">${dnaBars(selected)}</div>`:`<div class="y-dna-status"><span>CINEGENOME DNA LINK</span><b>未登録 // UNMAPPED</b></div><div class="y-unmapped">SOURCE-ONLY SPECIMEN. THIS TITLE EXISTS IN THE YŪGEN ARCHIVAL FEED BUT DOES NOT CURRENTLY HAVE A MATCHING PROFILE IN THE CINEGENOME DNA POOL. NO SYNTHETIC DNA VALUES ARE GENERATED.</div>`}<div class="y-legend">JP-01 / JP-02 POSITIONS PRESERVE EACH FEED'S SOURCE ORDER. YŪGEN DOES NOT COMBINE THEM INTO A NEW RANKING.</div></div>`;
     queuePoster(selected);
   }
   function renderSuggestions(){

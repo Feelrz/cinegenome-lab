@@ -1,0 +1,69 @@
+{
+  "headers": [
+    {
+      "source": "/",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        },
+        {
+          "key": "X-CineGenome-Build",
+          "value": "V5.0-FINAL-EXPORT-DOWNLOAD-HOTFIX"
+        }
+      ]
+    },
+    {
+      "source": "/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        },
+        {
+          "key": "X-CineGenome-Build",
+          "value": "V5.0-FINAL-EXPORT-DOWNLOAD-HOTFIX"
+        }
+      ]
+    },
+    {
+      "source": "/mobile/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        },
+        {
+          "key": "X-CineGenome-Build",
+          "value": "V5.0-FINAL-EXPORT-DOWNLOAD-HOTFIX"
+        }
+      ]
+    },
+    {
+      "source": "/yugen.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        },
+        {
+          "key": "X-CineGenome-Build",
+          "value": "V5.0-FINAL-EXPORT-DOWNLOAD-HOTFIX"
+        }
+      ]
+    },
+    {
+      "source": "/lab-wall.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        },
+        {
+          "key": "X-CineGenome-Build",
+          "value": "V5.0-FINAL-EXPORT-DOWNLOAD-HOTFIX"
+        }
+      ]
+    }
+  ]
+}

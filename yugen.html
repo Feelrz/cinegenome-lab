@@ -7,8 +7,8 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>YŪGEN // 日本映画標本庫</title>
   <link rel="icon" href="assets/cinegenome-logo.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/yugen.css?v5-beta84">
-  <meta name="cinegenome-build" content="V5.0 Beta 84">
+  <link rel="stylesheet" href="css/yugen.css?v5-final-poster2">
+  <meta name="cinegenome-build" content="V5.0 FINAL">
 </head>
 <body>
   <div class="y-noise" aria-hidden="true"></div>
@@ -111,10 +111,19 @@
     </footer>
   </main>
 
+  <dialog class="y-poster-zoom" id="yPosterZoom" aria-label="Expanded film poster">
+    <button class="y-poster-zoom-scrim" type="button" data-y-poster-close aria-label="Close expanded poster"></button>
+    <figure class="y-poster-zoom-frame">
+      <button class="y-poster-zoom-close" type="button" data-y-poster-close aria-label="Close expanded poster">×</button>
+      <img id="yPosterZoomImage" alt="">
+      <figcaption id="yPosterZoomCaption">YŪGEN // POSTER SPECIMEN</figcaption>
+    </figure>
+  </dialog>
+
   <script src="data/tmdb-config.js"></script>
   <script src="js/tmdb.js"></script>
   <script src="data/top500-enriched.js?v5-beta77"></script>
   <script src="data/yugen-films.js"></script>
-  <script src="js/yugen-page.js?v5-beta84"></script>
+  <script src="js/yugen-page.js?v5-final-poster2"></script>
 </body>
 </html>

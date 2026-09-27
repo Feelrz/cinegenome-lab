@@ -61,3 +61,25 @@ body .y-page,body .y-lock{transition:opacity .32s ease,transform .4s cubic-bezie
 body.y-returning-to-lab .y-page,body.y-returning-to-lab .y-lock{opacity:0;transform:translateY(-5px) scale(.997);filter:blur(1.2px);pointer-events:none}
 body.y-returning-to-lab .y-noise{opacity:0;transition:opacity .32s ease}
 @media(prefers-reduced-motion:reduce){body .y-page,body .y-lock,body.y-returning-to-lab .y-noise{transition:none!important;transform:none!important;filter:none!important}}
+\n\n/* ===== FINAL / YŪGEN POSTER PRESERVATION + ZOOM ===== */
+.y-dossier-poster{
+  width:min(100%,248px);aspect-ratio:2/3;max-height:none;margin:0 auto 18px;padding:0;
+  display:block;border:1px solid var(--ink);background:#171612;position:relative;overflow:hidden;
+  cursor:zoom-in;appearance:none;color:inherit;box-shadow:0 8px 18px rgba(21,20,15,.10);
+  transition:transform .22s cubic-bezier(.2,.75,.2,1),box-shadow .22s ease,border-color .22s ease;
+}
+.y-dossier-poster:hover,.y-dossier-poster:focus-visible{transform:translateY(-2px);box-shadow:0 12px 24px rgba(21,20,15,.16);border-color:var(--red);outline:none}
+.y-dossier-poster img{width:100%;height:100%;object-fit:contain!important;object-position:center;filter:saturate(.82) contrast(1.02);background:#171612}
+.y-dossier-poster:hover img,.y-dossier-poster:focus-visible img{filter:saturate(.96) contrast(1.03)}
+.y-dossier-poster .y-poster-fallback{position:absolute;inset:0}
+.y-poster-zoom{border:0;padding:0;background:transparent;max-width:none;max-height:none;width:100vw;height:100dvh;overflow:hidden}
+.y-poster-zoom::backdrop{background:rgba(10,9,7,.88);backdrop-filter:blur(5px)}
+.y-poster-zoom-scrim{position:fixed;inset:0;border:0;background:transparent;cursor:zoom-out}
+.y-poster-zoom-frame{position:fixed;left:50%;top:50%;transform:translate(-50%,-48%) scale(.965);margin:0;width:min(88vw,520px);height:min(88dvh,780px);display:grid;grid-template-rows:minmax(0,1fr) auto;background:#171612;border:1px solid #eee7dc;box-shadow:0 28px 80px rgba(0,0,0,.58);opacity:0;transition:opacity .24s ease,transform .32s cubic-bezier(.18,.8,.2,1);overflow:hidden}
+.y-poster-zoom.is-open .y-poster-zoom-frame{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.y-poster-zoom-frame img{width:100%;height:100%;min-height:0;display:block;object-fit:contain;object-position:center;background:#11100d}
+.y-poster-zoom-frame figcaption{min-height:34px;display:flex;align-items:center;padding:0 12px;border-top:1px solid #4d4840;color:#d8d1c5;font:700 7px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase}
+.y-poster-zoom-close{position:absolute;right:8px;top:8px;z-index:3;width:34px;height:34px;border:1px solid rgba(244,240,231,.68);background:rgba(17,16,13,.86);color:#f4f0e7;cursor:pointer;font:700 20px/1 var(--mono)}
+.y-poster-zoom-close:hover{background:var(--red);border-color:var(--red)}
+@media(max-width:760px){.y-dossier-poster{width:min(72vw,230px)}.y-poster-zoom-frame{width:min(92vw,430px);height:min(84dvh,690px)}}
+@media(prefers-reduced-motion:reduce){.y-dossier-poster,.y-poster-zoom-frame{transition:none!important}}

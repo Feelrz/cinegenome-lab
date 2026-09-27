@@ -177,6 +177,7 @@
   let deadSoundEnabled = true;
   let deadAudioTimer = null;
   let deadTransitionTimer = null;
+  let deadHistoryArmed = false;
   const deadMetadataCache = new Map();
   let deadPosterHydrationToken = 0;
   let deadPickerSelection = null;
@@ -887,20 +888,28 @@
     await runDeadTransition();
 
     dialog.classList.remove('is-leaving');
+    if(!deadHistoryArmed){
+      try{history.pushState({...history.state,cinegenomeOverlay:'weird-stuff'},'',location.href);deadHistoryArmed=true}catch{}
+    }
     dialog.showModal();
     if(deadSoundEnabled) setTimeout(startDeadAudio,520);
     log('DEAD CHANNEL MIRROR LOADED // NORMAL SITE SUSPENDED');
   }
 
-  function closeSecretArchiveSmooth(){
+  function closeSecretArchiveSmooth(options={}){
+    const fromHistory=options?.fromHistory===true;
     const dialog=$('#secretArchiveDialog');
     if(!dialog?.open)return;
+    if(!fromHistory&&deadHistoryArmed&&history.state?.cinegenomeOverlay==='weird-stuff'){
+      try{history.back();return}catch{}
+    }
+    deadHistoryArmed=false;
     if(guestbookIncidentActive) closeGuestbookIncident({resumeAmbient:false});
     dialog.classList.add('is-leaving');
     stopDeadPicker();
     stopDeadAudio();
     setTimeout(()=>{
-      dialog.close();
+      if(dialog.open)dialog.close();
       dialog.classList.remove('is-leaving');
       },430);
   }
@@ -3185,6 +3194,11 @@
     });
 
     $('#secretCloseBtn')?.addEventListener('click',closeSecretArchiveSmooth);
+    window.addEventListener('popstate',()=>{
+      const dialog=$('#secretArchiveDialog');
+      if(dialog?.open&&deadHistoryArmed){closeSecretArchiveSmooth({fromHistory:true});return}
+      deadHistoryArmed=history.state?.cinegenomeOverlay==='weird-stuff';
+    });
     $('#secretArchiveDialog')?.addEventListener('close',()=>{
       if(guestbookIncidentActive) closeGuestbookIncident({resumeAmbient:false});
       stopDeadAudio();

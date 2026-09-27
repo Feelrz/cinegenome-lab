@@ -14,6 +14,9 @@
   </script>
 
   <meta charset="utf-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#e8eadf" />
   <meta name="description" content="CINEGENOME LAB — experimental movie DNA laboratory." />
@@ -28,8 +31,8 @@
   <link rel="stylesheet" href="css/anomaly.css?v5-beta71" />
   <link rel="stylesheet" href="css/field-manual.css" />
   <link rel="stylesheet" href="css/quarantine.css" />
-  <link rel="stylesheet" href="css/dna-test.css?v5-beta65" />
-  <link rel="stylesheet" href="css/lab-notes.css?v5-beta75" />
+  <link rel="stylesheet" href="css/dna-test.css?v5-final-exportfix2" />
+  <link rel="stylesheet" href="css/lab-notes.css?v5-final-polish2" />
   <link rel="stylesheet" href="css/yugen-archive.css" />
   <link rel="stylesheet" href="css/home-beta79.css?v5-beta79" />
   <link rel="stylesheet" href="css/home-beta81.css?v5-beta81" />
@@ -37,7 +40,7 @@
   <link rel="stylesheet" href="css/home-beta83.css?v5-beta84" />
   <link rel="stylesheet" href="css/home-final.css?v5-final" />
   <link rel="stylesheet" href="css/lab-beta83.css?v5-beta84">
-  <meta name="cinegenome-build" content="V5.0 FINAL">
+  <meta name="cinegenome-build" content="V5.0-FINAL-HOMECOPY-CACHEFIX">
 </head>
 <body class="home-mode">
   <script>
@@ -241,6 +244,7 @@
                 </div>
                 <div class="cg90-letter-copy">
                   <p>If this note reached you, the lab accepted your credentials. That says more about the lab than it does about you.</p>
+                  <p>One bias disclosure before you touch anything: I am irrationally fond of <strong>Everything Everywhere All at Once</strong>. If you find the specimen terminal, try <strong>CG-EEAAO</strong>. I left something there. It may be watching back.</p>
                   <p>I built CineGenome to dissect films. Somewhere between the archive and the anomaly logs, the instruments began returning rooms I never indexed. I still have not found a reliable way out.</p>
                   <p>So do not wait for permission. Scan something you love. Crossbreed films that should never coexist. Mutate the evidence. Open the wrong drawer. Press the button you were told not to press. Leave a trace for whoever arrives next.</p>
                   <p class="cg90-last-line">Have fun. Document anything that answers back. <strong>If you find the exit, leave it open.</strong></p>
@@ -275,7 +279,7 @@
             <div class="cg79-extras">
               <article class="cg79-note cg79-quest"><span class="cg79-tag">DAILY CASE FILE / LOCAL ROTATION</span><h3>QUEST BOARD.</h3><p>Six new cases. Use the lab to find the answers; each pair solved unlocks one creature draw.</p><button type="button" data-anomaly-open data-anomaly-section="cases">OPEN DAILY CASES <b data-anomaly-progress>0/6</b> ↗</button></article>
               <article class="cg79-note cg79-creature"><span class="cg79-tag">COLLECTION / CAPTURE LOG</span><h3>CREATURE INDEX.</h3><p>Your collected specimens live here. The collection stays in this browser.</p><button type="button" data-anomaly-open data-anomaly-section="collection">INSPECT COLLECTION ↗</button></article>
-              <button class="cg79-note cg79-codes" type="button" data-home-code><span class="cg79-tag">SCRATCHED ON THE BACK / ACCESS</span><strong>SPECIMEN<br>CODE</strong><span class="cg79-code-lines">CG-HELLGATE://09<br>CG-PHANTOM://REEL</span><span class="cg79-copy">Two working frequencies. The specimen terminal knows where to send them.</span><b class="cg79-link">OPEN TERMINAL ↗</b></button>
+              <button class="cg79-note cg79-codes" type="button" data-home-code><span class="cg79-tag">SCRATCHED ON THE BACK / ACCESS</span><strong>SPECIMEN<br>CODE</strong><span class="cg79-code-lines">CG-HELLGATE://09<br>CG-PHANTOM://REEL<br>CG-SYNAPSE12</span><span class="cg79-copy">Three working frequencies. The specimen terminal knows where to send them.</span><b class="cg79-link">OPEN TERMINAL ↗</b></button>
             </div>
             <button class="cg83-yugen-mark" type="button" data-home-yugen aria-label="Enter Yūgen Japanese cinema archive"><span class="cg83-yugen-glyph" data-glyph="幽玄" aria-hidden="true">幽玄</span><small aria-hidden="true">JP-09 ↗</small></button>
           </section>
@@ -283,7 +287,7 @@
    <div class="cg82-afterimage-head"><span>AFTERIMAGE / THIS BROWSER</span><h2>RESIDUAL TRACE.</h2><p>Recent operations recorded in this browser. No inferred signal.</p></div>
    <div data-home-memory></div>
  </section>
-<footer class="cg79-footer"><div><span>PROVENANCE / KEEP WITH THE EVIDENCE</span><p>Letterboxd informs the archive list. Cinematic DNA is CineGenome's interpretation, with different levels of evidence. UNKNOWN does not mean zero.</p></div><div><span>OPERATOR REMINDER</span><p>Lost your place? Click the CineGenome logo once to return to this board. Other traces require looking closer.</p></div></footer>
+<footer class="cg79-footer"><div><span>PROVENANCE / KEEP WITH THE EVIDENCE</span><p>The archive is assembled from curated records, source cues, and CineGenome's own interpretation. Evidence strength varies by specimen. UNKNOWN means unresolved — never zero.</p></div><div><span>OPERATOR REMINDER</span><p>Lost your place? Click the CineGenome logo once to return to this board. Other traces require looking closer.</p></div></footer>
 </div>
       </section>
 
@@ -1001,22 +1005,23 @@
   <script src="js/dna-model.js?v5-beta72"></script>
   <script src="data/tmdb-config.js"></script>
   <script src="js/tmdb.js"></script>
-  <script src="js/yugen-archive.js"></script>
+  <script src="js/yugen-archive.js?v5-final-route1"></script>
   <script src="data/quest-riddles-beta83.js?v5-beta83"></script>
   <script src="js/anomaly.js?v5-beta83"></script>
   <script src="js/sector09.js?v5-beta75"></script>
   <script src="js/signal-lab.js?v5-beta70"></script>
-  <script src="js/specimen-codes.js?v5-beta70"></script>
+  <script src="js/specimen-codes.js?v5-final-eeao3"></script>
   <script src="js/picker-sfx.js"></script>
   <script src="js/archive-browser.js?v5-beta83"></script>
   <script src="js/lab-instruments.js?v5-beta83"></script>
-  <script src="js/app.js?v5-beta90"></script>
+  <script src="js/navigation-resume.js?v5-final-backfix1"></script>
+  <script src="js/app.js?v5-final-backfix1"></script>
   <script src="js/quarantine.js?v5-beta75"></script>
-  <script src="js/dna-test.js?v5-beta65"></script>
-  <script src="js/lab-notes.js?v5-beta75"></script>
+  <script src="js/dna-test.js?v5-final-exportfix2"></script>
+  <script src="js/lab-notes.js?v5-final-polish2"></script>
   <script src="js/visitors.js"></script>
-  <script src="js/field-manual.js?v5-beta90"></script>
+  <script src="js/field-manual.js?v5-final-route1"></script>
   <script src="js/home-evidence.js?v5-beta84"></script>
-  <script src="js/home-tactile-final.js?v5-final"></script>
+  <script src="js/home-tactile-final.js?v5-final-polish1"></script>
 </body>
 </html>
