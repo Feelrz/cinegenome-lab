@@ -674,6 +674,19 @@
       localStorage.setItem(GENOME_SHARE_CACHE_KEY,JSON.stringify(cache));
     }catch{}
   }
+  function cachedGenomeAnswersFromShareKey(shareKey){
+    const wanted=String(shareKey||'').toUpperCase();
+    if(!wanted) return null;
+    const cache=readGenomeShareCache();
+    for(const [localKey,hit] of Object.entries(cache)){
+      if(!hit || String(hit.key||'').toUpperCase()!==wanted) continue;
+      try{
+        const answers=decodeGenomeKey(localKey);
+        if(Array.isArray(answers) && answers.length===30) return answers;
+      }catch{}
+    }
+    return null;
+  }
   function normalizeCloudGenomeKey(raw){
     let compact=String(raw||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
     compact=compact.replace(/O/g,'0').replace(/[IL]/g,'1');
@@ -694,7 +707,26 @@
       const err=new Error(data?.error||`GENOME_HTTP_${response.status}`);
       err.status=response.status; err.payload=data; throw err;
     }
-    return normalizeCloudGenomeKey(data.key);
+    const key=normalizeCloudGenomeKey(data.key);
+    // A short key is shown as READY only after the same active share store
+    // can read it back. This prevents a deployment/store mismatch from
+    // handing the user a key that immediately appears to have vanished.
+    let verifyResponse=null, verifyData={};
+    for(let attempt=0;attempt<3;attempt+=1){
+      if(attempt) await new Promise(resolve=>setTimeout(resolve,160*attempt));
+      verifyResponse=await fetch(`/api/genome?key=${encodeURIComponent(key)}`,{cache:'no-store'});
+      try{ verifyData=await verifyResponse.json(); }catch{ verifyData={}; }
+      if(verifyResponse.ok) break;
+      if(verifyResponse.status!==404) break;
+    }
+    const verified=Array.isArray(verifyData?.answers) && verifyData.answers.length===30 && verifyData.answers.every(n=>Number.isInteger(Number(n))&&Number(n)>=1&&Number(n)<=5);
+    if(!verifyResponse?.ok || !verified){
+      const err=new Error('GENOME_SHARE_VERIFY_FAILED');
+      err.status=verifyResponse?.status||502;
+      err.payload=verifyData;
+      throw err;
+    }
+    return key;
   }
   async function resolveGenomeFriendKey(raw){
     const compact=String(raw||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
@@ -707,6 +739,13 @@
     let data={};
     try{ data=await response.json(); }catch{}
     if(!response.ok){
+      // RETEST DNA only replaces the active questionnaire state; it does not
+      // delete share records. If the remote store changed or lost a record,
+      // recover self-generated keys from the browser's existing key cache.
+      if(response.status===404){
+        const cachedAnswers=cachedGenomeAnswersFromShareKey(key);
+        if(cachedAnswers) return {answers:cachedAnswers,key,source:'local-cache'};
+      }
       const err=new Error(data?.error||`GENOME_HTTP_${response.status}`);
       err.status=response.status; err.payload=data; throw err;
     }
@@ -898,7 +937,12 @@
     if(activeCount <= 2){ posterW=560; posterH=840; }
     else if(activeCount === 3){ posterW=540; posterH=810; }
     else if(activeCount === 4){ posterW=520; posterH=780; }
-    const posterY=headerBottom+24, posterX=Math.round((w-posterW)/2);
+    // Keep the story poster clear of the score/meta stack. Short film titles used to
+    // let the centered poster climb into the percentage column; reserve the full
+    // header readout height before the poster and everything that follows it.
+    const scoreStackBottom=titleY+(include.meta?226:138);
+    const storyHeaderBottom=Math.max(headerBottom,scoreStackBottom);
+    const posterY=storyHeaderBottom+42, posterX=Math.round((w-posterW)/2);
     if(include.poster){
       ctx.fillStyle='#141d14'; ctx.fillRect(posterX-9,posterY-9,posterW+18,posterH+18);
       ctx.strokeStyle=acid; ctx.lineWidth=3; ctx.strokeRect(posterX-1,posterY-1,posterW+2,posterH+2);
@@ -912,7 +956,7 @@
       ctx.fillStyle=acid; ctx.fillRect(posterX,posterY+posterH-9,posterW,9);
     }
 
-    let cursorY=include.poster ? posterY+posterH+22 : headerBottom+36;
+    let cursorY=include.poster ? posterY+posterH+22 : storyHeaderBottom+42;
     const inner=20;
     let footerTop = h - pad - 118;
 
@@ -1569,9 +1613,21 @@
               <small class="dna-share-status" aria-live="polite">SELECT MODULES, THEN CHOOSE AN OUTPUT SIZE.</small>
             </div>
           </dialog>
-          <div class="dna-result-actions"><small>Deterministic model: same answers = same result.</small><div class="dna-result-action-buttons"><button class="lab-btn primary dna-retake" type="button">RETEST DNA</button><button class="lab-btn dna-export-open" type="button" data-share-open>EXPORT DNA CARD</button></div></div>
+          <div class="dna-result-actions"><small>Deterministic model: same answers = same result.</small><div class="dna-result-action-buttons"><button class="lab-btn dna-retake" type="button">RETEST DNA</button><button class="lab-btn primary dna-export-open" type="button" data-share-open>EXPORT DNA CARD</button></div></div>
         </div>`;
-      root.querySelector('.dna-retake')?.addEventListener('click',()=>{ clearState(); saved=null; state={started:true,index:0,answers:Array(30).fill(3),touched:Array(30).fill(false),done:false}; saveState(state); render(); });
+      root.querySelector('.dna-retake')?.addEventListener('click',()=>{
+        clearState();
+        saved=null;
+        state={started:false,index:0,answers:Array(30).fill(3),touched:Array(30).fill(false),done:false};
+        render();
+        requestAnimationFrame(()=>{
+          const begin=root.querySelector('.dna-begin');
+          if(!begin) return;
+          const reduce=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+          begin.scrollIntoView({behavior:reduce?'auto':'smooth',block:'center'});
+          window.setTimeout(()=>begin.focus({preventScroll:true}),reduce?0:260);
+        });
+      });
 
       const infoDialog=root.querySelector('[data-dna-info-dialog]');
       const infoTitle=root.querySelector('[data-dna-info-title]');
@@ -1661,18 +1717,19 @@
           const friendNearest=friendAnswers?nearestSpecimenForUser(friendUser):null;
           const friendConnection=friendNearest?buildConnectionRoute(friendUser,friendNearest.c,friendNearest.c.profile):null;
           const friendSignature=friendAnswers?dnaSignature(friendAnswers):'UNKNOWN';
-          const signalRow=x=>`<div class="dna-compare-row"><b>${escapeHtml(x.label)}</b><small>YOU ${x.a.toFixed(1)} / FRIEND ${x.b.toFixed(1)}</small><em>Δ${x.diff.toFixed(1)}</em></div>`;
+          const sharedSignalRow=x=>`<div class="dna-compare-row"><b>${escapeHtml(x.label)}</b><small>YOU ${x.a.toFixed(1)} / FRIEND ${x.b.toFixed(1)}</small><em>${Math.max(0,100-x.diff).toFixed(1)}% MATCH</em></div>`;
+          const splitSignalRow=x=>`<div class="dna-compare-row"><b>${escapeHtml(x.label)}</b><small>YOU ${x.a.toFixed(1)} / FRIEND ${x.b.toFixed(1)}</small><em>Δ${x.diff.toFixed(1)}</em></div>`;
           const reading=crosscheckReading(cross);
           const fractureLine=reading.fracture
             ? `YOU ${reading.fracture.a.toFixed(1)} / FRIEND ${reading.fracture.b.toFixed(1)} / Δ${reading.fracture.diff.toFixed(1)}. ${reading.fracture.a>reading.fracture.b?'YOU':'FRIEND'} HIGHER.`
             : reading.reason||'NO SINGLE AXIS STANDS OUT AS A FRACTURE.';
           compareInput.value=resolved.key;
           compareOutput.innerHTML=`
-            <div class="dna-compare-score"><span>DNA SYNC</span><strong>${cross.similarity==null?'UNKNOWN':`${cross.similarity.toFixed(1)}%`}</strong><small>DATA COVERAGE ${cross.coverage}/15 AXES${cross.coverage<15?' // PARTIAL':''}</small></div>
+            <div class="dna-compare-score"><span>DNA SYNC</span><strong>${cross.similarity==null?'UNKNOWN':`${cross.similarity.toFixed(1)}%`}</strong><small>DATA COVERAGE ${cross.coverage}/15 AXES${cross.coverage<15?' // PARTIAL':''}${resolved.source==='local-cache'?' // LOCAL RECOVERY':resolved.source==='local'?' // SELF-CONTAINED KEY':''}</small></div>
             <div class="dna-compare-specimen"><div><span>YOUR SPECIMEN</span><b>${escapeHtml(best.c.title)}</b><small>${signature}</small></div><i>VS</i><div><span>FRIEND SPECIMEN</span><b>${friendNearest?escapeHtml(friendNearest.c.title):'UNKNOWN'}</b><small>${friendSignature}</small></div></div>
             <div class="dna-compare-signals">
-              <div><span>SHARED SIGNALS</span>${cross.shared.length?cross.shared.map(signalRow).join(''):'<small>UNKNOWN // NO COMPARABLE AXES</small>'}</div>
-              <div><span>SPLIT SIGNALS</span>${cross.split.length?cross.split.map(signalRow).join(''):'<small>UNKNOWN // TOO FEW AXES</small>'}</div>
+              <div><span>SHARED SIGNALS</span>${cross.shared.length?cross.shared.map(sharedSignalRow).join(''):'<small>UNKNOWN // NO COMPARABLE AXES</small>'}</div>
+              <div><span>SPLIT SIGNALS</span>${cross.split.length?cross.split.map(splitSignalRow).join(''):'<small>UNKNOWN // TOO FEW AXES</small>'}</div>
             </div><div class="dna-compare-reading" aria-label="Your route, friend route and DNA difference">
               <div><span>CONNECTION ROUTE // EACH TO OWN SPECIMEN</span><div class="dna-compare-route-lines"><small>YOU <b>${escapeHtml(connection.code)}</b></small><small>FRIEND <b>${friendConnection?escapeHtml(friendConnection.code):'UNKNOWN // PARTIAL DNA'}</b></small></div></div>
               <div><span>FRACTURE // YOU VS FRIEND</span><b>${reading.fracture?escapeHtml(reading.fracture.label):'NONE DETECTED'}</b><small>${fractureLine}</small></div>
@@ -1681,7 +1738,7 @@
           const missing=err?.status===404;
           const noStore=err?.status===503||err?.status===502||err instanceof TypeError;
           const corrupt=err?.message==='GENOME_RECORD_INVALID';
-          compareOutput.innerHTML=`<div class="dna-compare-error">${missing?'SHARE KEY NOT FOUND OR EXPIRED.':noStore?'SHARE STORE OFFLINE — TRY AGAIN LATER.':corrupt?'GENOME DATA UNAVAILABLE // NO VALID AXES.':'GENOME KEY REJECTED // CHECK THE CODE AND TRY AGAIN.'}</div>`;
+          compareOutput.innerHTML=`<div class="dna-compare-error">${missing?'SHARE KEY NOT FOUND IN THE ACTIVE STORE // RETEST DNA DOES NOT DELETE KEYS. GENERATE A NEW SHORT KEY IF THIS DEPLOYMENT USES A DIFFERENT SHARE STORE.':noStore?'SHARE STORE OFFLINE — TRY AGAIN LATER.':corrupt?'GENOME DATA UNAVAILABLE // NO VALID AXES.':'GENOME KEY REJECTED // CHECK THE CODE AND TRY AGAIN.'}</div>`;
         }finally{if(runButton){runButton.disabled=false;runButton.textContent=old;}}
       };
       root.querySelector('[data-genome-compare-run]')?.addEventListener('click',runGenomeCompare);

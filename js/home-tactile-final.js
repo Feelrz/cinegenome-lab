@@ -284,3 +284,15 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
   else boot();
 })();
+
+
+/* Final route grant: public sub-pages are discoverable through authored lab interactions,
+   not by typing their html path before entering the lab. */
+(() => {
+  const clearRouteGrants=()=>{try{sessionStorage.removeItem('cinegenome_labwall_route_v1');sessionStorage.removeItem('cinegenome_yugen_route_v1')}catch{}};
+  clearRouteGrants();
+  window.addEventListener('pageshow',clearRouteGrants);
+  document.querySelectorAll('a[href$="lab-wall.html"],a[href*="lab-wall.html#"]').forEach(link=>{
+    link.addEventListener('pointerdown',()=>{try{sessionStorage.setItem('cinegenome_labwall_route_v1','1')}catch{}},{passive:true});
+  });
+})();

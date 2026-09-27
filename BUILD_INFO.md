@@ -1,3 +1,20 @@
+# CINEGENOME V5.0 FINAL CHECKED
+
+Final QA wrapper for the EEAAO Eyes Polish build.
+
+# CineGenome V5.0 FINAL — Release Polish 1
+
+Build lineage: V5.0 FINAL + DNA Crosscheck Hotfix + Genome Persistence Hotfix.
+
+This patch changes only presentation/navigation safeguards and interaction polish:
+- Story 9:16 export reserves the score/meta header before the centered poster, moving the poster and all dossier blocks lower.
+- EXPORT DNA CARD is now the acid-green primary result action; RETEST DNA is secondary.
+- Entering FILMPRINT auto-scrolls to the module and BEGIN SEQUENCE carries a restrained readiness beacon.
+- Anonymous Lab Note posting requires a deliberate second PIN click.
+- Yūgen and Lab Wall now reject direct address-bar entry unless the current tab received an authored route grant from CineGenome. Refresh remains usable while inside; returning to the lab clears the route grant.
+
+IMPORTANT: the HTML route gate is an experience/discovery gate, not a security boundary. Public client files remain inspectable by a determined visitor.
+
 # CineGenome V5.0 FINAL
 
 BASE: CineGenome V5.0 Beta 91. Production candidate for `cinegenome.xyz` on the existing Vercel deployment.
@@ -235,3 +252,42 @@ BASE: CineGenome V5.0 Beta 76
 DATE: 2026-09-27
 
 BETA 77 is a bulk data-maturation pass. Exactly 900 formerly generic provisional records now have clearer, more useful CineGenome data states: 433 existing Top-500 legacy curated profiles keep their DNA scores unchanged but receive explicit partial-provenance classification, while 467 Watch Once profiles are recalibrated from title/year provisional DNA to title-specific editorial archetype profiles. The remaining 44 Watch Once records stay provisional rather than receiving forced low-evidence data. Source-reviewed records remain a separate high-evidence tier and no factual metadata is invented by the archetype process. See `UPDATE_V5_BETA77.md`, `DNA_RESEARCH_BETA77.md`, `STAGING_QA_V5_BETA77.md`, `database/editorial-archetype-batch04.json`, and `database/dna-audit-beta77.csv`.
+
+
+## FINAL DNA CROSSCHECK UI HOTFIX
+- Shared Signals now report axis MATCH percentage instead of delta.
+- Split Signals continue to report delta.
+- No scoring, stored genome data, share-key API, or specimen matching logic changed.
+
+## FINAL GENOME PERSISTENCE HOTFIX
+- Verified short share keys with server read-back before READY state.
+- Same-browser recovery for self-generated short keys if the active remote store returns 404.
+- RETEST DNA does not delete remote keys; misleading expired copy removed.
+
+
+
+## FINAL UI HOTFIX
+- Stable homepage sticky-note placement and bottom-edge containment.
+- RETEST DNA returns to Filmprint BEGIN SEQUENCE intro.
+
+## FINAL EEAAO / SPECIMEN-CODE POLISH
+- Replaced the Letterboxd-specific provenance sentence with archive/evidence language that stands on its own.
+- Added `CG-SYNAPSE12` to the visible Specimen Code card; the existing SYNAPSE route remains unchanged.
+- Added `CG-EEAAO` as a new specimen-code Easter egg inspired by Everything Everywhere All at Once.
+- `CG-EEAAO` opens a full-screen original interactive googly-eye field: pupils track the pointer/touch position, ESC/close collapses the field, and the supplied YouTube source is embedded as the background audio feed with a visible source fallback.
+- The Chief Researcher welcome memo now explicitly hints at `CG-EEAAO` as a personal bias/discovery clue.
+- Desktop lab module tabs now emit a restrained hover tick when crossed by a fine-pointer mouse, while their existing stronger click/navigation SFX remains intact.
+- `api/` and `data/` are byte-identical to the previous FINAL NOTE + RETEST HOTFIX baseline.
+
+## FINAL EEAAO PRESENTATION / AUDIO POLISH
+- Enlarged the interactive pupils and slightly increased the eye field scale while preserving pointer tracking containment.
+- Rebuilt EEAAO entry/exit as a staged universe reveal/collapse rather than an abrupt screen swap: signal-lock gate, radial reveal, staggered eyes, delayed copy/footer, and a reverse close transition.
+- Replaced the YouTube iframe dependency with the user-supplied local `assets/audio/eeaao-i-love-you.mp3` file. Playback fades in and out and still respects the existing UI SFX preference.
+- Recentered the entire EEAAO text system and rewrote the central message as an original Chief Researcher note about why the film is personally meaningful rather than a generic multiverse slogan.
+- `api/`, `data/`, Filmprint DNA, genome persistence, Lab Wall, Yugen, Crossbreed, Mutation and Atlas logic remain unchanged.
+
+## FINAL EEAAO GOOGLY-EYE REALISM POLISH
+- Rebuilt the CG-EEAAO eye material to resemble physical plastic googly eyes: off-white dome, translucent lens highlights, grey rim depth, glossy black floating pupils, and softer cast shadows.
+- Increased the interactive eye field from 14 to 45 independently tracking eyes with varied sizes and placement.
+- Kept the existing EEAAO transition, personal copy, local soundtrack, and all non-EEAAO feature logic unchanged.
+- Bumped specimen-code script cache key to `v5-final-eeao3` on desktop and mobile.

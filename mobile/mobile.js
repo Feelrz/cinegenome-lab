@@ -648,6 +648,7 @@
       b.onclick=()=>switchView(b.dataset.mobileHomeView);
     });
     $$('[data-mobile-home-code]').forEach(b=>b.addEventListener('click',()=>$('#mSpecimenCodeBtn')?.click()));
+    $$('a[href$="lab-wall.html"],a[href*="lab-wall.html#"]').forEach(link=>link.addEventListener('click',()=>{try{sessionStorage.setItem('cinegenome_labwall_route_v1','1');sessionStorage.setItem('cg_lab_wall_intro','1')}catch{}}));
     $$('[data-mobile-home-filmprint]').forEach(button=>button.addEventListener('click',()=>{
       document.body.classList.remove('mobile-home-mode');
       switchView('scanner');

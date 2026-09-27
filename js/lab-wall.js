@@ -1,6 +1,13 @@
 (() => {
   'use strict';
   const API = '/api/notes';
+  const ROUTE_KEY='cinegenome_labwall_route_v1';
+  const routeGranted=(()=>{try{return sessionStorage.getItem(ROUTE_KEY)==='1'}catch{return false}})();
+  if(!routeGranted){
+    document.querySelector('.wall-shell')?.setAttribute('hidden','');
+    const lock=document.getElementById('wallAccessLock');if(lock)lock.hidden=false;
+    return;
+  }
   const board = document.getElementById('wallBoard');
   const totalEl = document.getElementById('wallTotal');
   const dialog = document.getElementById('wallNoteDialog');
@@ -31,6 +38,7 @@
         try{
           sessionStorage.setItem('cg_return_to_lab','lab-wall');
           sessionStorage.setItem('cinegenome_boot_seen','1');
+          sessionStorage.removeItem(ROUTE_KEY);
         }catch{}
         document.body.classList.add('wall-returning-to-lab');
         const delay=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?0:360;

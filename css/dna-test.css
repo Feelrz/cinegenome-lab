@@ -15,6 +15,22 @@
 .dna-test-intro{min-height:280px;display:grid;align-content:center;gap:18px;max-width:850px}
 .dna-test-console .lab-btn{border:1px solid #66725f;background:#151b14;color:#dfe5d7;padding:10px 13px;font:700 9px/1 "Courier Prime","Courier New",monospace;letter-spacing:.11em;cursor:pointer;text-transform:uppercase}
 .dna-test-console .lab-btn.primary{background:#b8ff35;border-color:#b8ff35;color:#11140f;font-weight:900}
+
+/* FINAL POLISH — make the first Filmprint action impossible to miss without turning it into a game CTA. */
+.dna-test-intro .dna-begin{
+  position:relative;justify-self:start;min-width:190px;
+  box-shadow:0 0 0 1px rgba(184,255,53,.20),0 0 22px rgba(184,255,53,.16);
+  animation:dnaBeginBeacon 1.55s cubic-bezier(.2,.7,.2,1) infinite;
+}
+.dna-test-intro .dna-begin:after{
+  content:"READY";position:absolute;right:-48px;top:50%;transform:translateY(-50%);
+  color:#b8ff35;font:700 7px/1 "Courier Prime","Courier New",monospace;letter-spacing:.16em;opacity:.72;
+}
+@keyframes dnaBeginBeacon{
+  0%,100%{filter:brightness(1);box-shadow:0 0 0 1px rgba(184,255,53,.18),0 0 14px rgba(184,255,53,.12)}
+  50%{filter:brightness(1.12);box-shadow:0 0 0 2px rgba(184,255,53,.32),0 0 34px rgba(184,255,53,.28)}
+}
+@media(prefers-reduced-motion:reduce){.dna-test-intro .dna-begin{animation:none;box-shadow:0 0 0 2px rgba(184,255,53,.28),0 0 24px rgba(184,255,53,.18)}}
 .dna-test-console .lab-btn:not(:disabled):hover{transform:translateY(-1px);filter:brightness(1.05)}
 .dna-test-index,.dna-question-code,.dna-result-label{font:700 9px/1.4 "Courier Prime","Courier New",monospace;letter-spacing:.17em;color:#b8ff35}
 

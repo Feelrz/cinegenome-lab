@@ -324,6 +324,41 @@
     }catch{}
   }
 
+  let labHoverSfxStamp=0;
+  function playLabHoverSfx(){
+    if(!labSfxEnabled)return;
+    if(window.matchMedia && !window.matchMedia('(hover:hover) and (pointer:fine)').matches)return;
+    const stamp=performance.now();
+    if(stamp-labHoverSfxStamp<52)return;
+    labHoverSfxStamp=stamp;
+    try{
+      const AudioCtx=window.AudioContext||window.webkitAudioContext;
+      if(!AudioCtx)return;
+      const ctx=labUiAudioContext||(labUiAudioContext=new AudioCtx());
+      if(ctx.state==='suspended')ctx.resume().catch(()=>{});
+      const now=ctx.currentTime;
+      const master=ctx.createGain();
+      master.gain.setValueAtTime(0.0001,now);
+      master.gain.exponentialRampToValueAtTime(0.022,now+0.0015);
+      master.gain.exponentialRampToValueAtTime(0.0001,now+0.052);
+      master.connect(ctx.destination);
+      const tick=ctx.createOscillator(),gain=ctx.createGain();
+      tick.type='square';
+      tick.frequency.setValueAtTime(1640,now);
+      tick.frequency.exponentialRampToValueAtTime(1080,now+0.022);
+      gain.gain.setValueAtTime(0.38,now);
+      gain.gain.exponentialRampToValueAtTime(0.0001,now+0.032);
+      tick.connect(gain);gain.connect(master);tick.start(now);tick.stop(now+0.034);
+      const body=ctx.createOscillator(),bodyGain=ctx.createGain();
+      body.type='triangle';body.frequency.setValueAtTime(230,now+0.008);
+      bodyGain.gain.setValueAtTime(0.0001,now);
+      bodyGain.gain.exponentialRampToValueAtTime(0.18,now+0.010);
+      bodyGain.gain.exponentialRampToValueAtTime(0.0001,now+0.047);
+      body.connect(bodyGain);bodyGain.connect(master);body.start(now+0.007);body.stop(now+0.050);
+    }catch{}
+  }
+
+
   // One TMDB request per specimen at a time, shared by Scanner/Crossbreed/Mutation.
   const metadataHydrationInFlight = new Map();
   let crossbreedMetadataToken = 0;
@@ -2876,7 +2911,7 @@
     },cfg.duration));
   }
 
-  const MODULE_AUTOFOCUS_VIEWS = new Set(['scanner','crossbreed','mutation','atlas','bloodline','archive']);
+  const MODULE_AUTOFOCUS_VIEWS = new Set(['scanner','crossbreed','mutation','atlas','bloodline','archive','dna']);
 
   function focusModuleViewport(view) {
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -3006,6 +3041,9 @@
     $('#moduleInfoClose')?.addEventListener('click',()=>$('#moduleInfoDialog')?.close());
 
     $$('.module-btn').forEach(btn => {
+      btn.addEventListener('pointerenter', event => {
+        if(!event.pointerType || event.pointerType==='mouse') playLabHoverSfx();
+      });
       btn.addEventListener('pointerdown', () => {
         if(!btn.classList.contains('is-active')) playLabMenuSfx(btn.dataset.view==='dna');
       });
@@ -3032,6 +3070,7 @@
     window.CINEGENOME_UI_SFX={
       menu:playLabMenuSfx,
       action:playLabActionSfx,
+      hover:playLabHoverSfx,
       enabled:()=>labSfxEnabled
     };
     $('#scannerSelect').addEventListener('change', e => {

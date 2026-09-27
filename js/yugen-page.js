@@ -12,13 +12,15 @@
       try{
         sessionStorage.setItem('cg_return_to_lab','yugen');
         sessionStorage.setItem('cinegenome_boot_seen','1');
+        sessionStorage.removeItem('cinegenome_yugen_route_v1');
       }catch{}
       document.body.classList.add('y-returning-to-lab');
       window.setTimeout(()=>window.location.assign(link.href),360);
     }));
   }
   bindReturnToLab();
-  const hasAccess=()=>{try{return localStorage.getItem(KEY)==='1'}catch{return false}};
+  const ROUTE_KEY='cinegenome_yugen_route_v1';
+  const hasAccess=()=>{try{return localStorage.getItem(KEY)==='1' && sessionStorage.getItem(ROUTE_KEY)==='1'}catch{return false}};
   if(!hasAccess()){$('#yugenPage').classList.add('is-hidden');$('#yugenBoot').hidden=true;$('#yugenLock').hidden=false;return}
 
   const raw=window.CINEGENOME_YUGEN_SOURCE_DATA||{sources:[]};

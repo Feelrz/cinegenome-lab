@@ -8,7 +8,9 @@
   const destination=()=>location.pathname.includes('/mobile/')?'../yugen.html':'yugen.html';
   const audio=()=>{try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;const c=new A(),g=c.createGain();g.gain.setValueAtTime(.0001,c.currentTime);g.gain.exponentialRampToValueAtTime(.055,c.currentTime+.02);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.46);g.connect(c.destination);[220,330,495].forEach((f,i)=>{const o=c.createOscillator();o.type=i===2?'sine':'square';o.frequency.setValueAtTime(f,c.currentTime+i*.055);o.connect(g);o.start(c.currentTime+i*.055);o.stop(c.currentTime+.5)});setTimeout(()=>c.close?.(),650)}catch{}};
   function enter(){
-    unlock(); audio();
+    unlock();
+    try{sessionStorage.setItem('cinegenome_yugen_route_v1','1')}catch{}
+    audio();
     let veil=document.getElementById('yugenGateTransition');
     if(!veil){
       veil=document.createElement('div');veil.id='yugenGateTransition';veil.className='yugen-gate-transition';veil.innerHTML=`<div class="ygt-grid" aria-hidden="true"></div><div class="ygt-kanji" aria-hidden="true">幽玄</div><div class="ygt-terminal"><span class="ygt-node">CG-09 // 外部研究区画</span><strong data-ygt-main>認証中</strong><span data-ygt-sub>AUTHENTICATING SPECIMEN KEY…</span><i><b data-ygt-bar></b></i><small>YŪGEN ROUTING PROTOCOL // 日本映画標本庫</small></div>`;document.body.appendChild(veil);

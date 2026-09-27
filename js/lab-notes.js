@@ -10,6 +10,7 @@
   const identityModeButton = $('#labNoteIdentityMode');
   const identityHelp = $('#labNoteIdentityHelp');
   let identityMode = 'letterboxd';
+  let anonymousConfirmTimer = 0;
   const counter = $('#labNoteCount');
   const status = $('#labNoteStatus');
   const feed = $('#labNoteFeed');
@@ -43,6 +44,9 @@
   let flashTimer = 0;
   let layoutTimer = 0;
   let wallSelectionIds = [];
+  const wallPositionCache = new Map();
+  let wallLayoutSignature = '';
+  let settleLayoutTimer = 0;
 
   function escText(value) { return String(value == null ? '' : value); }
   function hash32(text) {
@@ -85,7 +89,15 @@
       ? {text:`@${value}`,url:letterboxdUrl(value)}
       : {text:type==='name' && value?value:'ANONYMOUS',url:null};
   }
+  function resetAnonymousConfirmation(){
+    clearTimeout(anonymousConfirmTimer);
+    const submit=$('#labNoteSubmit');
+    if(!submit)return;
+    delete submit.dataset.confirmAnonymous;
+    if(!submit.disabled)submit.textContent='PIN NOTE';
+  }
   identityModeButton?.addEventListener('click',()=>{
+    resetAnonymousConfirmation();
     identityMode=identityMode==='letterboxd'?'name':'letterboxd';
     identityModeButton.setAttribute('aria-pressed',String(identityMode==='name'));
     identityModeButton.setAttribute('aria-label',`Switch identity mode to ${identityMode==='name'?'Letterboxd':'name'}`);
@@ -263,105 +275,140 @@
     const cards = Array.from(preview.querySelectorAll('.public-lab-note.is-scatter:not(.is-retiring)'));
     if (!cards.length || root.width < 400 || root.height < 240) return;
 
+    const layoutSignature = `${Math.round(root.width)}x${Math.round(root.height)}`;
+    if (layoutSignature !== wallLayoutSignature) {
+      wallPositionCache.clear();
+      wallLayoutSignature = layoutSignature;
+    }
+
     const protectedEls = [
       hero.querySelector('.eyebrow'), hero.querySelector('h1'), hero.querySelector('p'), hero.querySelector('.field-manual-trigger'),
       hero.querySelector('.hero-note-board'), hero.querySelector('.lab-wall-whiteboard'), hero.querySelector('.warning-stamp')
     ].filter(Boolean);
     const protectedRects = protectedEls.map(el => rectRelativeTo(el, root, 14));
     const placed = [];
-    const margin = 14;
-    const gap = 12;
+    const marginX = 16;
+    // Keep a larger bottom safety zone because the paper cards rotate/scale and
+    // their tape/hover motion extends beyond their untransformed box. This stops
+    // newly pinned notes from pushing another card underneath the hero border.
+    const marginTop = 24;
+    const marginBottom = 38;
+    const gap = 14;
     const sample = cards[0];
     const noteW = sample?.offsetWidth || 126;
     const noteH = sample?.offsetHeight || 92;
-    const random = rng(`${pageSeed}|balanced-layout|${Math.round(root.width)}x${Math.round(root.height)}`);
+    const random = rng(`${pageSeed}|balanced-layout|${layoutSignature}`);
 
-    // Build a loose corkboard-style grid and fill from the lower half upward.
-    // This keeps the headline readable and uses the empty breathing room below it.
+    const fits = candidate => (
+      candidate.left >= marginX && candidate.top >= marginTop &&
+      candidate.right <= root.width - marginX && candidate.bottom <= root.height - marginBottom &&
+      !protectedRects.some(r => overlaps(candidate, r, 4)) &&
+      !placed.some(r => overlaps(candidate, r, gap))
+    );
+
+    // Preserve the current cards when a new public note arrives. Previously the
+    // whole wall was recomputed, which could make an older card suddenly 'sink'
+    // to the bottom edge. Existing notes now keep their slot unless the viewport
+    // changes or that slot becomes invalid.
+    cards.forEach((card, index) => {
+      const id = card.dataset.noteId || String(index);
+      const cached = wallPositionCache.get(id);
+      if (!cached) return;
+      const w = card.offsetWidth || noteW;
+      const h = card.offsetHeight || noteH;
+      const candidate = {left:cached.left, top:cached.top, right:cached.left+w, bottom:cached.top+h};
+      if (!fits(candidate)) {
+        wallPositionCache.delete(id);
+        return;
+      }
+      card.style.display = '';
+      card.style.setProperty('--note-x', `${Math.round(candidate.left)}px`);
+      card.style.setProperty('--note-y', `${Math.round(candidate.top)}px`);
+      card.style.setProperty('--note-z', String(2 + (hash32(id) % 6)));
+      card.dataset.wallPlaced = '1';
+      placed.push(candidate);
+    });
+
+    // Build a loose corkboard-style grid and fill from the lower half upward,
+    // but never place a card flush against the section border.
     const slots = [];
-    const bottom = root.height - noteH - margin;
+    const bottom = root.height - noteH - marginBottom;
     const stepY = noteH + gap;
     let rowIndex = 0;
-    for (let y = bottom; y >= margin; y -= stepY, rowIndex += 1) {
+    for (let y = bottom; y >= marginTop; y -= stepY, rowIndex += 1) {
       const lowerHalf = y > root.height * .48;
       const xStart = lowerHalf ? root.width * .24 : root.width * .34;
       const xEnd = root.width * .86 - noteW;
       const stepX = noteW + gap;
       const rowSlots = [];
       for (let x = xStart; x <= xEnd; x += stepX) {
-        const jitterX = (random() - .5) * 12;
-        const jitterY = (random() - .5) * 10;
-        const candidate = {
-          left: Math.max(margin, x + jitterX),
-          top: Math.max(margin, y + jitterY),
-          right: Math.max(margin, x + jitterX) + noteW,
-          bottom: Math.max(margin, y + jitterY) + noteH,
-        };
-        if (candidate.right > root.width - margin || candidate.bottom > root.height - margin) continue;
-        if (protectedRects.some(r => overlaps(candidate, r, 3))) continue;
+        const jitterX = (random() - .5) * 10;
+        const jitterY = (random() - .5) * 8;
+        const left = Math.max(marginX, x + jitterX);
+        const top = Math.max(marginTop, y + jitterY);
+        const candidate = { left, top, right:left + noteW, bottom:top + noteH };
+        if (!fits(candidate)) continue;
         rowSlots.push(candidate);
       }
-      // Shuffle each row so every refresh still feels alive, but stays readable.
       rowSlots.sort(() => random() - .5);
       slots.push(...rowSlots);
     }
 
     cards.forEach((card, index) => {
+      if (card.dataset.wallPlaced === '1') return;
       card.style.display = '';
-      card.style.setProperty('--note-x', '0px');
-      card.style.setProperty('--note-y', '0px');
       let chosen = null;
       while (slots.length && !chosen) {
         const candidate = slots.shift();
-        if (placed.some(r => overlaps(candidate, r, gap))) continue;
+        if (!fits(candidate)) continue;
         chosen = candidate;
       }
+      const id = card.dataset.noteId || String(index);
       if (!chosen) {
-        // Never pile notes over the title just to hit a quota. Extra notes stay on the full wall.
         card.style.display = 'none';
+        wallPositionCache.delete(id);
         return;
       }
       placed.push(chosen);
+      wallPositionCache.set(id,{left:chosen.left,top:chosen.top});
       card.style.setProperty('--note-x', `${Math.round(chosen.left)}px`);
       card.style.setProperty('--note-y', `${Math.round(chosen.top)}px`);
-      card.style.setProperty('--note-z', String(2 + (hash32(card.dataset.noteId || String(index)) % 6)));
+      card.style.setProperty('--note-z', String(2 + (hash32(id) % 6)));
+      card.dataset.wallPlaced = '1';
     });
 
-    // The public wall should never feel dead just because the normal collision
-    // pass was conservative. If at least two real notes exist, make a second
-    // bottom-up pass for hidden cards and guarantee two visible notes whenever
-    // the hero physically has room. We still never synthesize fake public notes.
+    cards.forEach(card => delete card.dataset.wallPlaced);
+
+    // If the normal pass is conservative, guarantee up to two visible real notes
+    // without ever crossing the safe bottom inset.
     const minimumVisible = Math.min(2, cards.length);
     let visibleCount = cards.filter(card => card.style.display !== 'none').length;
     if (visibleCount < minimumVisible) {
       const hiddenCards = cards.filter(card => card.style.display === 'none');
-      const emergencyGap = 6;
-      const emergencySlots = [];
-      const xMin = Math.max(margin, root.width * .20);
+      const emergencyGap = 8;
+      const xMin = Math.max(marginX, root.width * .20);
       const xMax = Math.max(xMin, root.width * .88 - noteW);
-      const yMin = Math.max(margin, root.height * .46);
-      const yMax = Math.max(yMin, root.height - noteH - margin);
-      for (let y = yMax; y >= yMin; y -= 12) {
-        for (let x = xMin; x <= xMax; x += 12) {
-          const candidate = { left:x, top:y, right:x+noteW, bottom:y+noteH };
-          if (protectedRects.some(r => overlaps(candidate, r, 1))) continue;
-          if (placed.some(r => overlaps(candidate, r, emergencyGap))) continue;
-          emergencySlots.push(candidate);
-        }
-      }
+      const yMin = Math.max(marginTop, root.height * .46);
+      const yMax = Math.max(yMin, root.height - noteH - marginBottom);
       for (const card of hiddenCards) {
         if (visibleCount >= minimumVisible) break;
         let chosen = null;
-        while (emergencySlots.length && !chosen) {
-          const candidate = emergencySlots.shift();
-          if (placed.some(r => overlaps(candidate, r, emergencyGap))) continue;
-          chosen = candidate;
+        outer: for (let y = yMax; y >= yMin; y -= 10) {
+          for (let x = xMin; x <= xMax; x += 10) {
+            const candidate = {left:x,top:y,right:x+noteW,bottom:y+noteH};
+            if (candidate.bottom > root.height - marginBottom) continue;
+            if (protectedRects.some(r => overlaps(candidate, r, 2))) continue;
+            if (placed.some(r => overlaps(candidate, r, emergencyGap))) continue;
+            chosen = candidate; break outer;
+          }
         }
-        if (!chosen) break;
+        if (!chosen) continue;
+        const id = card.dataset.noteId || `fallback-${visibleCount}`;
         card.style.display = '';
         card.style.setProperty('--note-x', `${Math.round(chosen.left)}px`);
         card.style.setProperty('--note-y', `${Math.round(chosen.top)}px`);
         card.style.setProperty('--note-z', String(5 + visibleCount));
+        wallPositionCache.set(id,{left:chosen.left,top:chosen.top});
         placed.push(chosen);
         visibleCount += 1;
       }
@@ -398,7 +445,9 @@
 
     preview.hidden = selected.length === 0;
     clearTimeout(layoutTimer);
+    clearTimeout(settleLayoutTimer);
     layoutTimer = setTimeout(layoutScatter, 40);
+    settleLayoutTimer = setTimeout(layoutScatter, 880);
     if (newlyPinnedId && selected.some(n => n.id === newlyPinnedId)) {
       setTimeout(() => { newlyPinnedId = ''; }, 1400);
     }
@@ -515,7 +564,7 @@
   }
 
   function openWallBoardTransition(targetUrl, sourceEl = whiteboard) {
-    try { sessionStorage.setItem('cg_lab_wall_intro', '1'); } catch {}
+    try { sessionStorage.setItem('cg_lab_wall_intro', '1'); sessionStorage.setItem('cinegenome_labwall_route_v1','1'); } catch {}
     playPinSfx('open');
     const rect = sourceEl ? sourceEl.getBoundingClientRect() : { left:window.innerWidth*.62, top:100, width:280, height:92 };
     if (dialog?.open) dialog.close();
@@ -576,10 +625,12 @@
   detailDialog?.addEventListener('cancel', e => { e.preventDefault(); closeNoteDetail(); });
 
   if (message && counter) {
-    const updateCount = () => { counter.textContent = `${message.value.length}/180`; };
+    const updateCount = () => { counter.textContent = `${message.value.length}/180`; resetAnonymousConfirmation(); };
     message.addEventListener('input', updateCount);
     updateCount();
   }
+
+  handle?.addEventListener('input',resetAnonymousConfirmation);
 
   form.addEventListener('submit', async e => {
     e.preventDefault();
@@ -591,6 +642,18 @@
       return;
     }
 
+    const anonymousMode=identityMode==='name' && !payload.identityValue;
+    if(anonymousMode && submit.dataset.confirmAnonymous!=='1'){
+      submit.dataset.confirmAnonymous='1';
+      submit.textContent='CONFIRM ANONYMOUS';
+      status.textContent='ANONYMOUS MODE // CLICK AGAIN TO PIN WITHOUT A NAME.';
+      playPinSfx('open');
+      clearTimeout(anonymousConfirmTimer);
+      anonymousConfirmTimer=window.setTimeout(resetAnonymousConfirmation,4200);
+      return;
+    }
+    clearTimeout(anonymousConfirmTimer);
+    delete submit.dataset.confirmAnonymous;
     submit.disabled = true;
     submit.textContent = 'TRANSMITTING…';
     status.textContent = 'UPLINKING NOTE TO PUBLIC WALL…';
@@ -657,7 +720,9 @@
     if (!document.hidden) fetchNotes({ quiet:true, full:false });
   });
   window.addEventListener('resize', () => {
+    wallLayoutSignature = '';
     clearTimeout(layoutTimer);
+    clearTimeout(settleLayoutTimer);
     layoutTimer = setTimeout(layoutScatter, 100);
   }, { passive:true });
 

@@ -138,6 +138,7 @@
       } else if (action === 'rx') {
         document.getElementById(mobile ? 'mRxBtn' : 'rxFab')?.click();
       } else if (action === 'labwall') {
+        try{sessionStorage.setItem('cinegenome_labwall_route_v1','1');sessionStorage.setItem('cg_lab_wall_intro','1')}catch{}
         window.location.href = mobile ? '../lab-wall.html' : 'lab-wall.html';
       }
     }, 24);

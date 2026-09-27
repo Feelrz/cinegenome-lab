@@ -285,7 +285,7 @@ body.filmprint-mode .public-lab-note.is-scatter:hover,body.filmprint-mode .publi
 .public-lab-note.is-new-note{animation-duration:1.05s;animation-timing-function:cubic-bezier(.2,.72,.2,1)}
 @keyframes labNoteRetire{
   from{opacity:var(--note-age,1);filter:none}
-  to{opacity:0;filter:blur(1px);transform:translate3d(var(--note-x,0),calc(var(--note-y,0) + 12px),0) rotate(var(--note-rot)) scale(.96)}
+  to{opacity:0;filter:blur(1px);transform:translate3d(var(--note-x,0),calc(var(--note-y,0) - 8px),0) rotate(var(--note-rot)) scale(.97)}
 }
 
 /* Progressive enhancement: on modern Chromium the physical whiteboard morphs into the full wall board. */
