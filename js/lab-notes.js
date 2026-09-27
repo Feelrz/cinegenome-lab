@@ -151,11 +151,22 @@
     } catch {}
   }
 
-  function showLiveFlash() {
-    if (!liveFlash) return;
-    clearTimeout(flashTimer);
-    liveFlash.hidden = false;
-    flashTimer = setTimeout(() => { liveFlash.hidden = true; }, 2600);
+  function showLiveFlash() { /* retired: feedback now stays inside the note composer */ }
+
+  let composerStatusTimer = 0;
+  function setComposerStatus(text, { settle = false } = {}) {
+    if (!status) return;
+    clearTimeout(composerStatusTimer);
+    status.textContent = text;
+    status.classList.remove('is-success','is-error');
+    if (/RECEIVED|PINNED|LIVE/.test(text)) status.classList.add('is-success');
+    if (/FAILED|OFFLINE|INVALID|REJECTED|THROTTLED/.test(text)) status.classList.add('is-error');
+    if (settle) {
+      composerStatusTimer = window.setTimeout(() => {
+        status.textContent = 'PUBLIC WALL LINK // LIVE';
+        status.classList.remove('is-success','is-error');
+      }, 2200);
+    }
   }
 
   let noteDetailCloseTimer = 0;
@@ -234,7 +245,7 @@
     const width = window.innerWidth;
     // Keep the hero header lively but readable: target a deliberate 5–6 visible
     // sticky notes on desktop instead of trying to flood the whole hero area.
-    const cap = width <= 760 ? 4 : width < 980 ? 5 : 6;
+    const cap = width <= 760 ? 2 : width < 980 ? 2 : 3;
     const available = new Map(notes.map(note => [note.id, note]));
     const ordered = notes.slice().sort((a, b) => {
       const ha = hash32(`${pageSeed}|${a.id}`);
@@ -285,15 +296,16 @@
       hero.querySelector('.eyebrow'), hero.querySelector('h1'), hero.querySelector('p'), hero.querySelector('.field-manual-trigger'),
       hero.querySelector('.hero-note-board'), hero.querySelector('.lab-wall-whiteboard'), hero.querySelector('.warning-stamp')
     ].filter(Boolean);
-    const protectedRects = protectedEls.map(el => rectRelativeTo(el, root, 14));
+    const retiringRects = Array.from(preview.querySelectorAll('.public-lab-note.is-retiring')).map(el => rectRelativeTo(el, root, 10));
+    const protectedRects = [...protectedEls.map(el => rectRelativeTo(el, root, 14)), ...retiringRects];
     const placed = [];
     const marginX = 16;
     // Keep a larger bottom safety zone because the paper cards rotate/scale and
     // their tape/hover motion extends beyond their untransformed box. This stops
     // newly pinned notes from pushing another card underneath the hero border.
-    const marginTop = 24;
-    const marginBottom = 38;
-    const gap = 14;
+    const marginTop = 28;
+    const marginBottom = 58;
+    const gap = 18;
     const sample = cards[0];
     const noteW = sample?.offsetWidth || 126;
     const noteH = sample?.offsetHeight || 92;
@@ -324,26 +336,25 @@
       card.style.display = '';
       card.style.setProperty('--note-x', `${Math.round(candidate.left)}px`);
       card.style.setProperty('--note-y', `${Math.round(candidate.top)}px`);
-      card.style.setProperty('--note-z', String(2 + (hash32(id) % 6)));
+      card.style.setProperty('--note-z', String(card.classList.contains('is-new-note') ? 18 : 2 + (hash32(id) % 6)));
       card.dataset.wallPlaced = '1';
       placed.push(candidate);
     });
 
-    // Build a loose corkboard-style grid and fill from the lower half upward,
-    // but never place a card flush against the section border.
+    // Build a restrained corkboard field. Fewer notes are shown, but every
+    // selected note must remain fully visible and clear of the hero controls.
     const slots = [];
-    const bottom = root.height - noteH - marginBottom;
+    const stepX = noteW + gap;
     const stepY = noteH + gap;
-    let rowIndex = 0;
-    for (let y = bottom; y >= marginTop; y -= stepY, rowIndex += 1) {
-      const lowerHalf = y > root.height * .48;
-      const xStart = lowerHalf ? root.width * .24 : root.width * .34;
-      const xEnd = root.width * .86 - noteW;
-      const stepX = noteW + gap;
+    const xStart = Math.max(marginX, root.width * .27);
+    const xEnd = Math.max(xStart, root.width * .83 - noteW);
+    const yStart = Math.max(marginTop, root.height * .34);
+    const yEnd = Math.max(yStart, root.height - noteH - marginBottom);
+    for (let y = yStart; y <= yEnd; y += stepY) {
       const rowSlots = [];
       for (let x = xStart; x <= xEnd; x += stepX) {
-        const jitterX = (random() - .5) * 10;
-        const jitterY = (random() - .5) * 8;
+        const jitterX = (random() - .5) * 6;
+        const jitterY = (random() - .5) * 5;
         const left = Math.max(marginX, x + jitterX);
         const top = Math.max(marginTop, y + jitterY);
         const candidate = { left, top, right:left + noteW, bottom:top + noteH };
@@ -373,7 +384,7 @@
       wallPositionCache.set(id,{left:chosen.left,top:chosen.top});
       card.style.setProperty('--note-x', `${Math.round(chosen.left)}px`);
       card.style.setProperty('--note-y', `${Math.round(chosen.top)}px`);
-      card.style.setProperty('--note-z', String(2 + (hash32(id) % 6)));
+      card.style.setProperty('--note-z', String(card.classList.contains('is-new-note') ? 18 : 2 + (hash32(id) % 6)));
       card.dataset.wallPlaced = '1';
     });
 
@@ -381,14 +392,14 @@
 
     // If the normal pass is conservative, guarantee up to two visible real notes
     // without ever crossing the safe bottom inset.
-    const minimumVisible = Math.min(2, cards.length);
+    const minimumVisible = cards.length;
     let visibleCount = cards.filter(card => card.style.display !== 'none').length;
     if (visibleCount < minimumVisible) {
       const hiddenCards = cards.filter(card => card.style.display === 'none');
-      const emergencyGap = 8;
-      const xMin = Math.max(marginX, root.width * .20);
-      const xMax = Math.max(xMin, root.width * .88 - noteW);
-      const yMin = Math.max(marginTop, root.height * .46);
+      const emergencyGap = 14;
+      const xMin = Math.max(marginX, root.width * .27);
+      const xMax = Math.max(xMin, root.width * .83 - noteW);
+      const yMin = Math.max(marginTop, root.height * .34);
       const yMax = Math.max(yMin, root.height - noteH - marginBottom);
       for (const card of hiddenCards) {
         if (visibleCount >= minimumVisible) break;
@@ -488,7 +499,6 @@
       if (fresh) {
         newlyPinnedId = fresh.id;
         playPinSfx('pin');
-        showLiveFlash();
       }
     }
     return changed;
@@ -656,14 +666,14 @@
     delete submit.dataset.confirmAnonymous;
     submit.disabled = true;
     submit.textContent = 'TRANSMITTING…';
-    status.textContent = 'UPLINKING NOTE TO PUBLIC WALL…';
+    setComposerStatus('UPLINKING NOTE TO PUBLIC WALL…');
     if (Array.isArray(window.CG_LAB_NOTES_DEMO)) {
       const demoValue=identityMode==='letterboxd'?payload.identityValue.replace(/^https?:\/\/(?:www\.)?letterboxd\.com\//i,'').replace(/^[@/]+/,'').replace(/\/.*$/,''):payload.identityValue;
       const demoNote = { id:`N-DEMO-LOCAL-${Date.now()}`, message:payload.message, identityType:identityMode==='name'&&!demoValue?'anonymous':identityMode, identityValue:demoValue||null, createdAt:Date.now() };
       window.CG_LAB_NOTES_DEMO.unshift(demoNote);
       notes = window.CG_LAB_NOTES_DEMO.slice(); total = notes.length; newlyPinnedId = demoNote.id;
       message.value=''; handle.value=''; if(counter) counter.textContent='0/180';
-      status.textContent='DEMO TRANSMISSION // NOTE PINNED LOCALLY.'; playPinSfx('pin'); showLiveFlash(); render();
+      setComposerStatus('NOTE PINNED // LOCAL DEMO WALL UPDATED.', { settle:true }); playPinSfx('pin'); render();
       submit.disabled=false; submit.textContent='PIN NOTE'; return;
     }
     try {
@@ -684,18 +694,17 @@
       message.value = '';
       handle.value = '';
       if (counter) counter.textContent = '0/180';
-      status.textContent = 'TRANSMISSION RECEIVED // NOTE PINNED.';
+      setComposerStatus('NOTE PINNED // PUBLIC WALL UPDATED.', { settle:true });
       if (data.note) {
         notes = [data.note, ...notes.filter(n => n.id !== data.note.id)].slice(0, 500);
         total = Math.max(Number(data.total) || 0, total + 1, notes.length);
         newlyPinnedId = data.note.id;
-        showLiveFlash();
       }
       render();
       setTimeout(() => fetchNotes({ quiet:true, full:false }), 650);
     } catch (error) {
       const code = error && error.message;
-      status.textContent = code === 'RATE'
+      setComposerStatus(code === 'RATE'
         ? 'TRANSMISSION THROTTLED // WAIT A MOMENT.'
         : code === 'LETTERBOXD'
           ? 'INVALID LETTERBOXD ID // USE /USERNAME ONLY.'
@@ -703,7 +712,7 @@
             ? 'INVALID NAME // USE UP TO 40 CHARACTERS, NO LINKS.'
           : code === 'MESSAGE'
             ? 'MESSAGE REJECTED // 1–180 CHARACTERS, NO LINKS.'
-            : 'PUBLIC WALL OFFLINE // NOTE NOT SENT.';
+            : 'PUBLIC WALL OFFLINE // NOTE NOT SENT.');
     } finally {
       submit.disabled = false;
       submit.textContent = 'PIN NOTE';

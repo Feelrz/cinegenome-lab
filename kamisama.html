@@ -8,7 +8,7 @@
   <title>KAMISAMA // CINEGENOME</title>
   <link rel="icon" href="assets/cinegenome-logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/styles.css">
-  <link rel="stylesheet" href="css/kamisama.css">
+  <link rel="stylesheet" href="css/kamisama.css?v5-final-adminlinks1">
 </head>
 <body class="notes-admin-page">
   <main class="notes-admin-shell">
@@ -32,9 +32,23 @@
         <button id="adminRefresh" type="button">REFRESH</button>
         <button id="adminLock" type="button">LOCK</button>
       </div>
+      <section class="notes-admin-links" aria-labelledby="adminLinksHeading">
+        <div class="notes-admin-links-head">
+          <div><span>PUBLIC LINK ROUTING</span><h2 id="adminLinksHeading">EXTERNAL ENDPOINTS.</h2></div>
+          <small>Changes are live after save. No redeploy required.</small>
+        </div>
+        <div class="notes-admin-links-grid">
+          <label><span>[REDACTED] // HUMAN FILM ARCHIVE</span><input id="adminOperatorUrl" type="url" inputmode="url" spellcheck="false" placeholder="https://…"></label>
+          <label><span>CHIEF RESEARCHER // EXTERNAL FIELD LOG</span><input id="adminChiefUrl" type="url" inputmode="url" spellcheck="false" placeholder="https://…"></label>
+        </div>
+        <div class="notes-admin-links-actions">
+          <button id="adminLinksSave" type="button">SAVE PUBLIC LINKS</button>
+          <span id="adminLinksStatus">LINK ROUTER // STANDBY</span>
+        </div>
+      </section>
       <div class="notes-admin-list" id="adminList"></div>
     </section>
   </main>
-  <script src="js/kamisama.js?v5-beta65"></script>
+  <script src="js/kamisama.js?v5-final-adminlinks1"></script>
 </body>
 </html>

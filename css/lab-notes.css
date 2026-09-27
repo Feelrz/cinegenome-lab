@@ -436,3 +436,20 @@ body.filmprint-mode .public-lab-note.is-scatter:hover,body.filmprint-mode .publi
 .lab-note-dialog.is-dialog-closing::backdrop,
 .lab-note-detail-dialog.is-note-closing::backdrop{opacity:0;backdrop-filter:blur(0)}
 @media(prefers-reduced-motion:reduce){.lab-note-dialog,.lab-note-detail-dialog{opacity:1!important;transform:none!important;transition:none!important}}
+
+
+/* ===== FINAL NOTE COMPOSER / STABLE HEADER FIELD ===== */
+/* Upload feedback belongs to the composer, never the global hero/header. */
+.lab-note-live-flash{display:none!important}
+.lab-note-status{transition:color .18s ease,border-color .18s ease,opacity .18s ease}
+.lab-note-status.is-success{color:#35491d;border-top-color:#829e4d}
+.lab-note-status.is-error{color:#7a3127;border-top-color:#a05a4e}
+@media(min-width:761px){
+  .hero-panel{min-height:478px}
+  .public-lab-note.is-scatter{width:122px;min-height:88px;max-height:108px}
+}
+/* Notes retire upward and away from the board, never downward beneath the frame. */
+@keyframes labNoteRetire{
+  from{opacity:var(--note-age,1);filter:none}
+  to{opacity:0;filter:blur(.7px);transform:translate3d(var(--note-x,0),calc(var(--note-y,0) - 18px),0) rotate(0deg) scale(.95)}
+}

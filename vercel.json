@@ -9,7 +9,7 @@
         },
         {
           "key": "X-CineGenome-Build",
-          "value": "V5.0-FINAL-EXPORT-DOWNLOAD-HOTFIX"
+          "value": "V5.0-FINAL-NOTE-KAMISAMA-LINKS"
         }
       ]
     },
@@ -22,7 +22,7 @@
         },
         {
           "key": "X-CineGenome-Build",
-          "value": "V5.0-FINAL-EXPORT-DOWNLOAD-HOTFIX"
+          "value": "V5.0-FINAL-NOTE-KAMISAMA-LINKS"
         }
       ]
     },
@@ -35,7 +35,7 @@
         },
         {
           "key": "X-CineGenome-Build",
-          "value": "V5.0-FINAL-EXPORT-DOWNLOAD-HOTFIX"
+          "value": "V5.0-FINAL-NOTE-KAMISAMA-LINKS"
         }
       ]
     },
@@ -48,7 +48,7 @@
         },
         {
           "key": "X-CineGenome-Build",
-          "value": "V5.0-FINAL-EXPORT-DOWNLOAD-HOTFIX"
+          "value": "V5.0-FINAL-NOTE-KAMISAMA-LINKS"
         }
       ]
     },
@@ -61,7 +61,20 @@
         },
         {
           "key": "X-CineGenome-Build",
-          "value": "V5.0-FINAL-EXPORT-DOWNLOAD-HOTFIX"
+          "value": "V5.0-FINAL-NOTE-KAMISAMA-LINKS"
+        }
+      ]
+    },
+    {
+      "source": "/kamisama.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        },
+        {
+          "key": "X-CineGenome-Build",
+          "value": "V5.0-FINAL-NOTE-KAMISAMA-LINKS"
         }
       ]
     }

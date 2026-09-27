@@ -32,7 +32,7 @@
   <link rel="stylesheet" href="css/field-manual.css" />
   <link rel="stylesheet" href="css/quarantine.css" />
   <link rel="stylesheet" href="css/dna-test.css?v5-final-exportfix2" />
-  <link rel="stylesheet" href="css/lab-notes.css?v5-final-polish2" />
+  <link rel="stylesheet" href="css/lab-notes.css?v5-final-note-adminlinks1" />
   <link rel="stylesheet" href="css/yugen-archive.css" />
   <link rel="stylesheet" href="css/home-beta79.css?v5-beta79" />
   <link rel="stylesheet" href="css/home-beta81.css?v5-beta81" />
@@ -193,7 +193,6 @@
           <div class="warning-stamp">⚠ UNLICENSED<br>CINEMA RESEARCH</div>
         </div>
         <div class="lab-note-wall" id="labNoteWall" aria-label="Random public lab notes" aria-live="polite" hidden></div>
-        <div class="lab-note-live-flash" id="labNoteLiveFlash" role="status" aria-live="polite" hidden>TRANSMISSION RECEIVED // NEW NOTE PINNED</div>
       </header>
 
       <section class="view is-active cg-home" id="view-home" data-view-panel="home" aria-labelledby="cgHomeTitle">
@@ -253,7 +252,7 @@
               <div class="cg90-researcher-signoff">
                 <span class="cg90-signature">F.</span>
                 <span><b>CHIEF RESEARCHER</b><small>STATUS / UNCONFIRMED</small></span>
-                <a href="https://letterboxd.com/feelrz/" target="_blank" rel="noopener noreferrer">EXTERNAL FIELD LOG ↗</a>
+                <a data-site-link="chiefResearcherUrl" href="https://letterboxd.com/feelrz/" target="_blank" rel="noopener noreferrer">EXTERNAL FIELD LOG ↗</a>
               </div>
             </article></div>
 <aside class="cg79-marginalia" aria-label="Laboratory method">
@@ -896,7 +895,7 @@
             <div><span>RECORD STATUS</span><strong>VERY ONLINE</strong></div>
           </div>
           <p>The lab keeps one non-film specimen on record: the operator. Viewing history, ratings, lists and cinematic damage are stored in an external archive.</p>
-          <a class="human-letterboxd-link" href="https://boxd.it/a35Ed" target="_blank" rel="noopener">OPEN HUMAN FILM ARCHIVE ↗</a>
+          <a class="human-letterboxd-link" data-site-link="operatorArchiveUrl" href="https://boxd.it/a35Ed" target="_blank" rel="noopener">OPEN HUMAN FILM ARCHIVE ↗</a>
           <div class="human-record-hint">alternate access command: WHOAMI</div>
         </div>
       </div>
@@ -1002,6 +1001,7 @@
   <script src="data/fans250.js"></script>
   <script src="data/watch-once-extra.js"></script>
   <script src="data/dead-channel-300.js"></script>
+  <script src="js/site-config.js?v5-final-adminlinks1"></script>
   <script src="js/dna-model.js?v5-beta72"></script>
   <script src="data/tmdb-config.js"></script>
   <script src="js/tmdb.js"></script>
@@ -1010,7 +1010,7 @@
   <script src="js/anomaly.js?v5-beta83"></script>
   <script src="js/sector09.js?v5-beta75"></script>
   <script src="js/signal-lab.js?v5-beta70"></script>
-  <script src="js/specimen-codes.js?v5-final-eeao3"></script>
+  <script src="js/specimen-codes.js?v5-final-eeao4"></script>
   <script src="js/picker-sfx.js"></script>
   <script src="js/archive-browser.js?v5-beta83"></script>
   <script src="js/lab-instruments.js?v5-beta83"></script>
@@ -1018,7 +1018,7 @@
   <script src="js/app.js?v5-final-backfix1"></script>
   <script src="js/quarantine.js?v5-beta75"></script>
   <script src="js/dna-test.js?v5-final-exportfix2"></script>
-  <script src="js/lab-notes.js?v5-final-polish2"></script>
+  <script src="js/lab-notes.js?v5-final-note-adminlinks1"></script>
   <script src="js/visitors.js"></script>
   <script src="js/field-manual.js?v5-final-route1"></script>
   <script src="js/home-evidence.js?v5-beta84"></script>
