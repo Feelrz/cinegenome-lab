@@ -1006,8 +1006,12 @@
         peaks.forEach((row,i)=>{
           const y=cursorY+47+i*30;
           ctx.fillStyle=paper; ctx.font='700 16px monospace'; ctx.fillText(row.label.toUpperCase(),pad+inner,y);
-          ctx.textAlign='right';ctx.fillStyle=acid;ctx.fillText(Number(row.value).toFixed(1),w-pad-inner,y);ctx.textAlign='left';
-          const bx=pad+245, bw=contentW-245-inner;
+          const valueX=w-pad-inner;
+          const valueLane=86;
+          ctx.textAlign='right';ctx.fillStyle=acid;ctx.fillText(Number(row.value).toFixed(1),valueX,y);ctx.textAlign='left';
+          const bx=pad+245;
+          const barRight=valueX-valueLane;
+          const bw=Math.max(80,barRight-bx);
           ctx.fillStyle=rail;ctx.fillRect(bx,y+7,bw,6);
           ctx.fillStyle=acid;ctx.fillRect(bx,y+7,bw*(row.value/100),6);
         });
@@ -1118,9 +1122,13 @@
         peaks.forEach((row,i)=>{
           const y=dy+43+i*29;
           ctx.fillStyle=paper;ctx.font='700 13px monospace';ctx.fillText(row.label.toUpperCase(),dx+16,y);
-          ctx.textAlign='right';ctx.fillStyle=acid;ctx.fillText(Number(row.value).toFixed(1),dx+dw-14,y);ctx.textAlign='left';
-          ctx.fillStyle=rail;ctx.fillRect(dx+16,y+17,dw-30,5);
-          ctx.fillStyle=acid;ctx.fillRect(dx+16,y+17,(dw-30)*(row.value/100),5);
+          const valueX=dx+dw-14;
+          const valueLane=62;
+          ctx.textAlign='right';ctx.fillStyle=acid;ctx.fillText(Number(row.value).toFixed(1),valueX,y);ctx.textAlign='left';
+          const barX=dx+16;
+          const barW=Math.max(56,(valueX-valueLane)-barX);
+          ctx.fillStyle=rail;ctx.fillRect(barX,y+17,barW,5);
+          ctx.fillStyle=acid;ctx.fillRect(barX,y+17,barW*(row.value/100),5);
         });
       }
     }
@@ -1284,10 +1292,13 @@
         if(y+rowH>footerBase) return;
         ctx.fillStyle=paper; ctx.font=`700 ${Math.max(11,Math.round(w*.0115))}px monospace`;
         ctx.fillText(row.label,x,y);
-        ctx.textAlign='right'; ctx.fillStyle=acid; ctx.fillText(Number(row.value).toFixed(1),x+colW,y); ctx.textAlign='left';
-        const barY=y+Math.max(18,Math.round(w*.017));
-        ctx.fillStyle=rail; ctx.fillRect(x,barY,colW,Math.max(4,Math.round(w*.004)));
-        ctx.fillStyle=acid; ctx.fillRect(x,barY,colW*(row.value/100),Math.max(4,Math.round(w*.004)));
+        const valueX=x+colW;
+        const valueLane=Math.max(54,Math.round(w*.052));
+        ctx.textAlign='right'; ctx.fillStyle=acid; ctx.fillText(Number(row.value).toFixed(1),valueX,y); ctx.textAlign='left';
+        const barY=y+Math.max(20,Math.round(w*.019));
+        const barW=Math.max(64,colW-valueLane);
+        ctx.fillStyle=rail; ctx.fillRect(x,barY,barW,Math.max(4,Math.round(w*.004)));
+        ctx.fillStyle=acid; ctx.fillRect(x,barY,barW*(row.value/100),Math.max(4,Math.round(w*.004)));
       });
       cursorY+=rowsPerCol*rowH+Math.round(h*.012);
     }
