@@ -1,3 +1,48 @@
+# CineGenome V5.0 FINAL — Sticky 18s CHECKED
+
+Build marker: `V5.0-FINAL-STICKY-18S-CHECKED`
+
+Current production candidate:
+- Wide desktop: fixed 10-note sticky window.
+- Reseed: every 18 seconds.
+- Rotation: ~40% per cycle (4/10 on wide desktop).
+- Full Lab Wall pool is used with least-recently-seen fairness.
+- Hover/focus pauses reseed; a pending cycle resumes after exit.
+- Hero headline/copy and key controls remain hard protected zones.
+- Header remains fixed at the compact final height; notes adapt to available space.
+- Cache keys for sticky CSS/JS were bumped during final QA.
+
+---
+
+# CineGenome V5.0 FINAL — Dense Sticky Wall
+
+Build marker: `V5.0-FINAL-DENSE-STICKY-WALL`
+
+- Homepage public sticky field: 8–12-class density by viewport (11 at wide desktop).
+- Layout seed cycles every 15 seconds with smooth glide/cross-fade.
+- Hero headline/copy and interactive controls are hard protected zones.
+- Mobile remains restrained and horizontally scrollable.
+
+# CineGenome V5.0 FINAL — Note Wall + Kamisama Link Router
+
+Build marker: `V5.0-FINAL-NOTE-KAMISAMA-LINKS`
+
+## This hotfix
+- Lab Note upload feedback no longer flashes in the global header; status remains inside the note composer.
+- Homepage public sticky field is intentionally capped to 3 desktop / 2 narrow-view notes, preserves existing slots, reserves retiring-card space, and keeps newly pinned notes above the stack so older notes do not sink beneath the hero frame.
+- KAMISAMA now includes PUBLIC LINK ROUTING controls for the [REDACTED] Human Film Archive URL and the Chief Researcher External Field Log URL.
+- Saved public links persist in Upstash through `/api/site-config` using the existing `CG_NOTES_ADMIN_TOKEN`; homepage desktop/mobile resolve the live values without a redeploy.
+
+## Preserved
+Export-download hotfix, Yūgen poster/lightbox + Back navigation fix, EEAAO easter egg/audio/eyes, FILMPRINT/Genome persistence, film data, DNA engines, Lab Wall data and moderation behavior remain intact.
+
+---
+
+# CineGenome V5.0 FINAL — Note Status / Stable Wall Fix
+
+Build marker: `V5.0-FINAL-NOTE-WALLFIX`
+
+CINEGENOME BUILD: V5.0 FINAL YUGEN + BACKFIX
 # CINEGENOME V5.0 FINAL CHECKED
 
 Final QA wrapper for the EEAAO Eyes Polish build.
@@ -291,3 +336,48 @@ BETA 77 is a bulk data-maturation pass. Exactly 900 formerly generic provisional
 - Increased the interactive eye field from 14 to 45 independently tracking eyes with varied sizes and placement.
 - Kept the existing EEAAO transition, personal copy, local soundtrack, and all non-EEAAO feature logic unchanged.
 - Bumped specimen-code script cache key to `v5-final-eeao3` on desktop and mobile.
+
+
+## FINAL HOMEPAGE CACHE FIX
+- Added Vercel no-store headers for root/index/mobile HTML.
+- Added HTML cache-control meta guards and build marker V5.0-FINAL-HOMECOPY-CACHEFIX.
+- Verified provenance copy no longer contains the old Letterboxd sentence.
+
+
+## FINAL EXPORT DOWNLOAD HOTFIX
+- EXPORT DNA CARD now always downloads a PNG directly instead of invoking Web Share first.
+- Blob download uses an explicit hidden anchor + download filename and never opens a preview tab intentionally.
+- Export terminal now exposes COPY LAST PNG for clipboard-compatible apps after a PNG has rendered.
+- Desktop and mobile both use the same patched DNA export engine.
+- DNA scoring, Filmprint result logic, Genome sharing, Yugen, Lab Wall, Weird Stuff and API/data are unchanged.
+
+
+## EEAAO Headline Legibility Polish
+- Added dark translucent specimen-label backplate behind the personal EEAAO headline.
+- Acid-green headline treatment, thin signal rails, subtle blur and shadow improve contrast against the interactive eye field.
+- Mobile sizing adjusted so the label stays centered and readable.
+- Specimen code cache key bumped to `v5-final-eeao4`.
+
+FINAL PATCH: DENSE STICKY COMPACT HEADER
+Header height restored; notes adapt to header, not vice versa.
+
+
+## V5.0 FINAL // ROTATING LAB WALL POOL
+- 15-second reseed now rotates note CONTENT across the full available Lab Wall pool.
+- About 55% of the active field is retained; ~45% is replaced with least-recently-seen notes.
+- Exposure fairness prevents the same subset from monopolizing the homepage.
+
+
+## FINAL STICKY CADENCE
+- Wide desktop keeps 10 visible sticky slots.
+- Reseed cadence: 18 seconds.
+- Rotation: ~40% per cycle (4 of 10 on wide desktop).
+- Reseed pauses while a sticky note is hovered/focused and resumes after exit.
+- Transition settle window: ~1.05 seconds.
+
+## STICKY WALL FINAL CADENCE
+- Wide desktop: fixed 10-note window.
+- Reseed: every 18 seconds.
+- Rotation: ~40% per cycle (4/10 on wide desktop).
+- Hover/focus pauses reseed; pending cycle resumes after exit.
+- Reseed settle transition: ~1.05s.

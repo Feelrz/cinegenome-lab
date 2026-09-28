@@ -47,6 +47,13 @@
   const wallPositionCache = new Map();
   let wallLayoutSignature = '';
   let settleLayoutTimer = 0;
+  let wallReseedTimer = 0;
+  let wallHovering = false;
+  let wallReseedPending = false;
+  let wallSeedCycle = 0;
+  const wallExposure = new Map();
+  let wallExposureCycle = -1;
+  const activeWallSeed = () => `${pageSeed}|cycle-${wallSeedCycle}`;
 
   function escText(value) { return String(value == null ? '' : value); }
   function hash32(text) {
@@ -65,19 +72,19 @@
     };
   }
   function rotation(id, index) {
-    const h = hash32(`${id}|${pageSeed}|${index}`);
+    const h = hash32(`${id}|${activeWallSeed()}|${index}`);
     return (((h % 51) - 25) / 10).toFixed(1);
   }
   function noteScale(id, index) {
-    const h=hash32(`${pageSeed}|scale|${id}|${index}`);
+    const h=hash32(`${activeWallSeed()}|scale|${id}|${index}`);
     return (0.96 + (h % 9) * .01).toFixed(2);
   }
   function tapeOffset(id, index) {
-    const h=hash32(`${pageSeed}|tape|${id}|${index}`);
+    const h=hash32(`${activeWallSeed()}|tape|${id}|${index}`);
     return `${38 + (h % 25)}%`;
   }
   function tapeRotation(id, index) {
-    const h=hash32(`${pageSeed}|tape-rot|${id}|${index}`);
+    const h=hash32(`${activeWallSeed()}|tape-rot|${id}|${index}`);
     return `${((h % 61)-30)/10}deg`;
   }
   function ageTone(index) { return Math.max(.78, 1 - index * .018).toFixed(2); }
@@ -241,34 +248,60 @@
     return card;
   }
 
-  function shuffledWallSelection() {
+  function wallCap() {
     const width = window.innerWidth;
-    // Keep the hero header lively but readable: target a deliberate 5–6 visible
-    // sticky notes on desktop instead of trying to flood the whole hero area.
-    const cap = width <= 760 ? 2 : width < 980 ? 2 : 3;
+    if (width <= 760) return 4;
+    if (width < 980) return 6;
+    if (width < 1280) return 8;
+    return 10;
+  }
+
+  function shuffledWallSelection() {
+    const cap = wallCap();
     const available = new Map(notes.map(note => [note.id, note]));
-    const ordered = notes.slice().sort((a, b) => {
-      const ha = hash32(`${pageSeed}|${a.id}`);
-      const hb = hash32(`${pageSeed}|${b.id}`);
+    const seed = activeWallSeed();
+    const hashOrder = notes.slice().sort((a, b) => {
+      const ha = hash32(`${seed}|${a.id}`);
+      const hb = hash32(`${seed}|${b.id}`);
       return ha - hb;
     });
 
-    // One random arrangement per real page refresh. Background polling never
-    // reshuffles the wall just because the API was checked again.
+    // Keep the retained subset chosen by reseedWall(), then fill every open slot
+    // from the least-recently-seen notes in the FULL Lab Wall pool. This prevents
+    // a 20-note wall from showing the same 10 forever just because their positions
+    // are being reseeded.
     wallSelectionIds = wallSelectionIds.filter(id => available.has(id)).slice(0, cap);
-    if (!wallSelectionIds.length) wallSelectionIds = ordered.slice(0, cap).map(note => note.id);
-    if (wallSelectionIds.length < cap) {
-      for (const note of ordered) {
-        if (wallSelectionIds.includes(note.id)) continue;
-        wallSelectionIds.push(note.id);
-        if (wallSelectionIds.length >= cap) break;
-      }
+    const selectedSet = new Set(wallSelectionIds);
+    const candidates = hashOrder.filter(note => !selectedSet.has(note.id)).sort((a,b) => {
+      const ea = wallExposure.get(a.id) || { count:0, last:-999999 };
+      const eb = wallExposure.get(b.id) || { count:0, last:-999999 };
+      if (ea.last !== eb.last) return ea.last - eb.last;       // oldest/never-seen first
+      if (ea.count !== eb.count) return ea.count - eb.count;  // fewer appearances first
+      return hash32(`${seed}|fair|${a.id}`) - hash32(`${seed}|fair|${b.id}`);
+    });
+    for (const note of candidates) {
+      if (wallSelectionIds.length >= cap) break;
+      wallSelectionIds.push(note.id);
+      selectedSet.add(note.id);
     }
 
-    if (newlyPinnedId && available.has(newlyPinnedId) && !wallSelectionIds.includes(newlyPinnedId)) {
+    if (newlyPinnedId && available.has(newlyPinnedId) && !selectedSet.has(newlyPinnedId)) {
       if (wallSelectionIds.length < cap) wallSelectionIds.push(newlyPinnedId);
       else wallSelectionIds[wallSelectionIds.length - 1] = newlyPinnedId;
     }
+
+    // Count an exposure only once per reseed cycle; background polling/rendering
+    // must not make a note look artificially "recent".
+    if (wallExposureCycle !== wallSeedCycle) {
+      wallExposureCycle = wallSeedCycle;
+      wallSelectionIds.forEach(id => {
+        const prev = wallExposure.get(id) || { count:0, last:-999999 };
+        wallExposure.set(id, { count: prev.count + 1, last: wallSeedCycle });
+      });
+      // Remove stale history for notes that no longer exist on the public wall.
+      for (const id of wallExposure.keys()) if (!available.has(id)) wallExposure.delete(id);
+    }
+
     return wallSelectionIds.map(id => available.get(id)).filter(Boolean);
   }
 
@@ -281,100 +314,84 @@
   }
 
   function layoutScatter() {
-    if (!preview || !hero || window.innerWidth <= 760 || preview.hidden) return;
+    if (!preview || !hero || preview.hidden) return;
+    if (window.innerWidth <= 760) return;
     const root = hero.getBoundingClientRect();
     const cards = Array.from(preview.querySelectorAll('.public-lab-note.is-scatter:not(.is-retiring)'));
-    if (!cards.length || root.width < 400 || root.height < 240) return;
+    if (!cards.length || root.width < 400 || root.height < 260) return;
 
-    const layoutSignature = `${Math.round(root.width)}x${Math.round(root.height)}`;
+    const layoutSignature = `${Math.round(root.width)}x${Math.round(root.height)}|${wallSeedCycle}`;
     if (layoutSignature !== wallLayoutSignature) {
       wallPositionCache.clear();
       wallLayoutSignature = layoutSignature;
     }
 
+    // Hard protected zones. Notes are allowed to feel dense and handmade, but
+    // they can never sit on top of the hero headline/copy or actionable cards.
     const protectedEls = [
-      hero.querySelector('.eyebrow'), hero.querySelector('h1'), hero.querySelector('p'), hero.querySelector('.field-manual-trigger'),
-      hero.querySelector('.hero-note-board'), hero.querySelector('.lab-wall-whiteboard'), hero.querySelector('.warning-stamp')
+      hero.querySelector('.hero-title-cluster'),
+      hero.querySelector('.field-manual-trigger'),
+      hero.querySelector('.hero-note-board'),
+      hero.querySelector('.lab-wall-whiteboard'),
+      hero.querySelector('.warning-stamp')
     ].filter(Boolean);
-    const retiringRects = Array.from(preview.querySelectorAll('.public-lab-note.is-retiring')).map(el => rectRelativeTo(el, root, 10));
-    const protectedRects = [...protectedEls.map(el => rectRelativeTo(el, root, 14)), ...retiringRects];
+    const retiringRects = Array.from(preview.querySelectorAll('.public-lab-note.is-retiring')).map(el => rectRelativeTo(el, root, 5));
+    const protectedRects = [...protectedEls.map(el => rectRelativeTo(el, root, 12)), ...retiringRects];
     const placed = [];
-    const marginX = 16;
-    // Keep a larger bottom safety zone because the paper cards rotate/scale and
-    // their tape/hover motion extends beyond their untransformed box. This stops
-    // newly pinned notes from pushing another card underneath the hero border.
-    const marginTop = 28;
-    const marginBottom = 58;
-    const gap = 18;
-    const sample = cards[0];
-    const noteW = sample?.offsetWidth || 126;
-    const noteH = sample?.offsetHeight || 92;
-    const random = rng(`${pageSeed}|balanced-layout|${layoutSignature}`);
+    const marginX = 10;
+    const marginTop = 14;
+    const marginBottom = 18;
+    const random = rng(`${activeWallSeed()}|dense-layout|${Math.round(root.width)}x${Math.round(root.height)}`);
 
-    const fits = candidate => (
-      candidate.left >= marginX && candidate.top >= marginTop &&
-      candidate.right <= root.width - marginX && candidate.bottom <= root.height - marginBottom &&
-      !protectedRects.some(r => overlaps(candidate, r, 4)) &&
-      !placed.some(r => overlaps(candidate, r, gap))
-    );
-
-    // Preserve the current cards when a new public note arrives. Previously the
-    // whole wall was recomputed, which could make an older card suddenly 'sink'
-    // to the bottom edge. Existing notes now keep their slot unless the viewport
-    // changes or that slot becomes invalid.
-    cards.forEach((card, index) => {
-      const id = card.dataset.noteId || String(index);
-      const cached = wallPositionCache.get(id);
-      if (!cached) return;
-      const w = card.offsetWidth || noteW;
-      const h = card.offsetHeight || noteH;
-      const candidate = {left:cached.left, top:cached.top, right:cached.left+w, bottom:cached.top+h};
-      if (!fits(candidate)) {
-        wallPositionCache.delete(id);
-        return;
+    function intersectionRatio(a, b) {
+      const w = Math.max(0, Math.min(a.right,b.right) - Math.max(a.left,b.left));
+      const h = Math.max(0, Math.min(a.bottom,b.bottom) - Math.max(a.top,b.top));
+      if (!w || !h) return 0;
+      const area = w*h;
+      const minArea = Math.max(1, Math.min((a.right-a.left)*(a.bottom-a.top),(b.right-b.left)*(b.bottom-b.top)));
+      return area/minArea;
+    }
+    function blockedByProtected(candidate) {
+      return protectedRects.some(r => overlaps(candidate, r, 0));
+    }
+    function chooseCandidate(card, index) {
+      const w = card.offsetWidth || 100;
+      const h = card.offsetHeight || 76;
+      const maxX = Math.max(marginX, root.width - w - marginX);
+      const maxY = Math.max(marginTop, root.height - h - marginBottom);
+      const phases = [0.05, 0.14, 0.24, 0.34, 0.44];
+      let best = null;
+      let bestScore = Infinity;
+      for (const overlapLimit of phases) {
+        for (let attempt=0; attempt<220; attempt+=1) {
+          const left = marginX + random() * Math.max(1, maxX-marginX);
+          const top = marginTop + random() * Math.max(1, maxY-marginTop);
+          const candidate = {left,top,right:left+w,bottom:top+h};
+          if (blockedByProtected(candidate)) continue;
+          let maxOverlap = 0;
+          let totalOverlap = 0;
+          for (const other of placed) {
+            const ratio = intersectionRatio(candidate, other);
+            maxOverlap = Math.max(maxOverlap, ratio);
+            totalOverlap += ratio;
+          }
+          if (maxOverlap > overlapLimit) continue;
+          // Prefer open space, but slightly reward edge/corner placement so the
+          // field surrounds the protected headline instead of forming one blob.
+          const cx = left + w/2, cy = top + h/2;
+          const edge = Math.min(cx,root.width-cx,cy,root.height-cy);
+          const score = totalOverlap*100 + edge*.004 + random()*0.12;
+          if (score < bestScore) { best=candidate; bestScore=score; }
+        }
+        if (best) break;
       }
-      card.style.display = '';
-      card.style.setProperty('--note-x', `${Math.round(candidate.left)}px`);
-      card.style.setProperty('--note-y', `${Math.round(candidate.top)}px`);
-      card.style.setProperty('--note-z', String(card.classList.contains('is-new-note') ? 18 : 2 + (hash32(id) % 6)));
-      card.dataset.wallPlaced = '1';
-      placed.push(candidate);
-    });
-
-    // Build a restrained corkboard field. Fewer notes are shown, but every
-    // selected note must remain fully visible and clear of the hero controls.
-    const slots = [];
-    const stepX = noteW + gap;
-    const stepY = noteH + gap;
-    const xStart = Math.max(marginX, root.width * .27);
-    const xEnd = Math.max(xStart, root.width * .83 - noteW);
-    const yStart = Math.max(marginTop, root.height * .34);
-    const yEnd = Math.max(yStart, root.height - noteH - marginBottom);
-    for (let y = yStart; y <= yEnd; y += stepY) {
-      const rowSlots = [];
-      for (let x = xStart; x <= xEnd; x += stepX) {
-        const jitterX = (random() - .5) * 6;
-        const jitterY = (random() - .5) * 5;
-        const left = Math.max(marginX, x + jitterX);
-        const top = Math.max(marginTop, y + jitterY);
-        const candidate = { left, top, right:left + noteW, bottom:top + noteH };
-        if (!fits(candidate)) continue;
-        rowSlots.push(candidate);
-      }
-      rowSlots.sort(() => random() - .5);
-      slots.push(...rowSlots);
+      return best;
     }
 
     cards.forEach((card, index) => {
-      if (card.dataset.wallPlaced === '1') return;
       card.style.display = '';
-      let chosen = null;
-      while (slots.length && !chosen) {
-        const candidate = slots.shift();
-        if (!fits(candidate)) continue;
-        chosen = candidate;
-      }
       const id = card.dataset.noteId || String(index);
+      const chosen = chooseCandidate(card,index);
       if (!chosen) {
         card.style.display = 'none';
         wallPositionCache.delete(id);
@@ -384,46 +401,8 @@
       wallPositionCache.set(id,{left:chosen.left,top:chosen.top});
       card.style.setProperty('--note-x', `${Math.round(chosen.left)}px`);
       card.style.setProperty('--note-y', `${Math.round(chosen.top)}px`);
-      card.style.setProperty('--note-z', String(card.classList.contains('is-new-note') ? 18 : 2 + (hash32(id) % 6)));
-      card.dataset.wallPlaced = '1';
+      card.style.setProperty('--note-z', String(card.classList.contains('is-new-note') ? 22 : 3 + (hash32(`${activeWallSeed()}|${id}`) % 9)));
     });
-
-    cards.forEach(card => delete card.dataset.wallPlaced);
-
-    // If the normal pass is conservative, guarantee up to two visible real notes
-    // without ever crossing the safe bottom inset.
-    const minimumVisible = cards.length;
-    let visibleCount = cards.filter(card => card.style.display !== 'none').length;
-    if (visibleCount < minimumVisible) {
-      const hiddenCards = cards.filter(card => card.style.display === 'none');
-      const emergencyGap = 14;
-      const xMin = Math.max(marginX, root.width * .27);
-      const xMax = Math.max(xMin, root.width * .83 - noteW);
-      const yMin = Math.max(marginTop, root.height * .34);
-      const yMax = Math.max(yMin, root.height - noteH - marginBottom);
-      for (const card of hiddenCards) {
-        if (visibleCount >= minimumVisible) break;
-        let chosen = null;
-        outer: for (let y = yMax; y >= yMin; y -= 10) {
-          for (let x = xMin; x <= xMax; x += 10) {
-            const candidate = {left:x,top:y,right:x+noteW,bottom:y+noteH};
-            if (candidate.bottom > root.height - marginBottom) continue;
-            if (protectedRects.some(r => overlaps(candidate, r, 2))) continue;
-            if (placed.some(r => overlaps(candidate, r, emergencyGap))) continue;
-            chosen = candidate; break outer;
-          }
-        }
-        if (!chosen) continue;
-        const id = card.dataset.noteId || `fallback-${visibleCount}`;
-        card.style.display = '';
-        card.style.setProperty('--note-x', `${Math.round(chosen.left)}px`);
-        card.style.setProperty('--note-y', `${Math.round(chosen.top)}px`);
-        card.style.setProperty('--note-z', String(5 + visibleCount));
-        wallPositionCache.set(id,{left:chosen.left,top:chosen.top});
-        placed.push(chosen);
-        visibleCount += 1;
-      }
-    }
   }
 
   function renderScatter() {
@@ -436,7 +415,7 @@
       if (selectedIds.has(id)) return;
       card.classList.add('is-retiring');
       card.setAttribute('aria-hidden', 'true');
-      window.setTimeout(() => card.remove(), 620);
+      window.setTimeout(() => card.remove(), 820);
     });
 
     selected.forEach((note, index) => {
@@ -719,6 +698,64 @@
     }
   });
 
+  function reseedWall() {
+    if (document.hidden || !preview || preview.hidden || dialog?.open || detailDialog?.open) return;
+    // Never move a note while somebody is reading it. If the 18s timer fires
+    // during hover/focus, remember the reseed and run it shortly after exit.
+    if (wallHovering || preview.matches(':focus-within')) {
+      wallReseedPending = true;
+      return;
+    }
+    wallReseedPending = false;
+    const cap = wallCap();
+    const available = new Set(notes.map(note => note.id));
+    // Keep ~60% stable and rotate ~40% of the visible wall. On wide desktop
+    // this is 10 fixed slots: 6 retained + 4 fresh notes from the full pool.
+    const replaceCount = Math.max(1, Math.round(cap * .40));
+    const keepCount = Math.max(1, cap - replaceCount);
+    const keep = wallSelectionIds.filter(id => available.has(id))
+      .sort((a,b)=>hash32(`${activeWallSeed()}|keep|${a}`)-hash32(`${activeWallSeed()}|keep|${b}`))
+      .slice(0, keepCount);
+    wallSeedCycle += 1;
+    wallSelectionIds = keep;
+    wallPositionCache.clear();
+    wallLayoutSignature = '';
+    preview.classList.add('is-reseeding');
+    renderScatter();
+    window.setTimeout(() => preview?.classList.remove('is-reseeding'), 1050);
+  }
+
+  function scheduleWallReseed() {
+    clearInterval(wallReseedTimer);
+    wallReseedTimer = window.setInterval(reseedWall, 18000);
+  }
+
+  function releaseDeferredReseed() {
+    if (wallHovering || preview?.matches(':focus-within') || !wallReseedPending) return;
+    wallReseedPending = false;
+    window.setTimeout(() => {
+      if (!wallHovering && !preview?.matches(':focus-within')) reseedWall();
+      else wallReseedPending = true;
+    }, 320);
+  }
+
+  preview?.addEventListener('pointerover', event => {
+    if (event.target.closest('.public-lab-note.is-scatter')) wallHovering = true;
+  });
+  preview?.addEventListener('pointerout', event => {
+    const card = event.target.closest('.public-lab-note.is-scatter');
+    if (!card || card.contains(event.relatedTarget)) return;
+    wallHovering = !!preview.querySelector('.public-lab-note.is-scatter:hover');
+    if (!wallHovering) releaseDeferredReseed();
+  });
+  preview?.addEventListener('focusin', () => { wallHovering = true; });
+  preview?.addEventListener('focusout', () => {
+    window.setTimeout(() => {
+      wallHovering = !!preview?.matches(':focus-within');
+      if (!wallHovering) releaseDeferredReseed();
+    }, 0);
+  });
+
   function schedulePolling() {
     clearInterval(pollTimer);
     pollTimer = window.setInterval(() => {
@@ -738,6 +775,7 @@
   // Full pool only once per page load so every refresh can surface a different mix of old/new notes.
   fetchNotes({ quiet:true, full:true });
   schedulePolling();
+  scheduleWallReseed();
   if (location.hash === '#lab-notes') {
     setTimeout(openDialog, 220);
   }

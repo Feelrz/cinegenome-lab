@@ -453,3 +453,30 @@ body.filmprint-mode .public-lab-note.is-scatter:hover,body.filmprint-mode .publi
   from{opacity:var(--note-age,1);filter:none}
   to{opacity:0;filter:blur(.7px);transform:translate3d(var(--note-x,0),calc(var(--note-y,0) - 18px),0) rotate(0deg) scale(.95)}
 }
+
+
+/* ===== FINAL DENSE STICKY FIELD / 15S LIVING SEED ===== */
+@media(min-width:761px){.hero-panel{min-height:478px}}
+@media(min-width:761px){
+  .public-lab-note.is-scatter{
+    width:108px;min-height:78px;max-height:96px;padding:11px 10px 9px;
+    transition:transform 980ms cubic-bezier(.18,.72,.2,1),opacity 720ms ease,box-shadow 320ms ease,filter 320ms ease;
+    will-change:transform,opacity
+  }
+  .public-lab-note.is-scatter p{font-size:10.2px;line-height:1.04;margin:6px 0;-webkit-line-clamp:3}
+  .public-lab-note.is-scatter .public-lab-note-meta{font-size:5.8px}
+  .public-lab-note.is-scatter .public-lab-note-author{font-size:6.6px}
+  .lab-note-wall.is-reseeding .public-lab-note.is-scatter{filter:saturate(.94) brightness(.985)}
+  .public-lab-note.is-retiring{animation:labNoteDenseRetire .78s cubic-bezier(.2,.66,.2,1) both}
+}
+@keyframes labNoteDenseRetire{
+  from{opacity:var(--note-age,1);filter:none}
+  to{opacity:0;filter:blur(.6px);transform:translate3d(var(--note-x,0),calc(var(--note-y,0) - 12px),0) rotate(0deg) scale(.965)}
+}
+@media(max-width:760px){
+  .lab-note-wall{scroll-snap-type:x proximity}
+  .public-lab-note.is-scatter{scroll-snap-align:start}
+}
+@media(prefers-reduced-motion:reduce){
+  .public-lab-note.is-scatter{transition:none!important}
+}
